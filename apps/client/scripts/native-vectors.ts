@@ -2,6 +2,7 @@
 // --write refreshes committed Swift fixtures; default verifies native-generated
 // ciphertext using the ACTUAL web implementation (cross-client reverse leg).
 import assert from 'node:assert/strict';
+import { verifyRichFixture } from './native-rich-vectors';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { wordlist } from '@scure/bip39/wordlists/english.js';
 import { ed25519 } from '@noble/curves/ed25519.js';
@@ -44,3 +45,5 @@ if(process.argv.includes('--write')) {
  }
  console.log('Frozen native protocol/key/signature/wordlist fixture verified.');
 }
+
+verifyRichFixture(process.argv.includes('--write'), id, process.env.CHAPTER_NATIVE_OUTPUT);

@@ -5,7 +5,7 @@ import CommonCrypto
 import Sodium
 
 public enum ChapterError: Error, LocalizedError {
-    case invalidPhrase, invalidURL, authentication, corruptData, invalidClock, unsupported, storage, http(Int)
+    case invalidPhrase, invalidURL, authentication, corruptData, invalidClock, unsupported, storage, conflict, http(Int)
     public var errorDescription: String? {
         switch self {
         case .invalidPhrase: return "Enter a valid 12-word English recovery phrase."
@@ -14,6 +14,7 @@ public enum ChapterError: Error, LocalizedError {
         case .corruptData: return "Data could not be authenticated. Nothing was overwritten."
         case .invalidClock: return "An invalid or exhausted sync clock was rejected. Nothing was overwritten."
         case .unsupported: return "This content or server version is not supported by this preview."
+        case .conflict: return "This entry changed while you were editing. Your draft is still here; copy it or reopen the current entry before retrying."
         case .storage: return "Secure local storage failed. Ensure a device passcode is set. Your changes have not been acknowledged as saved."
         case .http(let code): return "Server returned HTTP \(code). \(code == 403 ? "The vault may need operator approval." : code == 429 ? "Wait before retrying." : "")"
         }

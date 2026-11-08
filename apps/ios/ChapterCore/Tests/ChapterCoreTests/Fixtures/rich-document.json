@@ -1,0 +1,692 @@
+{
+  "original": {
+    "type": "doc",
+    "futureRoot": {
+      "keep": [
+        "all",
+        1,
+        true
+      ]
+    },
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2,
+          "future": "keep"
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "Public heading",
+            "marks": [
+              {
+                "type": "bold",
+                "attrs": {
+                  "future": 7
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Hello ",
+            "marks": [
+              {
+                "type": "bold"
+              },
+              {
+                "type": "link",
+                "attrs": {
+                  "href": "https://example.invalid",
+                  "future": "keep"
+                }
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": "world 👩🏽‍💻",
+            "marks": [
+              {
+                "type": "italic"
+              },
+              {
+                "type": "underline"
+              },
+              {
+                "type": "strike"
+              },
+              {
+                "type": "code"
+              }
+            ]
+          },
+          {
+            "type": "inlineMath",
+            "attrs": {
+              "latex": "x^2"
+            }
+          },
+          {
+            "type": "entryLink",
+            "attrs": {
+              "entryId": "entry-target",
+              "label": "Related"
+            }
+          },
+          {
+            "type": "hardBreak"
+          }
+        ]
+      },
+      {
+        "type": "taskList",
+        "content": [
+          {
+            "type": "taskItem",
+            "attrs": {
+              "checked": false,
+              "future": {
+                "keep": true
+              }
+            },
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Task"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "table",
+        "attrs": {
+          "future": 1
+        },
+        "content": [
+          {
+            "type": "tableRow",
+            "content": [
+              {
+                "type": "tableHeader",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": [
+                    160
+                  ]
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "Header"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 2,
+                  "rowspan": 1,
+                  "colwidth": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "Cell"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "mediaAttachment",
+        "attrs": {
+          "id": "attachment",
+          "mime": "image/png",
+          "bytes": 10,
+          "name": "Public photo",
+          "kind": "image",
+          "transcript": "Public transcript"
+        }
+      },
+      {
+        "type": "mediaGallery",
+        "attrs": {
+          "images": [
+            {
+              "id": "gallery",
+              "mime": "image/png",
+              "bytes": 10,
+              "name": "Public photo"
+            }
+          ]
+        }
+      },
+      {
+        "type": "blockMath",
+        "attrs": {
+          "latex": "\\frac{a}{b}"
+        }
+      },
+      {
+        "type": "blockquote",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Quotation"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "codeBlock",
+        "attrs": {
+          "language": "swift"
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "let answer = 42"
+          }
+        ]
+      },
+      {
+        "type": "bulletList",
+        "content": [
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Bullet"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "orderedList",
+        "attrs": {
+          "start": 3
+        },
+        "content": [
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Numbered"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "locationMap",
+        "attrs": {
+          "from": {
+            "label": "Home"
+          },
+          "to": {
+            "label": "Park"
+          },
+          "map": {
+            "id": "map",
+            "mime": "image/png",
+            "bytes": 10,
+            "name": "Public photo"
+          },
+          "photo": {
+            "id": "photo",
+            "mime": "image/png",
+            "bytes": 10,
+            "name": "Public photo"
+          },
+          "future": [
+            1,
+            2
+          ]
+        }
+      },
+      {
+        "type": "videoInterview",
+        "attrs": {
+          "typeName": "Public interview",
+          "cards": [
+            {
+              "q": "Question?",
+              "transcript": "Answer",
+              "clip": {
+                "id": "clip",
+                "mime": "image/png",
+                "bytes": 10,
+                "name": "Public photo"
+              }
+            }
+          ],
+          "film": {
+            "id": "film",
+            "mime": "image/png",
+            "bytes": 10,
+            "name": "Public photo"
+          }
+        }
+      },
+      {
+        "type": "futureNode",
+        "attrs": {
+          "secretFormat": {
+            "keep": [
+              1,
+              "two",
+              false
+            ]
+          }
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "Opaque future text",
+            "marks": [
+              {
+                "type": "futureMark",
+                "attrs": {
+                  "keep": true
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "edited": {
+    "type": "doc",
+    "futureRoot": {
+      "keep": [
+        "all",
+        1,
+        true
+      ]
+    },
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2,
+          "future": "keep"
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "Edited 📝 heading",
+            "marks": [
+              {
+                "type": "bold",
+                "attrs": {
+                  "future": 7
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Hello ",
+            "marks": [
+              {
+                "type": "bold"
+              },
+              {
+                "type": "link",
+                "attrs": {
+                  "href": "https://example.invalid",
+                  "future": "keep"
+                }
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": "world 👩🏽‍💻",
+            "marks": [
+              {
+                "type": "italic"
+              },
+              {
+                "type": "underline"
+              },
+              {
+                "type": "strike"
+              },
+              {
+                "type": "code"
+              }
+            ]
+          },
+          {
+            "type": "inlineMath",
+            "attrs": {
+              "latex": "x^2"
+            }
+          },
+          {
+            "type": "entryLink",
+            "attrs": {
+              "entryId": "entry-target",
+              "label": "Related"
+            }
+          },
+          {
+            "type": "hardBreak"
+          }
+        ]
+      },
+      {
+        "type": "taskList",
+        "content": [
+          {
+            "type": "taskItem",
+            "attrs": {
+              "checked": true,
+              "future": {
+                "keep": true
+              }
+            },
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Task"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "table",
+        "attrs": {
+          "future": 1
+        },
+        "content": [
+          {
+            "type": "tableRow",
+            "content": [
+              {
+                "type": "tableHeader",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": [
+                    160
+                  ]
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "Header"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 2,
+                  "rowspan": 1,
+                  "colwidth": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "Cell"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "mediaAttachment",
+        "attrs": {
+          "id": "attachment",
+          "mime": "image/png",
+          "bytes": 10,
+          "name": "Public photo",
+          "kind": "image",
+          "transcript": "Public transcript"
+        }
+      },
+      {
+        "type": "mediaGallery",
+        "attrs": {
+          "images": [
+            {
+              "id": "gallery",
+              "mime": "image/png",
+              "bytes": 10,
+              "name": "Public photo"
+            }
+          ]
+        }
+      },
+      {
+        "type": "blockMath",
+        "attrs": {
+          "latex": "\\frac{a}{b}"
+        }
+      },
+      {
+        "type": "blockquote",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Quotation"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "codeBlock",
+        "attrs": {
+          "language": "swift"
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "let answer = 42"
+          }
+        ]
+      },
+      {
+        "type": "bulletList",
+        "content": [
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Bullet"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "orderedList",
+        "attrs": {
+          "start": 3
+        },
+        "content": [
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Numbered"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "locationMap",
+        "attrs": {
+          "from": {
+            "label": "Home"
+          },
+          "to": {
+            "label": "Park"
+          },
+          "map": {
+            "id": "map",
+            "mime": "image/png",
+            "bytes": 10,
+            "name": "Public photo"
+          },
+          "photo": {
+            "id": "photo",
+            "mime": "image/png",
+            "bytes": 10,
+            "name": "Public photo"
+          },
+          "future": [
+            1,
+            2
+          ]
+        }
+      },
+      {
+        "type": "videoInterview",
+        "attrs": {
+          "typeName": "Public interview",
+          "cards": [
+            {
+              "q": "Question?",
+              "transcript": "Answer",
+              "clip": {
+                "id": "clip",
+                "mime": "image/png",
+                "bytes": 10,
+                "name": "Public photo"
+              }
+            }
+          ],
+          "film": {
+            "id": "film",
+            "mime": "image/png",
+            "bytes": 10,
+            "name": "Public photo"
+          }
+        }
+      },
+      {
+        "type": "futureNode",
+        "attrs": {
+          "secretFormat": {
+            "keep": [
+              1,
+              "two",
+              false
+            ]
+          }
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "Opaque future text",
+            "marks": [
+              {
+                "type": "futureMark",
+                "attrs": {
+                  "keep": true
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "originalPreview": "Public heading\nHello world 👩🏽‍💻x^2🔗 Related\nTask\nHeader\nCell\n🖼 image Public photo\nPublic transcript\n🖼 1 photo\n\\frac{a}{b}\nQuotation\nlet answer = 42\nBullet\nNumbered\n📍 Home → Park\n🎬 Public interview\nQuestion?\nAnswer\nOpaque future text",
+  "editedPreview": "Edited 📝 heading\nHello world 👩🏽‍💻x^2🔗 Related\nTask\nHeader\nCell\n🖼 image Public photo\nPublic transcript\n🖼 1 photo\n\\frac{a}{b}\nQuotation\nlet answer = 42\nBullet\nNumbered\n📍 Home → Park\n🎬 Public interview\nQuestion?\nAnswer\nOpaque future text",
+  "mediaIds": [
+    "attachment",
+    "gallery",
+    "map",
+    "photo",
+    "clip",
+    "film"
+  ]
+}

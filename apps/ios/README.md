@@ -46,9 +46,12 @@ A Linux `swiftc -frontend -parse` check is syntax only, not an iOS build.
   entry/day counts. No server plaintext search/index.
 - Create notebooks, create/edit native plain-text entries with dates/labels,
   confirmation-gated entry deletion, encrypted durable outbox and real push/pull.
-- Every editor change saves an encrypted draft. Another client's rich document
-  is **read-only**; the strict canonical-document guard prevents flattening nodes,
-  attributes, marks or attachments just because the native marker survived sync.
+- Plain-entry changes save immediately. Rich documents now have native structured
+  viewing, individual formatted-run editing and task toggles. Edits patch the
+  original JSON; unknown nodes/attrs/marks are retained, not round-tripped through
+  plain text/HTML. Rich run drafts save encrypted on every change, resume from
+  Settings after locking, and apply explicitly with stale-document rejection.
+  The strict canonical guard still prevents using the plain editor on rich data.
 - Recover losing unsynced edits when a newer remote record wins. Restore creates
   a separate entry. Equal-clock rejected writes remain pending (not falsely saved
   remotely). Acknowledgments never clear edits made while a request was in flight.
@@ -87,15 +90,17 @@ full version negotiation and service discovery remain future work.
 
 ## Known boundaries — full project remains in progress
 
-Not yet implemented: full native rich editor/rendering, Markdown/math/backlinks,
+Not yet implemented: full rich structural/formatting editor, exact math/custom-node/
+merged-table rendering, Markdown/backlink navigation,
 media capture/upload/offline media cache, templates/interview-type management,
 AI Q&A/writing/interviews, video interviews/film rendering, transcription,
 Day One import/journal export, interactive location insertion, theme/locale/RTL
 parity, badges/streak/heatmap parity, reminder UI/scheduling, phrase generation
 and rotation, WebAuthn/PRF unlock, vault/journal lifecycle controls and operator
 administration/backups/update UI. Background sync, retry scheduling and detailed
-network diagnostics also remain. Existing rich entries are shown via their text
-projection plus explicit attachment previews, not full visual fidelity.
+network diagnostics also remain. Rich viewing renders marks, headings, lists/tasks, quotes/code and approximate
+tables/cards natively. Math shows LaTeX source, unsupported nodes are labeled and
+kept intact, and attachments remain explicit previews. This is NOT full fidelity.
 
 No promise of full-feature reliability, background 30-second sync, stolen-device
 immunity, server rollback protection or App Store readiness. No Apple credentials,
@@ -149,3 +154,21 @@ wrong key/id/nonce framing/tampering, encrypted snapshot recovery/fail-closed
 behavior, server isolation, unknown fields, outbox acknowledgments, conflict copies
 and all media-bearing document nodes. Tests are not a substitute for a live stack
 or physical iOS device.
+
+## Local snapshot version 2: encrypted rich drafts
+
+The local-only payload now uses version 2 so older preview binaries reject it
+instead of silently dropping new draft fields. Current code reads version 1,
+upgrades only in memory, and writes version 2 on the next successful atomic save.
+There is no rekey, AAD/cipher change, browser migration or server wire change.
+Unsupported/corrupt versions still fail closed. Do not downgrade a native preview
+while it holds unsynced entries or drafts. Recover pending edits before uninstalling;
+the recovery phrase cannot recover unsynced device-only data after its key is lost.
+
+A Debug-only `--chapter-rich-fixture` launches public sample content in an isolated
+temporary encrypted store under an intentionally public fixture key. It has no
+relay/identity and cannot unlock a real vault. UI smoke tests use this to exercise
+actual rendering, encrypted task/run writes and draft save—not to claim production
+Keychain or real-server integration was tested. This mode is absent from Release.
+
+See [per-feature test status](../../docs/CHAPTER-FEATURE-STATUS.md).

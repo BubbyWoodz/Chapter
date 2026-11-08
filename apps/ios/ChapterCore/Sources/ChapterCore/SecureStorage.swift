@@ -64,8 +64,10 @@ public final class EncryptedSnapshotStore {
         let sealed = try Data(contentsOf: file)
         do {
             let plain = try AES.GCM.open(AES.GCM.SealedBox(combined: sealed), using: key, authenticating: aad)
-            let value = try JSONDecoder().decode(VaultSnapshot.self, from: plain)
-            guard value.version == 1 else { throw ChapterError.unsupported }; return value
+            var value = try JSONDecoder().decode(VaultSnapshot.self, from: plain)
+            guard value.version == 1 || value.version == 2 else { throw ChapterError.unsupported }
+            value.version = 2 // Read v1 without rewriting; upgrade atomically on the next save.
+            return value
         } catch { throw ChapterError.corruptData }
     }
     public func save(_ value: VaultSnapshot) throws {

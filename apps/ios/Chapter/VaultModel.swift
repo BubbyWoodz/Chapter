@@ -21,6 +21,19 @@ import ChapterCore
             try? FileManager.default.removeItem(at: root.appendingPathComponent("Playback", isDirectory: true))
         }
     }
+    #if DEBUG
+    func loadPublicRichFixture() throws {
+        guard ProcessInfo.processInfo.arguments.contains("--chapter-rich-fixture"), store == nil else { return }
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("ChapterPublicFixture-" + UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let disk = EncryptedSnapshotStore(directory: directory, namespace: "public-fixture-only", key: SymmetricKey(data: Data(repeating: 7, count: 32)))
+        var value = VaultSnapshot()
+        value.records = [VaultRecord(id: "public-rich-fixture", clock: 1, body: ["title": .string("Public rich fixture"), "bodyJson": .string(PublicRichFixture.json), "bodyText": .string(try RichDocument(json: PublicRichFixture.json).plainText)])]
+        try disk.save(value); store = disk; snapshot = value; unlocked = true
+        // Deliberately no identity, relay or fake sync/auth result. Tests exercise
+        // real encrypted local editing, never production Keychain/server auth.
+    }
+    #endif
     var entries: [VaultRecord] { snapshot.records.filter { $0.kind == "entry" && !$0.deleted }.sorted { $0.date > $1.date } }
     var journals: [VaultRecord] { snapshot.records.filter { $0.kind == "journal" && !$0.deleted }.sorted { $0.title < $1.title } }
     var templates: [VaultRecord] { snapshot.records.filter { $0.kind == "template" && !$0.deleted } }
@@ -113,6 +126,24 @@ import ChapterCore
         }
         if let index = next.records.firstIndex(where: { $0.id == id }) { next.records[index] = record } else { next.records.append(record) }
         try commit(next); return id
+    }
+    func saveRichDraft(_ draft: RichDraft) throws {
+        var next = snapshot; var drafts = next.richDrafts ?? []
+        if let i = drafts.firstIndex(where: { $0.id == draft.id }) { drafts[i] = draft } else { drafts.append(draft) }
+        next.richDrafts = drafts; try commit(next)
+    }
+    func applyRichDraft(_ draft: RichDraft) throws {
+        var next = snapshot
+        guard let i = next.records.firstIndex(where: { $0.id == draft.entryID }) else { throw ChapterError.conflict }
+        next.records[i] = try next.records[i].editingRichDocument(expected: draft.expectedDocument) { try $0.replaceText(at: draft.path, with: draft.text) }
+        next.richDrafts = (next.richDrafts ?? []).filter { $0.id != draft.id }
+        try commit(next)
+    }
+    func toggleRichTask(_ entry: VaultRecord, path: [Int]) throws {
+        var next = snapshot
+        guard let raw = entry.body["bodyJson"]?.string, let i = next.records.firstIndex(where: { $0.id == entry.id }) else { throw ChapterError.conflict }
+        next.records[i] = try next.records[i].editingRichDocument(expected: raw) { try $0.toggleTask(at: path) }
+        try commit(next)
     }
     func createJournal(name: String) throws {
         let clock = try nextClock(); let id = UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()

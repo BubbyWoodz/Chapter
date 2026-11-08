@@ -165,3 +165,26 @@ captures; the original strict audits still fail the workflow on every finding.
 No rich-document/media feature implementation was started while this verification
 gate remained unresolved. The correct next step is evidence-driven localization,
 not repeated unverified styling edits or ignoring a category to make CI green.
+
+## Independent rich-document vertical slice (verification in progress)
+
+The onboarding audit remains required, but no longer blocks independent feature
+implementation indefinitely. Native structured rendering and real individual
+text-run/task editing now patch the original ProseMirror JSON, preserving every
+unknown field/mark/node and existing media reference. Unsupported nodes remain
+opaque; formulas show source and tables/custom cards have explicit fidelity limits.
+No HTML/Markdown flattening, invented cipher or protocol change was introduced.
+
+Rich run drafts autosave inside the encrypted local snapshot, survive lock through
+Settings, and refuse stale/deleted-record application. Local payload v2 prevents
+older preview binaries silently dropping drafts; current code reads v1 without
+rewriting/rekeying and upgrades only on the next atomic save. Unsupported versions
+fail closed. This local migration does not touch upstream browser/relay formats.
+
+Local actual Foundation-source harness, web build and all 25 regressions pass.
+Seven new native tests, Apple→web encrypted rich golden checks and a genuine app
+UI edit/task smoke test are added; their actual Apple CI result must be checked
+before calling this slice verified on iOS. The Debug public encrypted fixture is
+isolated and has no real identity/relay; it is not production authentication proof.
+Encrypted media upload/capture and a full structural editor remain next, not done.
+See [the exact per-feature remaining matrix](CHAPTER-FEATURE-STATUS.md).

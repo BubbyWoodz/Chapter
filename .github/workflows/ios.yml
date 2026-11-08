@@ -5,7 +5,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: native-ios-${{ github.head_ref || github.ref }}
+  group: native-ios-${{ github.head_ref || github.ref }}-${{ github.sha }}
   cancel-in-progress: true
 jobs:
   native:

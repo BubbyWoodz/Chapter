@@ -68,6 +68,23 @@ final class ChapterUITests: XCTestCase {
         }
         XCTAssertTrue(element.exists && element.isHittable, "Required control must be reachable by scrolling")
     }
+    func testNativeRichRenderingEditingAndTaskPersistence() throws {
+        let app = XCUIApplication(); app.launchArguments = ["--chapter-rich-fixture"]; app.launch()
+        let entry = app.staticTexts["Public rich fixture"]
+        XCTAssertTrue(entry.waitForExistence(timeout: 10)); entry.tap()
+        XCTAssertTrue(app.staticTexts["Public heading"].waitForExistence(timeout: 5))
+        let task = app.buttons["Mark task complete"]; reveal(task, in: app); task.tap()
+        XCTAssertTrue(app.buttons["Mark task incomplete"].waitForExistence(timeout: 5))
+        attach(app, name: "Chapter genuine native rich document and persisted task")
+        app.buttons["Edit"].tap(); app.staticTexts["Public heading"].tap()
+        let editor = app.textViews["Formatted text run"]
+        XCTAssertTrue(editor.waitForExistence(timeout: 5)); editor.tap(); editor.typeText(" FIELD-EDIT-PROBE")
+        XCTAssertTrue(app.staticTexts["Draft saved encrypted on this device. Tap Save to update the entry."].waitForExistence(timeout: 5))
+        app.buttons["Save"].tap(); app.buttons["Done"].tap()
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "FIELD-EDIT-PROBE")).firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["Mark task incomplete"].exists)
+        attach(app, name: "Chapter actual native formatted-run edit")
+    }
     func testHTTPIsRejectedBeforeAnyAuthenticationOrVaultCreation() throws {
         let app = XCUIApplication(); app.launch()
         let server = app.textFields["connection.server"]

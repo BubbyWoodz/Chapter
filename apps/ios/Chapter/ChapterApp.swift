@@ -13,6 +13,11 @@ import QuickLook
                 if phase != .active { Color(uiColor: .systemBackground).ignoresSafeArea().overlay(Text("Chapter").font(.title)) }
             }
             .environmentObject(model)
+            .onAppear {
+                #if DEBUG
+                if ProcessInfo.processInfo.arguments.contains("--chapter-rich-fixture") { do { try model.loadPublicRichFixture() } catch { model.message = error.localizedDescription } }
+                #endif
+            }
             .onChange(of: phase) { _, value in if value == .background { model.lock() } }
             .privacySensitive()
         }
@@ -50,7 +55,7 @@ struct ConnectView: View {
                         .disabled(model.connecting).accessibilityIdentifier("connection.unlock")
                 } header: { Text("Unlock vault").foregroundStyle(Color.primary) }
                 if let message = model.message { Section { Text(message).accessibilityLabel("Connection status: \(message)").accessibilityIdentifier("connection.status") } }
-                Section { Text("This is an early native client, not full feature parity yet. Existing rich entries are read-only so this preview cannot flatten them. Use the web client for recovery-phrase creation/rotation and advanced features.") } header: { Text("Native preview").foregroundStyle(Color.primary) }
+                Section { Text("This is an early native client, not full feature parity yet. Rich edits preserve the original document; the complete editor and media capture/upload remain in development. Use the web client for recovery-phrase creation/rotation and advanced features.") } header: { Text("Native preview").foregroundStyle(Color.primary) }
             }.navigationTitle("Chapter").scrollDismissesKeyboard(.interactively)
         }
     }
@@ -117,7 +122,9 @@ struct EntryDetail: View {
                     VStack(alignment: .leading, spacing: 16) {
                         Text(entry.title).font(.largeTitle).accessibilityAddTraits(.isHeader)
                         Text(entry.date, style: .date).foregroundStyle(.secondary)
-                        Text(entry.text).textSelection(.enabled)
+                        if let raw = entry.body["bodyJson"]?.string, let document = try? RichDocument(json: raw) {
+                            RichDocumentView(entry: entry, document: document)
+                        } else { Text(entry.text).textSelection(.enabled) }
                         let labels = entry.labels
                         if !labels.isEmpty { Text(labels.joined(separator: " · ")).font(.caption) }
                         ForEach(entry.mediaReferences) { media in
@@ -134,14 +141,17 @@ struct EntryDetail: View {
                             }.disabled(loadingMedia != nil)
                         }
                         if let mediaError { Text(mediaError).font(.footnote).foregroundStyle(.red) }
-                        if !entry.editablePlainText { Text("Read-only preview: rich document and attachments remain intact in encrypted storage. Full native rich rendering/editing is still in development.").font(.footnote).foregroundStyle(.secondary) }
+                        if !entry.editablePlainText { Text("Rich structure is preserved. Native editing currently changes individual text runs and task state; use the web app for structural or formatting changes.").font(.footnote).foregroundStyle(.secondary) }
                     }.padding().frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .toolbar {
-                    if entry.editablePlainText { Button("Edit") { editing = true } }
+                    if entry.editablePlainText || (entry.body["bodyJson"]?.string.flatMap { try? RichDocument(json: $0) } != nil) { Button("Edit") { editing = true } }
                     Button(role: .destructive) { deleting = true } label: { Label("Delete entry", systemImage: "trash") }
                 }
-                .sheet(isPresented: $editing) { EntryEditor(existing: entry, journal: entry.journalID) }
+                .sheet(isPresented: $editing) {
+                    if entry.editablePlainText { EntryEditor(existing: entry, journal: entry.journalID) }
+                    else if let raw = entry.body["bodyJson"]?.string, let document = try? RichDocument(json: raw) { RichEntryEditor(entry: entry, document: document) }
+                }
                 .confirmationDialog("Delete this entry on all synced devices?", isPresented: $deleting, titleVisibility: .visible) {
                     Button("Delete entry", role: .destructive) { do { try model.deleteEntry(entry); dismiss() } catch { model.message = error.localizedDescription } }
                 }
@@ -248,13 +258,20 @@ struct SettingsView: View {
                         }
                     }
                 }
+                if let drafts = model.snapshot.richDrafts, !drafts.isEmpty {
+                    Section("Encrypted rich-text drafts") {
+                        ForEach(drafts) { draft in
+                            NavigationLink { RichDraftEditor(draft: draft) } label: { Text(draft.text.isEmpty ? "Empty text-run draft" : draft.text).lineLimit(2) }
+                        }
+                    }
+                }
                 Section("Privacy") {
                     Text("No analytics, ads, cloud account, remote previews or automatic AI requests. Offline records are AES-GCM encrypted with a device-only Keychain key; sync uses the existing XChaCha20 vault protocol. Recovery phrase and sessions are memory-only.")
                     Text("The app locks on background. The phrase is required again to unlock; local-key access may request device authentication. Unsynced drafts remain encrypted on this device.")
                     Button("Lock vault", role: .destructive) { model.lock() }
                 }
                 Section("Not yet implemented") {
-                    Text("Native rich editing/rendering, media capture/upload and unsupported playback codecs, templates UI, interviews/AI/transcription, import/export, maps, themes/localization, badges, reminders, vault deletion/rotation and operator tools. The web app remains available for these. This preview is not full parity or an independently audited secure product.")
+                    Text("Full rich formatting/structural editing and exact custom-node/math/table rendering, media capture/upload and unsupported playback codecs, templates UI, interviews/AI/transcription, import/export, maps, themes/localization, badges, reminders, vault deletion/rotation and operator tools. The web app remains available for these. This preview is not full parity or an independently audited secure product.")
                 }
                 Section("Open source") { Link("Source and AGPL-3.0 license", destination: URL(string: "https://github.com/BubbyWoodz/Chapter")!) }
             }.navigationTitle("Settings")
