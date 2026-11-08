@@ -74,7 +74,7 @@ final class RichDocumentTests: XCTestCase {
         var old = try JSONDecoder().decode(VaultSnapshot.self, from: Data(#"{"version":1,"records":[],"cursor":9,"conflicts":[]}"#.utf8))
         XCTAssertNil(old.richDrafts); try disk.save(old)
         let originalBytes = try Data(contentsOf: dir.appendingPathComponent("rich-test.vault"))
-        var migrated = try disk.load(); XCTAssertEqual(migrated.version, 2); XCTAssertEqual(migrated.cursor, 9)
+        var migrated = try disk.load(); XCTAssertEqual(migrated.version, 3); XCTAssertEqual(migrated.cursor, 9)
         XCTAssertEqual(try Data(contentsOf: dir.appendingPathComponent("rich-test.vault")), originalBytes, "Loading must not overwrite the old snapshot")
         let draft = RichDraft(entryID: "entry", path: [0,0], expectedDocument: "original", text: "PRIVATE UNSENT DRAFT")
         migrated.richDrafts = [draft]; try disk.save(migrated)

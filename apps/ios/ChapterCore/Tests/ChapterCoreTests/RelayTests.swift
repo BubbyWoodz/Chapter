@@ -27,7 +27,7 @@ final class RelayTests: XCTestCase {
         let config = URLSessionConfiguration.ephemeral; config.protocolClasses = [FixtureProtocol.self]
         return Relay(address: try ServerAddress("https://fixture.invalid/prefix"), configuration: config)
     }
-    private func requestJSON(_ request: URLRequest) throws -> [String: String] {
+    private func requestBody(_ request: URLRequest) throws -> Data {
         var body = request.httpBody ?? Data()
         if body.isEmpty, let stream = request.httpBodyStream {
             stream.open(); defer { stream.close() }
@@ -38,7 +38,10 @@ final class RelayTests: XCTestCase {
                 if count == 0 { break }; body.append(contentsOf: buffer.prefix(count))
             }
         }
-        return try JSONDecoder().decode([String: String].self, from: body)
+        return body
+    }
+    private func requestJSON(_ request: URLRequest) throws -> [String: String] {
+        try JSONDecoder().decode([String: String].self, from: requestBody(request))
     }
     func testActualRegistrationAndRawChallengeTranscriptWithFutureResponseFields() async throws {
         let id = try VaultIdentity(seed: RecoveryPhrase.seed("legal winner thank year wave sausage worth useful legal winner thank yellow"))
@@ -116,4 +119,73 @@ final class RelayTests: XCTestCase {
         }
     }
 
+    func testMediaRawCipherUploadFailureRetryAndLostCompleteAcknowledgment() async throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let source = dir.appendingPathComponent("selected"), key = Data(repeating: 3, count: 32), id = "0123456789abcdef"
+        try Data(repeating: 77, count: MediaLimits.chunkBytes + 17).write(to: source)
+        let files = try EncryptedMediaFiles(directory: dir, namespace: "retry")
+        let upload = try files.stage(source: source, id: id, name: "PRIVATE-FILENAME", mime: "image/png", key: key)
+        var chunks: [Int: Data] = [:], failedOnce = false, finalized = false, puts = 0, completions = 0
+        FixtureProtocol.install { request in
+            XCTAssertEqual(request.url?.host, "fixture.invalid")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer " + String(repeating: "A", count: 43))
+            let path = request.url!.path
+            let json: [String: Any]
+            if request.httpMethod == "GET", !path.contains("/chunks/") {
+                if !finalized { return (404, Data()) }
+                json = ["media_id":id,"chunks":upload.chunks,"bytes":upload.cipherBytes]
+            } else if request.httpMethod == "PUT" {
+                puts += 1
+                XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/octet-stream")
+                let index = try XCTUnwrap(Int(request.url!.lastPathComponent)), data = try self.requestBody(request)
+                XCTAssertEqual(data, try files.read(id: id, index: index))
+                XCTAssertNil(data.range(of: Data(upload.name.utf8)))
+                if index == 1, !failedOnce { failedOnce = true; return (503, Data()) }
+                chunks[index] = data; json = ["media_id":id,"chunk":index]
+            } else if path.hasSuffix("/complete") {
+                completions += 1
+                let body = try JSONDecoder().decode([String:Int64].self, from: self.requestBody(request))
+                XCTAssertEqual(body["bytes"], upload.cipherBytes)
+                XCTAssertEqual(body["chunks"], Int64(upload.chunks))
+                XCTAssertEqual(chunks.values.reduce(Int64(0)) { $0 + Int64($1.count) }, upload.cipherBytes)
+                finalized = true; return (500, Data()) // Server committed; acknowledgment was lost.
+            } else {
+                return (200, try XCTUnwrap(chunks[Int(request.url!.lastPathComponent)!]))
+            }
+            return (200, try JSONSerialization.data(withJSONObject: json))
+        }
+        let client = try relay(); defer { client.cancel() }
+        let token = String(repeating: "A", count: 43)
+        for _ in 0..<2 {
+            do { try await client.uploadMedia(upload, files: files, mediaKey: key, token: token); XCTFail("Injected failure not propagated") } catch {}
+        }
+        XCTAssertTrue(finalized); let uploadsBeforeRecovery = puts
+        try await client.uploadMedia(upload, files: files, mediaKey: key, token: token)
+        XCTAssertEqual(puts, uploadsBeforeRecovery, "Lost-ack recovery must not rewrite finalized media or consume quota twice")
+        XCTAssertEqual(completions, 1)
+        XCTAssertEqual(try files.read(id: id, index: 0), chunks[0])
+    }
+    func testMediaCollisionMetadataAndLocalTamperingRefuseFinalization() async throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let source = dir.appendingPathComponent("selected"), key = Data(repeating: 3, count: 32), id = "0123456789abcdef"
+        try Data([1,2,3]).write(to: source)
+        let files = try EncryptedMediaFiles(directory: dir, namespace: "tamper")
+        let upload = try files.stage(source: source, id: id, name: "private", mime: "x", key: key)
+        for scenario in ["wrong-id", "wrong-bytes", "tampered-cipher"] {
+            if scenario == "tampered-cipher" { var cipher = try files.read(id:id,index:0); cipher[cipher.count-1] ^= 1; try files.writeDownloaded(cipher,id:id,index:0) }
+            var requests = 0
+            FixtureProtocol.install { request in
+                requests += 1; XCTAssertEqual(request.httpMethod, "GET")
+                if scenario == "tampered-cipher" { return (404, Data()) }
+                return (200, try JSONSerialization.data(withJSONObject: ["media_id":scenario == "wrong-id" ? "another-object-id" : id, "chunks":upload.chunks, "bytes":upload.cipherBytes+1]))
+            }
+            let client = try relay()
+            do { try await client.uploadMedia(upload, files:files, mediaKey:key, token:String(repeating:"A",count:43)); XCTFail("Accepted \(scenario)") } catch {}
+            client.cancel(); XCTAssertEqual(requests,1)
+        }
+    }
 }

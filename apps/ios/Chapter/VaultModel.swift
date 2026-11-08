@@ -13,12 +13,14 @@ import ChapterCore
     private var identity: VaultIdentity?
     private var store: EncryptedSnapshotStore?
     private var relay: Relay?
+    private var mediaFiles: EncryptedMediaFiles?
+    private var mediaImport: Task<MediaUpload, Error>?
     private var generation = UUID()
     private var playbackFiles: [URL] = []
     init() {
         // Stale playback is regenerable, never an unsynced journal/outbox.
         if let root = try? EncryptedSnapshotStore.applicationDirectory() {
-            try? FileManager.default.removeItem(at: root.appendingPathComponent("Playback", isDirectory: true))
+            for name in ["Playback", "ImportStaging"] { try? FileManager.default.removeItem(at: root.appendingPathComponent(name, isDirectory: true)) }
         }
     }
     #if DEBUG
@@ -37,7 +39,9 @@ import ChapterCore
     var entries: [VaultRecord] { snapshot.records.filter { $0.kind == "entry" && !$0.deleted }.sorted { $0.date > $1.date } }
     var journals: [VaultRecord] { snapshot.records.filter { $0.kind == "journal" && !$0.deleted }.sorted { $0.title < $1.title } }
     var templates: [VaultRecord] { snapshot.records.filter { $0.kind == "template" && !$0.deleted } }
-    var pending: Int { snapshot.records.filter(\.dirty).count }
+    var mediaSession: UUID { generation }
+    var canImportMedia: Bool { identity != nil && mediaFiles != nil }
+    var pending: Int { snapshot.records.filter(\.dirty).count + (snapshot.mediaUploads?.count ?? 0) }
 
     func unlock(server: String, phrase: String) async {
         guard !connecting else { return }
@@ -50,13 +54,15 @@ import ChapterCore
             let disk = try EncryptedSnapshotStore.open(server: address.url, owner: id.ownerID)
             let local = try disk.load()
             guard attempt == generation else { return }
-            identity = id; store = disk; snapshot = local; relay = Relay(address: address); unlocked = true
+            let files = try EncryptedMediaFiles(directory: EncryptedSnapshotStore.applicationDirectory(), namespace: disk.namespace)
+            mediaFiles = files; identity = id; store = disk; snapshot = local; relay = Relay(address: address); unlocked = true
             UserDefaults.standard.set(address.url.absoluteString, forKey: "chapter.server")
             await sync()
         } catch { if attempt == generation { message = error.localizedDescription } }
     }
     func lock() {
-        generation = UUID(); playbackFiles.forEach { try? FileManager.default.removeItem(at: $0) }; playbackFiles = []; relay?.cancel(); relay = nil; identity = nil; store = nil
+        generation = UUID(); mediaImport?.cancel(); mediaImport = nil; mediaFiles = nil; playbackFiles.forEach { try? FileManager.default.removeItem(at: $0) }; playbackFiles = []; relay?.cancel(); relay = nil; identity = nil; store = nil
+        if let root = try? EncryptedSnapshotStore.applicationDirectory() { try? FileManager.default.removeItem(at: root.appendingPathComponent("ImportStaging", isDirectory: true)) }
         snapshot = VaultSnapshot(); unlocked = false; syncing = false; connecting = false; message = nil
     }
     private func commit(_ next: VaultSnapshot) throws {
@@ -87,7 +93,20 @@ import ChapterCore
                 if !page.more { break }
                 pages += 1; guard pages < 10_000 else { throw ChapterError.corruptData }
             }
-            let batch = Array(snapshot.records.filter(\.dirty).prefix(100))
+            if let mediaFiles {
+                for upload in snapshot.mediaUploads ?? [] {
+                    do {
+                        try await relay.uploadMedia(upload, files: mediaFiles, mediaKey: identity.mediaKey, token: token)
+                        guard attempt == generation else { return }
+                        var next = snapshot; next.mediaUploaded(upload); try commit(next)
+                    } catch {
+                        guard attempt == generation else { return }
+                        // Retain this queue item; unrelated entries may still sync.
+                        // Uploadable-record filtering prevents premature references.
+                    }
+                }
+            }
+            let batch = Array(snapshot.uploadableRecords.prefix(100))
             if !batch.isEmpty {
                 let results = try await relay.push(batch, identity: identity, token: token)
                 guard attempt == generation else { return }
@@ -161,35 +180,74 @@ import ChapterCore
         let copy = try record.restoredEntry(id: UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased())
         var next = snapshot; next.records.append(copy); try commit(next)
     }
+    func importMedia(source: URL, name: String, mime: String, entry: VaultRecord, session: UUID) async throws {
+        guard session == generation, let identity, let mediaFiles, mediaImport == nil, let raw = entry.body["bodyJson"]?.string else { throw ChapterError.unsupported }
+        let attempt = generation, id = UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
+        let key = identity.mediaKey
+        let task = Task.detached(priority: .userInitiated) { try mediaFiles.stage(source: source, id: id, name: name, mime: mime, key: key) }
+        mediaImport = task
+        defer { if attempt == generation { mediaImport = nil } }
+        var commitAttempted = false, staged = false
+        do {
+            let upload = try await task.value; staged = true
+            guard attempt == generation else { throw CancellationError() }
+            var next = snapshot; try next.attach(upload, entryID: entry.id, expectedDocument: raw)
+            commitAttempted = true
+            try commit(next) // outbox + lossless body + clock: one atomic encrypted write
+            message = "Attachment saved encrypted on this device. Sync uploads media before its entry."
+        } catch {
+            // Once snapshot save has been attempted it MAY have reached disk even
+            // if a later file-attribute operation failed. Never delete its chunks.
+            if staged && !commitAttempted { try? mediaFiles.discardUnpublished(id: id) }
+            throw error
+        }
+    }
+    func discardPlayback(_ file: URL) {
+        guard playbackFiles.contains(file) else { return }
+        try? FileManager.default.removeItem(at: file); playbackFiles.removeAll { $0 == file }
+    }
     func downloadMedia(_ media: VaultMedia) async throws -> URL {
-        guard let relay, let identity else { throw ChapterError.authentication }
-        let attempt = generation
-        // Explicit preview action only. Large files are deferred rather than exhausting memory/disk.
-        let maximum = 128 * 1024 * 1024
-        guard media.bytes <= maximum else { throw ChapterError.unsupported }
-        let token = try await relay.authenticate(identity)
-        guard attempt == generation else { throw CancellationError() }
-        let count = try await relay.mediaChunks(id: media.id, token: token)
-        guard attempt == generation else { throw CancellationError() }
+        guard let relay, let identity, let mediaFiles else { throw ChapterError.authentication }
+        let attempt = generation, maximum = MediaLimits.maximumPlainBytes
+        guard media.bytes <= maximum, MediaLimits.validID(media.id) else { throw ChapterError.unsupported }
+        let pending = snapshot.mediaUploads?.first { $0.id == media.id }
+        let cached = snapshot.mediaCache?.first { $0.id == media.id }
+        var token: String?
+        let metadata: MediaCache
+        if let pending { metadata = MediaCache(id: pending.id, chunks: pending.chunks, cipherBytes: pending.cipherBytes) }
+        else if let cached { metadata = cached }
+        else {
+            let auth = try await relay.authenticate(identity); token = auth
+            guard attempt == generation else { throw CancellationError() }
+            metadata = try await relay.mediaMetadata(id: media.id, token: auth)
+        }
+        guard attempt == generation, (1...512).contains(metadata.chunks) else { throw CancellationError() }
         let directory = try EncryptedSnapshotStore.applicationDirectory().appendingPathComponent("Playback", isDirectory: true)
-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true, attributes: [.protectionKey: FileProtectionType.complete])
+        try EncryptedMediaFiles.protectedDirectory(directory)
         let extensions = ["video/mp4": "mp4", "video/webm": "webm", "video/quicktime": "mov", "audio/mp4": "m4a", "audio/mpeg": "mp3", "audio/ogg": "ogg", "audio/webm": "webm", "image/jpeg": "jpg", "image/png": "png", "image/heic": "heic", "image/webp": "webp", "application/pdf": "pdf", "text/plain": "txt"]
         let file = directory.appendingPathComponent(UUID().uuidString).appendingPathExtension(extensions[media.mime] ?? "bin")
         guard FileManager.default.createFile(atPath: file.path, contents: nil, attributes: [.protectionKey: FileProtectionType.complete]) else { throw ChapterError.storage }
         playbackFiles.append(file)
         let handle = try FileHandle(forWritingTo: file)
         var succeeded = false
-        defer { try? handle.close(); if !succeeded { try? FileManager.default.removeItem(at: file) } }
-        var written = 0
-        for index in 0..<count {
-            let cipher = try await relay.mediaChunk(id: media.id, index: index, token: token)
+        defer { try? handle.close(); if !succeeded { discardPlayback(file) } }
+        var written = 0, cipherBytes: Int64 = 0
+        for index in 0..<metadata.chunks {
+            let cipher: Data
+            if let token { cipher = try await relay.mediaChunk(id: media.id, index: index, token: token) }
+            else { cipher = try mediaFiles.read(id: media.id, index: index) }
             guard attempt == generation else { throw CancellationError() }
-            let plain = try VaultCipher.openMediaChunk(cipher, key: identity.mediaKey, id: media.id, index: index, total: count)
+            let plain = try VaultCipher.openMediaChunk(cipher, key: identity.mediaKey, id: media.id, index: index, total: metadata.chunks)
             guard plain.count <= 1 << 20, written <= maximum - plain.count else { throw ChapterError.corruptData }
-            try handle.write(contentsOf: plain); written += plain.count
+            if token != nil { try mediaFiles.writeDownloaded(cipher, id: media.id, index: index) }
+            try handle.write(contentsOf: plain); written += plain.count; cipherBytes += Int64(cipher.count)
         }
-        guard media.bytes == 0 || written == media.bytes else { throw ChapterError.corruptData }
-        try handle.synchronize(); succeeded = true; return file
+        guard (media.bytes == 0 || written == media.bytes), cipherBytes == metadata.cipherBytes else { throw ChapterError.corruptData }
+        try handle.synchronize()
+        if token != nil {
+            var next = snapshot; var cache = next.mediaCache ?? []; cache.removeAll { $0.id == media.id }; cache.append(metadata)
+            next.mediaCache = cache; try commit(next)
+        }
+        succeeded = true; return file
     }
-
 }

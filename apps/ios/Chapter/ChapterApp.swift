@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import SwiftUI
+import PhotosUI
+import UniformTypeIdentifiers
+import CoreTransferable
 import ChapterCore
 import QuickLook
 
@@ -55,7 +58,7 @@ struct ConnectView: View {
                         .disabled(model.connecting).accessibilityIdentifier("connection.unlock")
                 } header: { Text("Unlock vault").foregroundStyle(Color.primary) }
                 if let message = model.message { Section { Text(message).accessibilityLabel("Connection status: \(message)").accessibilityIdentifier("connection.status") } }
-                Section { Text("This is an early native client, not full feature parity yet. Rich edits preserve the original document; the complete editor and media capture/upload remain in development. Use the web client for recovery-phrase creation/rotation and advanced features.") } header: { Text("Native preview").foregroundStyle(Color.primary) }
+                Section { Text("This is an early native client, not full feature parity yet. Rich edits preserve the original document; the complete editor and file/photo attachments are available up to 128 MiB; capture remains in development. Use the web client for recovery-phrase creation/rotation and advanced features.") } header: { Text("Native preview").foregroundStyle(Color.primary) }
             }.navigationTitle("Chapter").scrollDismissesKeyboard(.interactively)
         }
     }
@@ -108,6 +111,10 @@ struct EntryList: View {
 struct EntryDetail: View {
     @EnvironmentObject private var model: VaultModel
     let entryID: String
+    @State private var importSession: UUID?
+    @State private var importingFile = false
+    @State private var importingMedia = false
+    @State private var photoSelection: PhotosPickerItem?
     @State private var editing = false
     @State private var deleting = false
     @State private var previewURL: URL?
@@ -140,6 +147,13 @@ struct EntryDetail: View {
                                 else { Label("Preview \(media.name)", systemImage: "paperclip") }
                             }.disabled(loadingMedia != nil)
                         }
+                        if model.canImportMedia, entry.body["bodyJson"]?.string != nil {
+                            Button { importSession = model.mediaSession; importingFile = true } label: { Label("Attach file", systemImage: "doc.badge.plus") }
+                                .disabled(importingMedia).accessibilityHint("Files up to 128 MiB; saved encrypted before sync")
+                            PhotosPicker(selection: $photoSelection, matching: .images) { Label("Attach photo", systemImage: "photo.badge.plus") }.disabled(importingMedia)
+                            if importingMedia { ProgressView("Encrypting attachment") }
+                            if !(model.snapshot.mediaUploads ?? []).isEmpty { Text("Attachments waiting to upload: \(model.snapshot.mediaUploads?.count ?? 0). Their entry references are not sent until upload completes.").font(.footnote) }
+                        }
                         if let mediaError { Text(mediaError).font(.footnote).foregroundStyle(.red) }
                         if !entry.editablePlainText { Text("Rich structure is preserved. Native editing currently changes individual text runs and task state; use the web app for structural or formatting changes.").font(.footnote).foregroundStyle(.secondary) }
                     }.padding().frame(maxWidth: .infinity, alignment: .leading)
@@ -157,6 +171,34 @@ struct EntryDetail: View {
                 }
             } else { Text("This entry is no longer available.") }
         }.navigationTitle("Entry").navigationBarTitleDisplayMode(.inline).quickLookPreview($previewURL)
+        .onChange(of: previewURL) { old, new in if new == nil, let old { model.discardPlayback(old) } }
+        .fileImporter(isPresented: $importingFile, allowedContentTypes: [.data]) { result in
+            guard let entry, let session = importSession else { return }
+            switch result {
+            case .failure(let error): mediaError = error.localizedDescription
+            case .success(let url):
+                importingMedia = true; mediaError = nil
+                Task {
+                    let scoped = url.startAccessingSecurityScopedResource()
+                    defer { if scoped { url.stopAccessingSecurityScopedResource() }; importingMedia = false }
+                    do { try await model.importMedia(source: url, name: url.lastPathComponent, mime: UTType(filenameExtension: url.pathExtension)?.preferredMIMEType ?? "application/octet-stream", entry: entry, session: session) }
+                    catch { mediaError = error.localizedDescription }
+                }
+            }
+        }
+        .onChange(of: photoSelection) { _, selected in
+            guard let selected, let entry else { return }
+            let session = model.mediaSession
+            importingMedia = true; mediaError = nil
+            Task {
+                defer { importingMedia = false; photoSelection = nil }
+                do {
+                    guard let imported = try await selected.loadTransferable(type: PrivateImportedFile.self) else { throw ChapterError.unsupported }
+                    defer { try? FileManager.default.removeItem(at: imported.url.deletingLastPathComponent()) }
+                    try await model.importMedia(source: imported.url, name: "Photo." + imported.url.pathExtension, mime: selected.supportedContentTypes.first?.preferredMIMEType ?? "application/octet-stream", entry: entry, session: session)
+                } catch { mediaError = error.localizedDescription }
+            }
+        }
     }
 }
 struct EntryEditor: View {
@@ -271,10 +313,41 @@ struct SettingsView: View {
                     Button("Lock vault", role: .destructive) { model.lock() }
                 }
                 Section("Not yet implemented") {
-                    Text("Full rich formatting/structural editing and exact custom-node/math/table rendering, media capture/upload and unsupported playback codecs, templates UI, interviews/AI/transcription, import/export, maps, themes/localization, badges, reminders, vault deletion/rotation and operator tools. The web app remains available for these. This preview is not full parity or an independently audited secure product.")
+                    Text("Full rich formatting/structural editing and exact custom-node/math/table rendering, camera/audio/video capture, large media and unsupported playback codecs, templates UI, interviews/AI/transcription, import/export, maps, themes/localization, badges, reminders, vault deletion/rotation and operator tools. The web app remains available for these. This preview is not full parity or an independently audited secure product.")
                 }
                 Section("Open source") { Link("Source and AGPL-3.0 license", destination: URL(string: "https://github.com/BubbyWoodz/Chapter")!) }
             }.navigationTitle("Settings")
+        }
+    }
+}
+
+/// PhotosPicker grants access only to selected content. Copy its temporary file
+/// in bounded chunks into a protected, backup-excluded transient directory.
+struct PrivateImportedFile: Transferable {
+    let url: URL
+    static var transferRepresentation: some TransferRepresentation {
+        FileRepresentation(importedContentType: .data) { received in
+            let size = try received.file.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? -1
+            guard (0...MediaLimits.maximumPlainBytes).contains(size) else { throw ChapterError.unsupported }
+            let root = try EncryptedSnapshotStore.applicationDirectory().appendingPathComponent("ImportStaging", isDirectory: true).appendingPathComponent(UUID().uuidString, isDirectory: true)
+            try EncryptedMediaFiles.protectedDirectory(root)
+            var success = false
+            defer { if !success { try? FileManager.default.removeItem(at: root) } }
+            let ext = received.file.pathExtension
+            let safeExtension = ext.utf8.count <= 12 && ext.utf8.allSatisfy { (48...57).contains($0) || (65...90).contains($0) || (97...122).contains($0) } ? ext : "bin"
+            let destination = root.appendingPathComponent("selected").appendingPathExtension(safeExtension)
+            guard FileManager.default.createFile(atPath: destination.path, contents: nil, attributes: [.protectionKey: FileProtectionType.complete]) else { throw ChapterError.storage }
+            let input = try FileHandle(forReadingFrom: received.file), output = try FileHandle(forWritingTo: destination)
+            defer { try? input.close(); try? output.close() }
+            var bytes = 0
+            while let data = try input.read(upToCount: MediaLimits.chunkBytes), !data.isEmpty {
+                try Task.checkCancellation()
+                guard bytes <= MediaLimits.maximumPlainBytes - data.count else { throw ChapterError.unsupported }
+                try output.write(contentsOf: data); bytes += data.count
+            }
+            guard bytes == size else { throw ChapterError.corruptData }
+            try output.synchronize(); success = true
+            return PrivateImportedFile(url: destination)
         }
     }
 }

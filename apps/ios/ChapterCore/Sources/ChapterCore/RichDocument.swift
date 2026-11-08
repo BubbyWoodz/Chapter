@@ -42,6 +42,12 @@ public struct RichDocument {
             fields["text"] = .string(text); return .object(fields)
         }
     }
+    public mutating func appendMedia(_ attributes: [String: JSONValue]) throws {
+        guard case .object(var fields) = root, fields["type"]?.string == "doc" else { throw ChapterError.corruptData }
+        var content = fields["content"]?.array ?? []
+        content.append(.object(["type": .string("mediaAttachment"), "attrs": .object(attributes)]))
+        fields["content"] = .array(content); root = .object(fields)
+    }
     public mutating func toggleTask(at path: [Int]) throws {
         root = try patch(root, path: ArraySlice(path)) { node in
             guard case .object(var fields) = node, fields["type"]?.string == "taskItem" else { throw ChapterError.unsupported }

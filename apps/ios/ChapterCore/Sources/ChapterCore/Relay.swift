@@ -52,10 +52,10 @@ public final class Relay {
             (65...90).contains($0) || (97...122).contains($0) || (48...57).contains($0) || $0 == 45 || $0 == 95
         }
     }
-    private func request(_ path: String, method: String = "POST", body: Data? = nil, token: String? = nil, maxBytes: Int = 32 * 1024 * 1024) async throws -> Data {
+    private func request(_ path: String, method: String = "POST", body: Data? = nil, token: String? = nil, maxBytes: Int = 32 * 1024 * 1024, contentType: String = "application/json") async throws -> Data {
         var req = URLRequest(url: address.endpoint(path))
         req.httpMethod = method; req.httpBody = body
-        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.setValue(contentType, forHTTPHeaderField: "Content-Type")
         if let token {
             guard Self.validToken(token) else { throw ChapterError.authentication }
             req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -110,15 +110,53 @@ public final class Relay {
         let data = try await request("v1/sync/push", body: JSONEncoder().encode(["entries": entries]), token: token)
         return try JSONDecoder().decode(Results.self, from: data).results
     }
+    public func uploadMedia(_ upload: MediaUpload, files: EncryptedMediaFiles, mediaKey: Data, token: String) async throws {
+        try upload.validate()
+        var existing = false
+        do {
+            let data = try await request("v1/media/\(upload.id)", method: "GET", token: token, maxBytes: 4096)
+            struct Meta: Decodable { let media_id: String; let chunks: Int; let bytes: Int64 }
+            let meta = try JSONDecoder().decode(Meta.self, from: data)
+            guard meta.media_id == upload.id, meta.chunks == upload.chunks, meta.bytes == upload.cipherBytes else { throw ChapterError.corruptData }
+            existing = true
+        } catch ChapterError.http(404) {} // Unfinalized/new upload: resume same immutable chunks.
+        var total: Int64 = 0
+        for index in 0..<upload.chunks {
+            try Task.checkCancellation()
+            let cipher = try files.read(id: upload.id, index: index)
+            let plain = try VaultCipher.openMediaChunk(cipher, key: mediaKey, id: upload.id, index: index, total: upload.chunks)
+            guard plain.count == min(MediaLimits.chunkBytes, upload.plainBytes - index * MediaLimits.chunkBytes) else { throw ChapterError.corruptData }
+            total += Int64(cipher.count)
+            if existing {
+                // Recover a lost complete acknowledgment without uploading twice
+                // or trusting metadata for missing/different remote ciphertext.
+                let remote = try await mediaChunk(id: upload.id, index: index, token: token)
+                guard remote == cipher else { throw ChapterError.corruptData }
+            } else {
+                let data = try await request("v1/media/\(upload.id)/chunks/\(index)", method: "PUT", body: cipher, token: token, maxBytes: 4096, contentType: "application/octet-stream")
+                struct Ack: Decodable { let media_id: String; let chunk: Int }
+                let ack = try JSONDecoder().decode(Ack.self, from: data)
+                guard ack.media_id == upload.id, ack.chunk == index else { throw ChapterError.corruptData }
+            }
+        }
+        guard total == upload.cipherBytes else { throw ChapterError.corruptData }
+        if !existing {
+            let data = try await request("v1/media/\(upload.id)/complete", body: JSONEncoder().encode(["chunks": Int64(upload.chunks), "bytes": total]), token: token, maxBytes: 4096)
+            struct Complete: Decodable { let media_id: String }
+            guard try JSONDecoder().decode(Complete.self, from: data).media_id == upload.id else { throw ChapterError.corruptData }
+        }
+    }
     public func mediaChunk(id: String, index: Int, token: String) async throws -> Data {
-        guard id.range(of: "^[A-Za-z0-9_-]{1,128}$", options: .regularExpression) != nil, index >= 0 else { throw ChapterError.corruptData }
+        guard MediaLimits.validID(id), (0..<10_000).contains(index) else { throw ChapterError.corruptData }
         return try await request("v1/media/\(id)/chunks/\(index)", method: "GET", token: token, maxBytes: 2 * 1024 * 1024)
     }
-    public func mediaChunks(id: String, token: String) async throws -> Int {
-        guard id.range(of: "^[A-Za-z0-9_-]{1,128}$", options: .regularExpression) != nil else { throw ChapterError.corruptData }
-        struct Meta: Decodable { let chunks: Int }
-        let data = try await request("v1/media/\(id)", method: "GET", token: token)
-        let n = try JSONDecoder().decode(Meta.self, from: data).chunks
-        guard n > 0, n <= 512 else { throw ChapterError.unsupported }; return n
+    public func mediaMetadata(id: String, token: String) async throws -> MediaCache {
+        guard MediaLimits.validID(id) else { throw ChapterError.corruptData }
+        struct Meta: Decodable { let media_id: String; let chunks: Int; let bytes: Int64 }
+        let data = try await request("v1/media/\(id)", method: "GET", token: token, maxBytes: 4096)
+        let meta = try JSONDecoder().decode(Meta.self, from: data)
+        guard meta.media_id == id, (1...512).contains(meta.chunks), meta.bytes >= Int64(41 * meta.chunks), meta.bytes <= Int64(MediaLimits.maximumPlainBytes + 41 * meta.chunks) else { throw ChapterError.unsupported }
+        return MediaCache(id: id, chunks: meta.chunks, cipherBytes: meta.bytes)
     }
+    public func mediaChunks(id: String, token: String) async throws -> Int { try await mediaMetadata(id: id, token: token).chunks }
 }

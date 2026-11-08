@@ -11,6 +11,7 @@ import { deriveIdentity, signWithDevice, signWithOwner } from '../src/crypto/key
 import { mnemonicToSeed } from '../src/crypto/mnemonic';
 import { decryptRecord } from '../src/sync/engine';
 import { decrypt } from '../src/crypto/aead';
+import { decryptMediaChunks } from '../src/crypto/media';
 const phrase = 'legal winner thank year wave sausage worth useful legal winner thank yellow';
 const seed = mnemonicToSeed(phrase), id = deriveIdentity(seed);
 const recordId = '0123456789abcdef0123456789abcdef';
@@ -33,6 +34,16 @@ if(process.argv.includes('--write')) {
   const native = JSON.parse(readFileSync(path,'utf8')) as {record:string;media:string;registration:Record<string,string>;challenge:string;challengeSignature:string};
   assert.equal(Buffer.from(decryptRecord(id.dataKey,recordId,Buffer.from(native.record,'base64'))).toString(),body);
   assert.equal(Buffer.from(decrypt(id.mediaKey,Buffer.from(native.media,'base64'),Buffer.from(`media:${recordId}:0/1`))).toString(),'Public media bytes');
+  const uploaded = JSON.parse(readFileSync(path + '.media-upload','utf8')) as {id:string;chunks:string[];plainBytes:number;cipherBytes:number};
+  const chunks = uploaded.chunks.map(c => Buffer.from(c,'base64'));
+  assert.equal(chunks.length,3);
+  assert.equal(uploaded.cipherBytes,uploaded.plainBytes + 41 * chunks.length);
+  assert.equal(chunks.reduce((n,c)=>n+c.length,0),uploaded.cipherBytes);
+  const expectedMedia = Buffer.from(Array.from({length:2*(1<<20)+17},(_,i)=>(i*31+7)%256));
+  assert.deepEqual(Buffer.from(decryptMediaChunks(id.mediaKey,uploaded.id,chunks)),expectedMedia);
+  assert.throws(()=>decryptMediaChunks(id.mediaKey,uploaded.id,[chunks[1],chunks[0],chunks[2]]));
+  assert.throws(()=>decryptMediaChunks(id.mediaKey,uploaded.id,chunks.slice(0,2)));
+  console.log('Swift durable media stage → actual web chunk decoder: multi-chunk payload, framing totals, reorder/truncation rejection passed.');
   const r = native.registration;
   assert.equal(r.owner_pubkey, Buffer.from(id.ownerPub).toString('base64'));
   assert.equal(r.device_pubkey, Buffer.from(id.devicePub).toString('base64'));

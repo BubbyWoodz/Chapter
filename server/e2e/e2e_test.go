@@ -14,6 +14,9 @@ import (
 	"crypto/ed25519"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
+
+	"golang.org/x/crypto/chacha20poly1305"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -174,8 +177,27 @@ func TestFullFlow(t *testing.T) {
 
 	// 7. Media: upload chunks → complete → meta → download (opaque ciphertext relay).
 	mediaID := "0123456789abcdef0123456789abcdef"
-	chunk0 := append([]byte{0x01}, []byte("encrypted-chunk-0")...)
-	chunk1 := append([]byte{0x01}, []byte("encrypted-chunk-1")...)
+	// Public test key/nonces only: actual original media framing and AAD,
+	// not synthetic "opaque-ciphertext" placeholders. Native→web compatibility
+	// is independently checked by the macOS workflow.
+	mediaKey := bytes.Repeat([]byte{3}, 32)
+	aead, err := chacha20poly1305.NewX(mediaKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	plainChunks := [][]byte{bytes.Repeat([]byte{77}, 1<<20), bytes.Repeat([]byte{77}, 17)}
+	seal := func(index int) []byte {
+		nonce := bytes.Repeat([]byte{byte(index + 1)}, chacha20poly1305.NonceSizeX)
+		header := append([]byte{1}, nonce...)
+		return append(header, aead.Seal(nil, nonce, plainChunks[index], []byte(fmt.Sprintf("media:%s:%d/2", mediaID, index)))...)
+	}
+	chunk0, chunk1 := seal(0), seal(1)
+	if len(chunk0)+len(chunk1) != (1<<20)+17+2*41 {
+		t.Fatal("incorrect ciphertext framing total")
+	}
+	c.raw(http.MethodPut, "/v1/media/"+mediaID+"/chunks/0", chunk0, http.StatusOK)
+	// Interrupted upload has no discoverable manifest. Retry is byte-identical.
+	c.do(http.MethodGet, "/v1/media/"+mediaID, nil, http.StatusNotFound, nil)
 	c.raw(http.MethodPut, "/v1/media/"+mediaID+"/chunks/0", chunk0, http.StatusOK)
 	c.raw(http.MethodPut, "/v1/media/"+mediaID+"/chunks/1", chunk1, http.StatusOK)
 	c.post("/v1/media/"+mediaID+"/complete",
@@ -191,6 +213,16 @@ func TestFullFlow(t *testing.T) {
 	}
 	if got := c.rawGet("/v1/media/"+mediaID+"/chunks/1", http.StatusOK); !bytes.Equal(got, chunk1) {
 		t.Fatal("media chunk round-trip mismatch")
+	}
+	for index, expected := range plainChunks {
+		cipher := c.rawGet(fmt.Sprintf("/v1/media/%s/chunks/%d", mediaID, index), http.StatusOK)
+		if len(cipher) < 41 || cipher[0] != 1 {
+			t.Fatal("invalid media envelope")
+		}
+		plain, err := aead.Open(nil, cipher[1:25], cipher[25:], []byte(fmt.Sprintf("media:%s:%d/2", mediaID, index)))
+		if err != nil || !bytes.Equal(plain, expected) {
+			t.Fatalf("actual relay media decrypt %d: %v", index, err)
+		}
 	}
 	c.rawGet("/v1/media/"+mediaID+"/chunks/2", http.StatusNotFound)
 	c.do(http.MethodGet, "/v1/media/ffffffffffffffffffffffffffffffff", nil, http.StatusNotFound, nil)

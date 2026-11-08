@@ -103,10 +103,12 @@ public struct VaultRecord: Codable, Identifiable, Equatable {
 }
 
 public struct VaultSnapshot: Codable, Equatable {
-    public var version = 2 // Local-only: older previews must fail closed, not discard rich drafts.
+    public var version = 3 // Local-only: older previews must fail closed, not discard rich drafts.
     public var records: [VaultRecord] = []
     public var cursor: Int64 = 0
     public var conflicts: [VaultRecord] = []
+    public var mediaUploads: [MediaUpload]? = nil
+    public var mediaCache: [MediaCache]? = nil
     public var richDrafts: [RichDraft]? = nil // Optional: old encrypted snapshots decode unchanged.
     public init() {}
     public mutating func acknowledge(_ sent: VaultRecord) {
