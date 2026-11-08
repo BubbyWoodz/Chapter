@@ -258,20 +258,21 @@ struct EntryEditor: View {
     @State private var labels: String
     @State private var date: Date
     @State private var error: String?
-    @State private var savedID: String?
+    @State private var expected: VaultRecord?
     init(existing: VaultRecord? = nil, journal: String) {
         self.existing = existing; self.journal = journal
         _title = State(initialValue: existing?.title ?? "")
         _text = State(initialValue: existing?.text ?? "")
         _labels = State(initialValue: existing?.labels.joined(separator: ", ") ?? "")
         _date = State(initialValue: existing?.date ?? Date())
-        _savedID = State(initialValue: existing?.id)
+        _expected = State(initialValue: existing)
     }
     private func save() {
         // Every change is durably encrypted before displaying Saved. New drafts keep one ID.
         do {
-            let current = savedID.flatMap { id in model.snapshot.records.first { $0.id == id } }
-            savedID = try model.saveEntry(existing: current, title: title, text: text, labels: labels, date: date, journal: journal)
+            // Freeze the last record this form actually loaded or committed. Looking up
+            // a fresh record here would silently rebase stale text over another writer.
+            expected = try model.saveEntry(existing: expected, title: title, text: text, labels: labels, date: date, journal: journal)
             error = nil
         } catch { self.error = error.localizedDescription }
     }
@@ -282,7 +283,7 @@ struct EntryEditor: View {
                 DatePicker("Entry date", selection: $date)
                 TextField("Labels, separated by commas", text: $labels)
                 Section("Writing") { TextEditor(text: $text).frame(minHeight: 260).accessibilityLabel("Journal text") }
-                if let error { Text(error).foregroundStyle(.red) } else { Text(savedID == nil ? "Start writing to save an encrypted draft." : "Saved encrypted on this device.").font(.footnote) }
+                if let error { Text(error).foregroundStyle(.red) } else { Text(expected == nil ? "Start writing to save an encrypted draft." : "Saved encrypted on this device.").font(.footnote) }
             }.modifier(ChapterScreenSurface()).navigationTitle(existing == nil ? "New entry" : "Edit entry")
             .toolbar { Button("Done") { save(); if error == nil { dismiss() } } }
             .onChange(of: title) { _, _ in save() }.onChange(of: text) { _, _ in save() }

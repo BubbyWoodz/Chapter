@@ -50,6 +50,22 @@ final class NotebookTests: XCTestCase {
         original.clock = ProtocolNumbers.maxWireInteger
         XCTAssertThrowsError(try original.editingJournal(expected: original, name: "Overflow"))
     }
+    func testFrozenPlainEditorExpectedRecordRefusesSilentRebase() throws {
+        var loaded = VaultRecord(id: "public-plain-editor", clock: 12, body: ["bodyJson": .string(try VaultRecord.plainDocument("Loaded text")), "chapterNativePlain": .bool(true)], dirty: true)
+        XCTAssertTrue(loaded.editablePlainText)
+        var acknowledged = loaded; acknowledged.dirty = false
+        XCTAssertNoThrow(try acknowledged.requiringUnchanged(expected: loaded))
+        var otherWriter = acknowledged; otherWriter.clock += 1
+        otherWriter.body["bodyJson"] = .string(try VaultRecord.plainDocument("Other writer text"))
+        XCTAssertThrowsError(try otherWriter.requiringUnchanged(expected: loaded))
+        otherWriter.clock = loaded.clock // Even an equal-clock different body must refuse.
+        XCTAssertThrowsError(try otherWriter.requiringUnchanged(expected: loaded))
+        var deleted = loaded; deleted.deleted = true
+        XCTAssertThrowsError(try deleted.requiringUnchanged(expected: loaded))
+        loaded.clock += 1; loaded.body["bodyJson"] = .string(try VaultRecord.plainDocument("Own committed text"))
+        var ownAcknowledged = loaded; ownAcknowledged.dirty = false
+        XCTAssertNoThrow(try ownAcknowledged.requiringUnchanged(expected: loaded))
+    }
     func testRichEntryMovePreservesAllContentAndRefusesStaleOrDeletedTargets() throws {
         let fixtureURL = try XCTUnwrap(Bundle.module.url(forResource: "rich-document", withExtension: "json"))
         let fixture = try JSONDecoder().decode([String: JSONValue].self, from: Data(contentsOf: fixtureURL))

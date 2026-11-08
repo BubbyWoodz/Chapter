@@ -155,7 +155,7 @@ import ChapterCore
     private func nextClock(after clock: Int64 = 0) throws -> Int64 {
         try ProtocolNumbers.nextClock(after: clock)
     }
-    func saveEntry(existing: VaultRecord?, title: String, text: String, labels: String, date: Date, journal: String) throws -> String {
+    func saveEntry(existing: VaultRecord?, title: String, text: String, labels: String, date: Date, journal: String) throws -> VaultRecord {
         guard let identity, existing == nil || existing!.editablePlainText else { throw ChapterError.unsupported }
         if let existing {
             guard let live = snapshot.records.first(where: { $0.id == existing.id }), !live.deleted else { throw ChapterError.conflict }
@@ -179,7 +179,7 @@ import ChapterCore
             next.records.append(VaultRecord(id: UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased(), clock: clock, body: notebook, dirty: true))
         }
         if let index = next.records.firstIndex(where: { $0.id == id }) { next.records[index] = record } else { next.records.append(record) }
-        try commit(next); scheduleSync(); return id
+        try commit(next); scheduleSync(); return record
     }
     func saveRichDraft(_ draft: RichDraft) throws {
         var next = snapshot; var drafts = next.richDrafts ?? []
