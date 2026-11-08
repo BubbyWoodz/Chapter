@@ -51,7 +51,7 @@ final class NotebookTests: XCTestCase {
         XCTAssertThrowsError(try original.editingJournal(expected: original, name: "Overflow"))
     }
     func testFrozenPlainEditorExpectedRecordRefusesSilentRebase() throws {
-        var loaded = VaultRecord(id: "public-plain-editor", clock: 12, body: ["bodyJson": .string(try VaultRecord.plainDocument("Loaded text")), "chapterNativePlain": .bool(true)], dirty: true)
+        var loaded = VaultRecord(id: "public-plain-editor", clock: 12, body: ["bodyText": .string("Loaded text"), "bodyJson": .string(try VaultRecord.plainDocument("Loaded text")), "chapterNativePlain": .bool(true)], dirty: true)
         XCTAssertTrue(loaded.editablePlainText)
         var acknowledged = loaded; acknowledged.dirty = false
         XCTAssertNoThrow(try acknowledged.requiringUnchanged(expected: loaded))

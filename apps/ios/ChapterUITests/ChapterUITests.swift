@@ -166,6 +166,22 @@ final class ChapterUITests: XCTestCase {
         XCTAssertTrue(heading.exists); attach(app, name: "Chapter actual persisted native-authored heading")
     }
 
+    func testFailedPlainWritingKeepsEncryptedRecoveryAndResumes() throws {
+        // Public fixture deliberately has NO identity: publishing must fail,
+        // while its actual encrypted local store can retain writing safely.
+        let app = XCUIApplication(); app.launchArguments = ["--chapter-rich-fixture"]; app.launch()
+        XCTAssertTrue(app.buttons["New entry"].waitForExistence(timeout:10)); app.buttons["New entry"].tap()
+        let title = app.textFields["Entry title"]; XCTAssertTrue(title.waitForExistence(timeout:5)); title.tap(); title.typeText("PUBLIC-WRITING-RECOVERY")
+        let editor = app.textViews["Journal text"]; reveal(editor,in:app); editor.tap(); editor.typeText("PUBLIC-UNSAVED-TEXT")
+        let status = app.staticTexts["writing.recovery-status"]; reveal(status,in:app)
+        XCTAssertTrue(status.label.contains("Draft saved encrypted"))
+        app.buttons["writing.close"].tap(); app.tabBars.buttons["Settings"].tap()
+        let resume = app.buttons["Resume unsaved writing"].firstMatch; reveal(resume,in:app); resume.tap()
+        XCTAssertEqual(app.textFields["Entry title"].value as? String,"PUBLIC-WRITING-RECOVERY")
+        XCTAssertEqual(app.textViews["Journal text"].value as? String,"PUBLIC-UNSAVED-TEXT")
+        attach(app,name:"Chapter actual encrypted failed-writing recovery and resumed native editor")
+    }
+
     func testLargestDynamicTypeUnmodifiedNativeFormReproduction() throws {
         let app = XCUIApplication(); app.launchArguments = ["--chapter-native-form-audit-repro"]; app.launch()
         let heading = app.staticTexts["Native Form reproduction"]

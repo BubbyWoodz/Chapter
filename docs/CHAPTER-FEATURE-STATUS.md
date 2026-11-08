@@ -9,7 +9,7 @@ the exact revision; a failing strict accessibility audit remains a release block
 |---|---|---|
 | Existing-vault recovery/authentication | English BIP39 validation, real owner-authorized registration/challenge/session; direct HTTPS URL | Native key/auth HTTP transcript and actual web/Go signature checks passed before this slice; real approval/recovery/phone integration still needed |
 | Connectivity/privacy | LAN/Tailscale URL/path; trusted TLS; no redirects/telemetry/cloud requirement | URL/HTTP rejection tests; physical permission, certificates and LAN/VPN matrix not run. HTTP LAN unsupported |
-| Entries | Plain entry CRUD, dates/labels, notebook association | Existing core safeguards; broad app/controller/live-stack CRUD not certified |
+| Entries | Plain CRUD/date/labels/notebook; encrypted failed-writing recovery, close/resume/retry/separate recovery/save-as-new; atomic deletion recovery checkpoint | New pure-source CAS/capacity/restart/old-v4 preservation tests pass locally; new Apple encrypted fault/restart and real failure/resume UI gates pending. Delete retains drafts/uploads and explicit encrypted original; not secure erasure or media purge. Broad two-device controller CRUD not certified |
 | Notebooks | Browse/create; rename, subtitle, original color and cover metadata editing; real non-destructive move-between-notebooks with optimistic stale-write rejection | Four actual Apple notebook tests, actual Swift→web ciphertext decoding and real native UI Save/persist test PASS at 6c7908c in run 42513126159. Unknown fields/IDs preserved. Move whole-document preservation, stale/deleted/overflow and actual Swift→web reverse decoding PASS at fd3d1ad (42519352453); real new Move UI gate is still pending. Cascade delete/media purge missing. Archive/reorder are not present in the reviewed original notebook API; do not invent a wire format or claim those synced. |
 | Local discovery | Text/label substring search, day calendar, entry/day counts | Full query, heatmap/stats/streak/badge parity missing |
 | Native rich viewing | Styled inline marks, headings, paragraphs, lists/tasks, quotes/code, approximate tables, source math, simplified media/location/interview cards | New web-generated golden document and actual Foundation logic tests. Actual Apple core tests and Simulator compile passed at b8ba3d9; actual rich UI/task/text-run edit passed in run 42511652869; strict onboarding audits still fail; unknown nodes kept opaque |
@@ -30,6 +30,37 @@ the exact revision; a failing strict accessibility audit remains a release block
 | Local storage | Device-only user-presence Keychain + AES-GCM snapshot; protected/excluded from backup | Version 1/2/3→4 read migration preserves keys and old file until next save; older previews reject v4 instead of dropping formatting/new-block drafts/media outbox. Actual Apple v3→v4 encrypted migration/restart/old-version write refusal PASS at98885d0; earlier backup-preparation fault/reopen/retry PASS. Actual hardware Keychain/backup extraction not certified |
 | Server distribution | Chapter-owned source-build compose/install profile, separate volumes, private setup, optional STT; image/source artifact + real S3/backup-restore CI added | Real source-image builds, trusted HTTPS/auth/web crypto, actual PostgreSQL/S3 media and restore into a different empty stack PASS at 551236b (run 42511822303). Downloadable Linux amd64 image/source/checksum bundle exists. Not deployed; no direct live-volume migration or general historical-upgrade certification |
 | iPhone distribution | Xcode source and unsigned Simulator artifacts only | No signed device IPA, TestFlight or physical-device certification. Apple signing route later, not obtained here |
+
+## November 8, 2026, 3:36 PM EST increment (verification pending)
+
+- Failed plain autosave now first commits a LOCAL-ONLY opaque recovery record in
+  the existing encrypted conflict collection, then atomically saves the entry and
+  removes exactly that recovery revision. A stale original is not overwritten;
+  typed title/text/date/labels/notebook can be resumed in Settings or explicitly
+  saved as a new text entry. Attachments are not duplicated by that explicit copy.
+  A separate recovery option preserves two competing draft editors; revision CAS
+  and a256-draft fail-closed cap never evict work. No new server record kind/key/
+  encryption/snapshot version; old v4 opaque dictionaries retain it but cannot
+  resume it. Existing v3 downgrade restrictions still apply.
+- Delete entry now commits an encrypted original recovery checkpoint TOGETHER
+  with its existing tombstone; queued uploads, rich drafts and writing recoveries
+  remain intact. Confirmation explicitly discloses retained recovery/not secure
+  erasure. Notebook cascade/permanent media purge remain NOT implemented.
+- Actual compiled Foundation code tests pass for CAS, exact restart/finish,
+  capacity refusal/no eviction, preserved original records and stale/offline
+  deletion safety. New Apple encrypted fault/restart/old-byte preservation and
+  actual native failure/resume UI tests are added, not yet declared passing.
+- Completed988 UI42518974244: existing rich/task editing, covers/palette pixels,
+  notebook Save, keyboard/HTTP and BOTH normal + actual-XXXL unmodified native
+  Form comparisons PASS. New formatting flow FAILS real toolbar AX scroll/tap;
+  strict production audits still FAIL. Normal audit now precisely names the
+  system Form header `UNLOCK VAULT` as partially non-scaling. Formatting menu
+  moved to a44pt content control and section headings to genuinely scalable
+  body rows with header traits; all tests/audits retained, fixes verifying.
+-332 Apple core42519961437 fails ONE fixture assertion: test bodyJson text did
+  not match omitted bodyText, so correctly was not a canonical plain entry. The
+  fixture now supplies matching bodyText; assertion is unchanged. Do not claim
+  the332 entire native gate passed. Original protocols/keys/journals untouched.
 
 ## November 8, 2026, 3:24 PM EST checkpoint
 

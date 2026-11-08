@@ -217,7 +217,7 @@ struct EntryDetail: View {
                 .sheet(isPresented: $moving) { MoveEntryView(entry: entry) }
                 .confirmationDialog("Delete this entry on all synced devices?", isPresented: $deleting, titleVisibility: .visible) {
                     Button("Delete entry", role: .destructive) { do { try model.deleteEntry(entry); dismiss() } catch { model.message = error.localizedDescription } }
-                }
+                } message: { Text("An encrypted recovery copy remains in Settings. Pending writing, rich drafts and attachment uploads are retained. This is not secure erasure; notebook/media purge is not implemented.") }
             } else { Text("This entry is no longer available.") }
         }.modifier(ChapterScreenSurface()).navigationTitle("Entry").navigationBarTitleDisplayMode(.inline).quickLookPreview($previewURL)
         .onChange(of: previewURL) { old, new in if new == nil, let old { model.discardPlayback(old) } }
@@ -253,44 +253,66 @@ struct EntryDetail: View {
 struct EntryEditor: View {
     @EnvironmentObject private var model: VaultModel
     @Environment(\.dismiss) private var dismiss
-    let existing: VaultRecord?
-    let journal: String
-    @State private var title: String
-    @State private var text: String
-    @State private var labels: String
-    @State private var date: Date
+    @State private var draft: PlainEntryDraft
     @State private var error: String?
-    @State private var expected: VaultRecord?
+    @State private var recoverySaved = false
+    @State private var copying = false
     init(existing: VaultRecord? = nil, journal: String) {
-        self.existing = existing; self.journal = journal
-        _title = State(initialValue: existing?.title ?? "")
-        _text = State(initialValue: existing?.text ?? "")
-        _labels = State(initialValue: existing?.labels.joined(separator: ", ") ?? "")
-        _date = State(initialValue: existing?.date ?? Date())
-        _expected = State(initialValue: existing)
+        _draft = State(initialValue: PlainEntryDraft(existing: existing, journal: journal))
     }
-    private func save() {
-        // Every change is durably encrypted before displaying Saved. New drafts keep one ID.
+    init(recovery: PlainEntryDraft) {
+        _draft = State(initialValue: recovery); _recoverySaved = State(initialValue: true)
+    }
+    private func save(asNew: Bool = false) {
+        recoverySaved = false
         do {
-            // Freeze the last record this form actually loaded or committed. Looking up
-            // a fresh record here would silently rebase stale text over another writer.
-            expected = try model.saveEntry(existing: expected, title: title, text: text, labels: labels, date: date, journal: journal)
-            error = nil
+            draft = try model.keepPlainDraft(draft); recoverySaved = true
+            let record = try model.applyPlainDraft(draft, asNew: asNew)
+            draft.expected = record; draft.revision = 0
+            recoverySaved = false; error = nil
+            if asNew { dismiss() }
+        } catch ChapterError.conflict { self.error = "The entry, notebook or recovery draft changed elsewhere. Your original was not overwritten."
         } catch { self.error = error.localizedDescription }
     }
     var body: some View {
         NavigationStack {
             Form {
-                TextField("Title", text: $title).accessibilityLabel("Entry title")
-                DatePicker("Entry date", selection: $date)
-                TextField("Labels, separated by commas", text: $labels)
-                Section("Writing") { TextEditor(text: $text).frame(minHeight: 260).accessibilityLabel("Journal text") }
-                if let error { Text(error).foregroundStyle(.red) } else { Text(expected == nil ? "Start writing to save an encrypted draft." : "Saved encrypted on this device.").font(.footnote) }
-            }.modifier(ChapterScreenSurface()).navigationTitle(existing == nil ? "New entry" : "Edit entry")
-            .toolbar { Button("Done") { save(); if error == nil { dismiss() } } }
-            .onChange(of: title) { _, _ in save() }.onChange(of: text) { _, _ in save() }
-            .onChange(of: labels) { _, _ in save() }.onChange(of: date) { _, _ in save() }
-            .interactiveDismissDisabled(error != nil)
+                TextField("Title", text: $draft.title).accessibilityLabel("Entry title")
+                DatePicker("Entry date", selection: $draft.date)
+                TextField("Labels, separated by commas", text: $draft.labels)
+                Picker("Notebook", selection: $draft.journal) {
+                    if draft.journal == "default" { Text("Journal").tag("default") }
+                    if draft.journal != "default" && !model.journals.contains(where: { $0.journalID == draft.journal }) { Text("Unavailable notebook — choose another").tag(draft.journal) }
+                    ForEach(model.journals) { Text($0.title).tag($0.journalID) }
+                }
+                Section("Writing") { TextEditor(text: $draft.text).frame(minHeight: 260).accessibilityLabel("Journal text") }
+                if let error {
+                    Section("Unsaved changes") {
+                        Text(error).foregroundStyle(.red)
+                        Text(recoverySaved ? "Draft saved encrypted on this device. The original entry was not overwritten. Close and resume it from Settings, retry, or save your writing as a new entry." : "The latest typing could not be saved. Keep this screen open and retry; do not close or uninstall the app.").accessibilityIdentifier("writing.recovery-status")
+                        if !recoverySaved {
+                            Button("Keep separate recovery draft") {
+                                do { draft = try model.keepPlainDraft(draft.separateRecovery()); recoverySaved = true }
+                                catch { self.error = error.localizedDescription }
+                            }
+                        }
+                        Button("Retry save") { save() }
+                        Button("Save as new entry") { copying = true }.disabled(!recoverySaved)
+                    }
+                } else { Text(draft.expected == nil ? "Start writing to save an encrypted draft." : "Saved encrypted on this device.").font(.footnote) }
+            }.modifier(ChapterScreenSurface()).navigationTitle(draft.expected == nil ? "New entry" : "Edit entry")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() }.disabled(error != nil && !recoverySaved).accessibilityIdentifier("writing.close") }
+                ToolbarItem(placement: .confirmationAction) { Button("Done") { save(); if error == nil { dismiss() } } }
+            }
+            .onChange(of: draft.title) { _, _ in save() }.onChange(of: draft.text) { _, _ in save() }
+            .onChange(of: draft.labels) { _, _ in save() }.onChange(of: draft.date) { _, _ in save() }
+            .onChange(of: draft.journal) { _, _ in save() }
+            .interactiveDismissDisabled(error != nil && !recoverySaved)
+            .confirmationDialog("Save this writing as a new entry?", isPresented: $copying, titleVisibility: .visible) {
+                Button("Save new text entry") { save(asNew: true) }
+                Button("Cancel", role: .cancel) {}
+            } message: { Text("The original entry and attachments remain unchanged. This creates a separate text entry with your title, date, labels and selected notebook; attachments are not duplicated.") }
         }
     }
 }
@@ -399,10 +421,12 @@ struct SettingsView: View {
                 }
                 if !model.snapshot.conflicts.isEmpty {
                     Section("Recovered conflicts") {
-                        Text("Divergent versions and unsynced changes are kept here when sync detects a conflict. Restore makes a new entry; neither version is silently discarded.").font(.footnote)
+                        Text("Divergent versions and failed writing drafts remain encrypted here. Resume writing or restore an entry copy; nothing is automatically discarded.").font(.footnote)
                         ForEach(Array(model.snapshot.conflicts.enumerated()), id: \.offset) { _, record in
                             VStack(alignment: .leading) { Text(record.title).font(.headline); Text(record.text).lineLimit(4)
-                                if record.kind == "entry" {
+                                if record.kind == PlainEntryDraft.recoveryKind, let draft = try? PlainEntryDraft(recovery:record) {
+                                    NavigationLink("Resume unsaved writing") { EntryEditor(recovery:draft) }
+                                } else if record.kind == "entry" {
                                     Button("Restore as new entry") { do { try model.restoreConflict(record) } catch { model.message = error.localizedDescription } }
                                 } else if record.kind == "aiSettings", let preference=try? SharedAppearance(value:record.body["settings"]?["chapterAppearance"] ?? .null) {
                                     Text("Recovered appearance: " + preference.skin + ", " + preference.palette + ", " + preference.mode).font(.footnote)

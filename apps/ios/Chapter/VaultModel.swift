@@ -155,7 +155,7 @@ import ChapterCore
     private func nextClock(after clock: Int64 = 0) throws -> Int64 {
         try ProtocolNumbers.nextClock(after: clock)
     }
-    func saveEntry(existing: VaultRecord?, title: String, text: String, labels: String, date: Date, journal: String) throws -> VaultRecord {
+    func saveEntry(existing: VaultRecord?, title: String, text: String, labels: String, date: Date, journal: String, recovery: PlainEntryDraft? = nil) throws -> VaultRecord {
         guard let identity, existing == nil || existing!.editablePlainText else { throw ChapterError.unsupported }
         if let existing {
             guard let live = snapshot.records.first(where: { $0.id == existing.id }), !live.deleted else { throw ChapterError.conflict }
@@ -179,7 +179,18 @@ import ChapterCore
             next.records.append(VaultRecord(id: UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased(), clock: clock, body: notebook, dirty: true))
         }
         if let index = next.records.firstIndex(where: { $0.id == id }) { next.records[index] = record } else { next.records.append(record) }
+        if let recovery { try next.finishPlainDraft(recovery) }
         try commit(next); scheduleSync(); return record
+    }
+    func keepPlainDraft(_ draft: PlainEntryDraft) throws -> PlainEntryDraft {
+        guard unlocked else { throw ChapterError.storage }
+        var next = snapshot; let saved = try next.keepPlainDraft(draft)
+        try commit(next); return saved
+    }
+    func applyPlainDraft(_ draft: PlainEntryDraft, asNew: Bool = false) throws -> VaultRecord {
+        try draft.validate()
+        guard draft.journal == "default" || journals.contains(where: { $0.journalID == draft.journal }) else { throw ChapterError.conflict }
+        return try saveEntry(existing: asNew ? nil : draft.expected, title: draft.title, text: draft.text, labels: draft.labels, date: draft.date, journal: draft.journal, recovery: draft)
     }
     func saveRichDraft(_ draft: RichDraft) throws {
         var next = snapshot; var drafts = next.richDrafts ?? []
@@ -223,11 +234,8 @@ import ChapterCore
         try commit(next); scheduleSync()
     }
     func deleteEntry(_ entry: VaultRecord) throws {
-        var next = snapshot
-        guard let i = next.records.firstIndex(where: { $0.id == entry.id }), next.records[i].kind == "entry", !next.records[i].deleted else { throw ChapterError.conflict }
-        try next.records[i].requiringUnchanged(expected: entry)
-        next.records[i].clock = try nextClock(after: next.records[i].clock); next.records[i].deleted = true; next.records[i].dirty = true
-        next.records[i].body["updatedAt"] = .number(Double(next.records[i].clock)); try commit(next); scheduleSync()
+        var next = snapshot; try next.deleteEntryPreservingRecovery(expected: entry)
+        try commit(next); scheduleSync()
     }
     func restoreConflict(_ record: VaultRecord) throws {
         let copy = try record.restoredEntry(id: UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased())

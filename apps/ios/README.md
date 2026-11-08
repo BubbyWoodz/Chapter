@@ -209,3 +209,11 @@ remain outstanding. Losing a device/Keychain can lose unsynced backup-excluded w
 ### Native authoring preview / local format v4
 
 Run formatting and new paragraph/heading/quote/list/task/code blocks now have encrypted resumable drafts. Original opaque nodes/marks/media are retained, and stale drafts refuse Apply. This is not yet a selection-based full ProseMirror editor. Local snapshot v4 preserves new formatting/new-block draft fields; v1–v3 read without rekey/rewrite and upgrade on next save. Old previews reject v4; never downgrade/uninstall with pending data. Original Mneme wire encryption is unchanged. Apple migration/reverse-codec/UI gates must pass for the new increment; see the feature ledger for exact verification state.
+
+### Failed writing and recoverable deletion
+
+Plain typing now has local-only encrypted recovery capsules with revision CAS,
+Settings resume/retry/separate recovery and explicit save-as-new-text behavior.
+Deletion retains an encrypted original together with its tombstone; drafts/media
+outboxes are not discarded. This is not secure erasure, notebook cascade or media
+purge. See [local recovery and verification limits](../../docs/CHAPTER-LOCAL-RECOVERY.md).
