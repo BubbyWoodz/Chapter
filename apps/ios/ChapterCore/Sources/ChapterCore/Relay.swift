@@ -52,7 +52,7 @@ public final class Relay {
             (65...90).contains($0) || (97...122).contains($0) || (48...57).contains($0) || $0 == 45 || $0 == 95
         }
     }
-    private func request(_ path: String, method: String = "POST", body: Data? = nil, token: String? = nil, maxBytes: Int = 32 * 1024 * 1024, contentType: String = "application/json") async throws -> Data {
+    private func request(_ path: String, method: String = "POST", body: Data? = nil, token: String? = nil, maxBytes: Int = 32 * 1024 * 1024, contentType: String = "application/json", expectedStatus: Int? = nil) async throws -> Data {
         var req = URLRequest(url: address.endpoint(path))
         req.httpMethod = method; req.httpBody = body
         req.setValue(contentType, forHTTPHeaderField: "Content-Type")
@@ -64,6 +64,7 @@ public final class Relay {
         let (bytes, response) = try await session.bytes(for: req)
         guard let response = response as? HTTPURLResponse else { throw ChapterError.authentication }
         guard (200..<300).contains(response.statusCode) else { throw ChapterError.http(response.statusCode) }
+        if let expectedStatus, response.statusCode != expectedStatus { throw ChapterError.corruptData }
         if response.expectedContentLength > Int64(maxBytes) { throw ChapterError.corruptData }
         var result = Data()
         for try await byte in bytes {
@@ -161,6 +162,12 @@ public final class Relay {
         let meta = try JSONDecoder().decode(Meta.self, from: data)
         guard meta.media_id == id, (1...512).contains(meta.chunks), meta.bytes >= Int64(41 * meta.chunks), meta.bytes <= Int64(MediaLimits.maximumPlainBytes + 41 * meta.chunks) else { throw ChapterError.unsupported }
         return MediaCache(id: id, chunks: meta.chunks, cipherBytes: meta.bytes)
+    }
+    /// Original authenticated primitive; future removal UI must durably guard
+    /// shared/recovery/draft references and queue intent BEFORE calling this.
+    public func deleteMedia(id: String, token: String) async throws {
+        guard MediaLimits.validID(id) else { throw ChapterError.corruptData }
+        _ = try await request("v1/media/\(id)", method: "DELETE", token: token, maxBytes: 0, expectedStatus: 204)
     }
     public func mediaChunks(id: String, token: String) async throws -> Int { try await mediaMetadata(id: id, token: token).chunks }
 }

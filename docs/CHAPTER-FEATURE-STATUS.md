@@ -48,9 +48,14 @@ the exact revision; a failing strict accessibility audit remains a release block
 -1acd4dd actual Apple core/web/Go/Simulator build PASS; page/strict results verify
   separately. Its ENTIRE genuine native TLS/Go/Postgres + S3/source-image/
   backup-restore42527124183 SUCCESS. Simulator != signed iPhone delivery.
-- Original media DELETE is idempotent but can return204 after chunk-sweep failure;
-  there is no encrypted-reference global fence. Permanent purge remains a real
-  explicit gap, not an unsafe stub or an erasure claim. Original server unchanged.
+- Source review found original media DELETE returned204 after a failed sweep.
+  Corrected to existing500/503 errors so clients retain retry intent. Actual Go
+  full tests/vet plus complete/partial-sweep/retry/owner-object-boundary/error
+  redaction tests PASS locally. New native strict empty204/ID/token/status tests
+  and actual TLS/Go/Postgres orphan delete/chunk404/shared-media-preservation
+  integration verify separately. No cipher/key/schema/auth change.
+  Native permanent-purge confirmation/reference/recovery/outbox lifecycle UI
+  remains missing; no destructive button/stub or secure-erasure claim.
 
 ## November 8, 2026, 4:49 PM EST verified core/live + actual page evidence
 

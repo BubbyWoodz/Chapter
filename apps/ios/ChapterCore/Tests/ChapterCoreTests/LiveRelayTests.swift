@@ -100,6 +100,20 @@ final class LiveRelayTests: XCTestCase {
         XCTAssertTrue(restoreResults.allSatisfy(\.applied))
         let restoredPage = try await client.pull(since:deletedPage.cursor,token:token)
         XCTAssertEqual(restoredPage.entries.count,2); XCTAssertTrue(restoredPage.entries.allSatisfy({!$0.deleted}))
+        // Separate UNREFERENCED synthetic object; never purge shared/recovery data.
+        let orphanID=UUID().uuidString.replacingOccurrences(of:"-",with:"")
+        let orphan=try files.stage(source:source,id:orphanID,name:"Public orphan",mime:"application/octet-stream",key:identity.mediaKey)
+        try await client.uploadMedia(orphan,files:files,mediaKey:identity.mediaKey,token:token)
+        try await client.deleteMedia(id:orphanID,token:token)
+        do { _ = try await client.mediaMetadata(id:orphanID,token:token); XCTFail("Actual deleted index must be absent") }
+        catch ChapterError.http(let status) { XCTAssertEqual(status,404) }
+        for index in 0..<orphan.chunks {
+            do { _ = try await client.mediaChunk(id:orphanID,index:index,token:token); XCTFail("Actual deleted ciphertext chunk must be absent") }
+            catch ChapterError.http(let status) { XCTAssertEqual(status,404) }
+        }
+        try await client.deleteMedia(id:orphanID,token:token)
+        let stillShared=try await client.mediaChunk(id:upload.id,index:0,token:token)
+        XCTAssertEqual(stillShared,try files.read(id:upload.id,index:0),"Unrelated shared/recovered media must survive")
         func stage(_ page:[PullRecord]) throws -> [JSONValue] {
             try [notebookID,entryID].map { id in
                 let wire = try XCTUnwrap(page.first(where:{$0.entry_id == id}))

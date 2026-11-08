@@ -43,6 +43,28 @@ final class RelayTests: XCTestCase {
     private func requestJSON(_ request: URLRequest) throws -> [String: String] {
         try JSONDecoder().decode([String: String].self, from: requestBody(request))
     }
+    func testMediaDeleteRequiresOriginalEmpty204AndPreservesHTTPFailures() async throws {
+        let token=String(repeating:"A",count:43),id=String(repeating:"a",count:32)
+        for status in [200,202,204,500,503] {
+            FixtureProtocol.install { request in
+                XCTAssertEqual(request.httpMethod,"DELETE");XCTAssertEqual(request.url?.path,"/prefix/v1/media/"+id)
+                XCTAssertEqual(request.value(forHTTPHeaderField:"Authorization"),"Bearer "+token)
+                return (status,Data())
+            }
+            let client=try relay();defer{client.cancel()}
+            do {try await client.deleteMedia(id:id,token:token);XCTAssertEqual(status,204,"Unexpected success must not retire deletion intent")}
+            catch ChapterError.http(let code) {XCTAssertEqual(code,status);XCTAssertTrue([500,503].contains(status))}
+            catch ChapterError.corruptData {XCTAssertTrue([200,202].contains(status))}
+        }
+        var requests=0
+        FixtureProtocol.install {_ in requests+=1;return (204,Data())}
+        let client=try relay();defer{client.cancel()}
+        for invalid in ["../another-owner",String(repeating:"x",count:65),""] {
+            do {try await client.deleteMedia(id:invalid,token:token);XCTFail("Unsafe ID accepted")}catch{}
+        }
+        do {try await client.deleteMedia(id:id,token:"injected\r\nHeader:value");XCTFail("Unsafe token accepted")}catch{}
+        XCTAssertEqual(requests,0)
+    }
     func testActualRegistrationAndRawChallengeTranscriptWithFutureResponseFields() async throws {
         let id = try VaultIdentity(seed: RecoveryPhrase.seed("legal winner thank year wave sausage worth useful legal winner thank yellow"))
         let challenge = Data(repeating: 7, count: 32), token = String(repeating: "A", count: 43)

@@ -44,7 +44,9 @@ has not succeeded. Professional coherent fidelity is required, not claimed.
 Public data only. Default rich fixture uses a real encrypted local store and no
 identity/relay. Optional media fixture adds a PUBLIC identity plus real protected
 media staging/queue/original encryption, never a fake server or auth/upload success.
-Original server/ciphertext/keys/protocol remain unchanged.
+Original ciphertext/keys/record/auth protocol remain unchanged. A documented
+server correction now reports retryable500/503 instead of falsely acknowledging
+failed media cleanup; it does not change the native visual fixtures.
 
 ## Observed94bbbc8 gallery (November8,2026)
 

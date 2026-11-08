@@ -166,7 +166,8 @@ func (s *Server) handleGetMedia(w http.ResponseWriter, r *http.Request) {
 }
 
 // DELETE /v1/media/{id} — remove one media object: the index row first, then a
-// best-effort sweep of its ciphertext chunks (same pattern as account deletion).
+// retryable sweep of its ciphertext chunks. Failed sweeps must NOT acknowledge
+// deletion: existing clients retain their durable delete intent on non-2xx.
 // Idempotent: deleting an id the relay never saw (or already deleted) succeeds,
 // so the client's offline deletion queue can retry safely.
 func (s *Server) handleDeleteMedia(w http.ResponseWriter, r *http.Request) {
@@ -190,11 +191,15 @@ func (s *Server) handleDeleteMedia(w http.ResponseWriter, r *http.Request) {
 	// uploaded but never finalized have no index row, and keying cleanup off
 	// the index is exactly what used to leave them behind forever. The prefix
 	// embeds the authenticated owner, so this cannot reach another tenant.
-	if _, err := s.blobs.DeletePrefix(r.Context(), mediaKeyPrefix(owner, mediaID)+"/"); err != nil &&
-		!errors.Is(err, blobs.ErrNotConfigured) && !errors.Is(err, blobs.ErrNotFound) {
-		// A failure here only orphans opaque ciphertext that nothing
-		// references anymore; the client's deletion queue retries.
-		log.Printf("media delete: chunk sweep for %s failed: %v", mediaID, err)
+	s.finishMediaDeletion(w, r, owner, mediaID)
+}
+
+// Authenticated index deletion already completed. No index row is needed for
+// retrying partial/unfinalized sweeps. Provider backups are NOT secure-erased.
+func (s *Server) finishMediaDeletion(w http.ResponseWriter, r *http.Request, owner, mediaID string) {
+	if _, err := s.blobs.DeletePrefix(r.Context(), mediaKeyPrefix(owner, mediaID)+"/"); err != nil && !errors.Is(err, blobs.ErrNotFound) {
+		writeBlobErr(w, err) // 503 unconfigured or 500 failure: retain client outbox
+		return
 	}
 	w.WriteHeader(http.StatusNoContent)
 }

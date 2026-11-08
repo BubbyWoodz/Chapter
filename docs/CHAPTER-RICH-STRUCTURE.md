@@ -39,7 +39,14 @@ and full two-device visual/usability acceptance. Whole-block movement is not the
 
 The original authenticated `DELETE /v1/media/{id}` is idempotent and owner-scoped
 (`server/internal/api/media.go:168–199`), but deletes the index before a best-effort
-chunk sweep. It currently logs some sweep failures and STILL returns204. It cannot
+chunk sweep. Upstream logged some sweep failures and STILL returned204. This increment
+corrects that false-success path: original error mapping returns500 on storage
+failure or503 when unconfigured, so existing web clients keep their queued
+delete intent. Complete/partial-sweep, idempotent retry, unfinalized chunk,
+owner/object-prefix isolation and redacted client error tests PASS locally.
+The native low-level original API now requires an EMPTY204, rejects other
+2xx and unsafe IDs/tokens; native unit and actual TLS/Go/Postgres orphan-object
+delete/index+chunk404/retry/unrelated-shared-media tests verify in CI. It cannot
 inspect references inside encrypted entries, nor erase provider snapshots/backups.
 A client must not label that secure erasure or infer all ciphertext is gone.
 Native recoverable deletion deliberately keeps original recovery/drafts/media.
