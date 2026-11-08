@@ -74,6 +74,16 @@ public final class EncryptedMediaFiles {
         let handle = try FileHandle(forWritingTo: url); defer { try? handle.close() }
         try handle.synchronize()
     }
+    /// Caller must first persist authenticated remote completion. Recheck the
+    /// exact confirmed intent and every local protection immediately before I/O.
+    /// Missing files are success on restart after a lost local completion write.
+    public func removeConfirmedPurge(_ intent: MediaPurgeIntent, snapshot: VaultSnapshot) throws {
+        guard intent.phase == .confirmed,
+              try snapshot.mediaPurgeIntents().contains(intent) else { throw ChapterError.conflict }
+        try snapshot.requireMediaPurgeUnreferenced(intent.media)
+        let location = try folder(intent.media.id)
+        if FileManager.default.fileExists(atPath: location.path) { try FileManager.default.removeItem(at: location) }
+    }
     /// Used ONLY for this operation's unpublished, newly created staging object.
     public func discardUnpublished(id: String) throws { try FileManager.default.removeItem(at: folder(id)) }
     public func stage(source: URL, id: String, name: String, mime: String, key: Data) throws -> MediaUpload {

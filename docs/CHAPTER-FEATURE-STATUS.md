@@ -31,6 +31,28 @@ the exact revision; a failing strict accessibility audit remains a release block
 | Server distribution | Chapter-owned source-build compose/install profile, separate volumes, private setup, optional STT; image/source artifact + real S3/backup-restore CI added | Real source-image builds, trusted HTTPS/auth/web crypto, actual PostgreSQL/S3 media and restore into a different empty stack PASS at 551236b (run 42511822303). Downloadable Linux amd64 image/source/checksum bundle exists. Not deployed; no direct live-volume migration or general historical-upgrade certification |
 | iPhone distribution | Xcode source and unsigned Simulator artifacts only | No signed device IPA, TestFlight or physical-device certification. Apple signing route later, not obtained here |
 
+## Guarded media-removal increment — November8,2026,5:27 PM EST
+
+Real core queued/sending/confirmed/cancel/finish lifecycle now retains intent in
+existing encrypted local opaque recovery, with exact whole-snapshot review CAS,
+shared/deleted/recovery/pending/opaque-schema protections and guarded idempotent
+physical ciphertext cleanup. SEVEN actual Foundation XCTest cases PASS (13 with
+six sync regressions); TWO additional Apple AES/file fault/restart tests and the
+extended actual native TLS orphan lifecycle await CI. **No destructive production
+UI or automatic drain is enabled; media-removal parity is NOT complete.** Fresh
+pull plus in-flight reference repair/other-device boundary/explicit UI remain
+required. See CHAPTER-MEDIA-PURGE.md. No crypto/wire/local schema change.
+
+Latest097 actual dedicated page tour PASSES:5 tests,0 failures,0 skipped. Genuine
+Journal/Calendar original-style cards, filtered notebook/cover and Arrange pages
+were visually inspected from same-build captures at5:18–5:21 PM EST. This is NOT
+certification of the independent RGB/back-stack/reorder assertions or full visual
+parity. Actual5b normal/XXXL strict Dynamic Type audits still FAIL; latest097
+normal production/comparison audit step also FAILS, exact isolated CTA outcome
+still to inspect. No audit is suppressed. Original six bundled fonts remain.
+Screenshot inspection caught singular-count copy; source fixes "1 entries" to
+"1 entry" without retouching evidence. Physical iPhone delivery remains incomplete.
+
 ## Byte-exact sync correctness — November8,2026,5:20 PM EST
 
 Actual compiled pre-fix production source reproduced an NFC acknowledgement

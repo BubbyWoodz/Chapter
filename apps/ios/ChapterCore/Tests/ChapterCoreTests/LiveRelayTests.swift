@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import XCTest
+import CryptoKit
 @testable import ChapterCore
 
 final class LiveRelayTests: XCTestCase {
@@ -104,7 +105,20 @@ final class LiveRelayTests: XCTestCase {
         let orphanID=UUID().uuidString.replacingOccurrences(of:"-",with:"")
         let orphan=try files.stage(source:source,id:orphanID,name:"Public orphan",mime:"application/octet-stream",key:identity.mediaKey)
         try await client.uploadMedia(orphan,files:files,mediaKey:identity.mediaKey,token:token)
+        // Exercise durable original-protocol cleanup on an isolated known orphan.
+        // This state is NOT a claim of an atomic whole-vault/other-device fence.
+        let purgeDisk=EncryptedSnapshotStore(directory:directory,namespace:"orphan-purge",key:SymmetricKey(size:.bits256))
+        var orphanState=VaultSnapshot();orphanState.mediaCache=[MediaCache(id:orphan.id,chunks:orphan.chunks,cipherBytes:orphan.cipherBytes)]
+        let purge=try orphanState.queueMediaPurge(orphanState.reviewMediaPurge(orphanState.mediaCache![0]));try purgeDisk.save(orphanState)
+        let sendingPurge=try orphanState.beginMediaPurge(purge);try purgeDisk.save(orphanState)
+        // Interrupted/lost-response retry retains the exact encrypted intent.
+        orphanState=try purgeDisk.load();XCTAssertEqual(try orphanState.mediaPurgeIntents(),[sendingPurge])
         try await client.deleteMedia(id:orphanID,token:token)
+        let confirmedPurge=try orphanState.confirmMediaPurge(sendingPurge);try purgeDisk.save(orphanState)
+        try files.removeConfirmedPurge(confirmedPurge,snapshot:orphanState)
+        try files.removeConfirmedPurge(confirmedPurge,snapshot:try purgeDisk.load())
+        try orphanState.finishMediaPurge(confirmedPurge);try purgeDisk.save(orphanState)
+        XCTAssertTrue(try purgeDisk.load().mediaPurgeIntents().isEmpty)
         do { _ = try await client.mediaMetadata(id:orphanID,token:token); XCTFail("Actual deleted index must be absent") }
         catch ChapterError.http(let status) { XCTAssertEqual(status,404) }
         for index in 0..<orphan.chunks {

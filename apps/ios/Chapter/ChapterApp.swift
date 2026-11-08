@@ -151,7 +151,7 @@ struct EntryList: View {
                     NotebookCover(color:notebook.body["color"]?.string ?? "#B0563A",pattern:notebook.body["cover"]?.string ?? "plain")
                     VStack(alignment:.leading,spacing:4) {
                         if let subtitle=notebook.body["subtitle"]?.string,!subtitle.isEmpty { Text(subtitle).font(.subheadline) }
-                        Text("\(model.entries.filter { $0.journalID == journal }.count) entries").font(.caption).foregroundStyle(.secondary)
+                        Text(chapterEntryCountLabel(model.entries.filter { $0.journalID == journal }.count)).font(.caption).foregroundStyle(.secondary)
                     }
                 }.padding(.vertical,8).listRowBackground(Color.clear).listRowSeparator(.hidden)
             }
@@ -173,6 +173,10 @@ struct EntryList: View {
 /// Original JournalEntries/Calendar card: 14pt radius, original --surface/line,
 /// notebook-colored 3pt leading edge, original heading/UI/mono roles. Native
 /// NavigationLink, Dynamic Type, selection and RTL remain real iOS behavior.
+private func chapterEntryCountLabel(_ count:Int) -> String {
+    count == 1 ? "1 entry" : "\(count) entries"
+}
+
 struct ChapterEntryCard: View {
     @EnvironmentObject private var model: VaultModel
     let entry: VaultRecord
@@ -466,7 +470,7 @@ struct NotebookList: View {
                             NotebookCover(color:journal.body["color"]?.string ?? "#B0563A",pattern:journal.body["cover"]?.string ?? "plain")
                             VStack(alignment: .leading, spacing:4) { Text(journal.title).font(chapterFont(.heading,skin:model.snapshot.appearance?.skin ?? "paper",size:22,relativeTo:.title2))
                                 if let subtitle = journal.body["subtitle"]?.string, !subtitle.isEmpty { Text(subtitle).font(.caption).foregroundStyle(.secondary) }
-                                Text("\(model.entries.filter { $0.journalID == journal.journalID }.count) entries").font(.caption).foregroundStyle(.secondary)
+                                Text(chapterEntryCountLabel(model.entries.filter { $0.journalID == journal.journalID }.count)).font(.caption).foregroundStyle(.secondary)
                             }
                         }.padding(.vertical,6)
                     }
