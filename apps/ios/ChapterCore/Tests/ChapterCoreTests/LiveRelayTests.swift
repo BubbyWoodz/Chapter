@@ -68,6 +68,48 @@ final class LiveRelayTests: XCTestCase {
         XCTAssertTrue(snapshot.records.allSatisfy { !$0.dirty })
         let last = try await client.pull(since:cursor,token:token)
         XCTAssertEqual(last.entries.count,1); XCTAssertEqual(last.entries[0].entry_id,mediaEntry)
+        // Real notebook lifecycle through normally trusted TLS/Go/Postgres;
+        // pending media must not prevent tombstones or erase shared media.
+        let notebookID = UUID().uuidString.replacingOccurrences(of:"-",with:"")
+        let entryID = UUID().uuidString.replacingOccurrences(of:"-",with:"")
+        let logicalID = UUID().uuidString.replacingOccurrences(of:"-",with:"")
+        let clock = try ProtocolNumbers.nextClock(after:0)
+        var lifecycle = VaultSnapshot()
+        lifecycle.records = [VaultRecord(id:notebookID,clock:clock,body:["kind":.string("journal"),"journalId":.string(logicalID),"name":.string("Public live notebook"),"cover":.string("lines"),"opaqueFuture":.bool(true)],dirty:true),VaultRecord(id:entryID,clock:clock,body:["journalId":.string(logicalID),"title":.string("Public live notebook entry"),"bodyJson":.string(raw),"bodyText":.string("Public live content"),"labels":.array([.string("travel, friends")]),"attachments":.array([.object(upload.attributes)]),"opaqueFuture":.bool(true)],dirty:true)]
+        let originalLifecycle = lifecycle.records
+        let originalResults = try await client.push(lifecycle.records,identity:identity,token:token)
+        XCTAssertEqual(originalResults.count,2); XCTAssertTrue(originalResults.allSatisfy(\.applied))
+        for record in originalLifecycle { lifecycle.acknowledge(record) }
+        let originalPage = try await client.pull(since:last.cursor,token:token); XCTAssertEqual(originalPage.entries.count,2)
+        lifecycle.mediaUploads = [upload] // lost local completion ack, original chunks retained
+        let plan = try NotebookDeletionPlan(snapshot:lifecycle,notebook:lifecycle.records[0])
+        try lifecycle.deleteNotebookPreservingRecovery(plan)
+        var deletionQueue = SyncPushQueue()
+        let deleteBatch = try deletionQueue.next(from:lifecycle)
+        XCTAssertEqual(deleteBatch.count,2); XCTAssertTrue(deleteBatch.allSatisfy(\.deleted))
+        let deleteResults = try await client.push(deleteBatch,identity:identity,token:token)
+        XCTAssertTrue(deleteResults.allSatisfy(\.applied)); for record in deleteBatch { lifecycle.acknowledge(record) }
+        let deletedPage = try await client.pull(since:originalPage.cursor,token:token)
+        XCTAssertEqual(deletedPage.entries.count,2); XCTAssertTrue(deletedPage.entries.allSatisfy(\.deleted))
+        let retainedSharedMedia = try await client.mediaMetadata(id:upload.id,token:token)
+        XCTAssertEqual(retainedSharedMedia.cipherBytes,metadata.cipherBytes)
+        try lifecycle.restoreNotebookDeletion(XCTUnwrap(lifecycle.conflicts.last))
+        XCTAssertFalse(lifecycle.uploadableRecords.contains(where:{$0.id == entryID}))
+        try await client.uploadMedia(upload,files:files,mediaKey:identity.mediaKey,token:token); lifecycle.mediaUploaded(upload)
+        let restoreResults = try await client.push(lifecycle.records,identity:identity,token:token)
+        XCTAssertTrue(restoreResults.allSatisfy(\.applied))
+        let restoredPage = try await client.pull(since:deletedPage.cursor,token:token)
+        XCTAssertEqual(restoredPage.entries.count,2); XCTAssertTrue(restoredPage.entries.allSatisfy({!$0.deleted}))
+        func stage(_ page:[PullRecord]) throws -> [JSONValue] {
+            try [notebookID,entryID].map { id in
+                let wire = try XCTUnwrap(page.first(where:{$0.entry_id == id}))
+                return .object(["id":.string(id),"record":.string(wire.ciphertext),"clock":.number(Double(wire.lww_clock)),"deleted":.bool(wire.deleted)])
+            }
+        }
+        if let output = ProcessInfo.processInfo.environment["CHAPTER_NATIVE_OUTPUT"] {
+            let vector:JSONValue = .object(["original":.array(originalLifecycle.map{.object($0.body)}),"deleted":.array(try stage(deletedPage.entries)),"restored":.array(try stage(restoredPage.entries))])
+            try JSONEncoder().encode(vector).write(to:URL(fileURLWithPath:output+".notebook-live-lifecycle"))
+        }
         if let output = ProcessInfo.processInfo.environment["CHAPTER_NATIVE_OUTPUT"] {
             let vector:[String:JSONValue] = ["recordId":.string(mediaEntry),"ciphertext":.string(last.entries[0].ciphertext),"mediaId":.string(upload.id),"chunks":.array(chunks.map(JSONValue.string))]
             try JSONEncoder().encode(vector).write(to:URL(fileURLWithPath:output+".live"))

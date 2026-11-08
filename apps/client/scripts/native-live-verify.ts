@@ -1,3 +1,4 @@
+import { verifyNotebookLifecycle } from './native-notebook-vectors';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { identityFromMnemonic } from '../src/sync/identity';
@@ -13,3 +14,5 @@ assert.deepEqual(docMediaIds(JSON.parse(body.bodyJson)),[output.mediaId]);
 assert.equal(JSON.parse(body.bodyJson).future.keep,true);
 assert.deepEqual(Buffer.from(decryptMediaChunks(id.mediaKey,output.mediaId,output.chunks.map(c=>Buffer.from(c,'base64')))),Buffer.alloc((1<<20)+17,77));
 console.log('PASS: actual web decoder opens native ciphertext fetched back from real TLS relay/Postgres + fixture media store.');
+
+await verifyNotebookLifecycle(path+'.notebook-live-lifecycle',id.dataKey);

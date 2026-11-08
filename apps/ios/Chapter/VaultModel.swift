@@ -12,6 +12,7 @@ import ChapterCore
     @Published private(set) var syncing = false
     @Published private(set) var appearanceInitialized = false
     @Published var connecting = false
+    @Published private(set) var lastCompletePullID: UUID?
     private var identity: VaultIdentity?
     private var store: EncryptedSnapshotStore?
     private var relay: Relay?
@@ -35,16 +36,30 @@ import ChapterCore
         let disk = EncryptedSnapshotStore(directory: directory, namespace: "public-fixture-only", key: SymmetricKey(data: Data(repeating: 7, count: 32)))
         var value = VaultSnapshot()
         value.records = [VaultRecord(id: "public-notebook-record", clock: 1, body: ["kind": .string("journal"), "journalId": .string("public-notebook"), "name": .string("Public notebook"), "subtitle": .string("Public subtitle"), "color": .string("#4E8B85"), "cover": .string("lines"), "opaqueFuture": .object(["preserve": .bool(true)])]), VaultRecord(id: "public-rich-fixture", clock: 1, body: ["journalId": .string("public-notebook"), "title": .string("Public rich fixture"), "bodyJson": .string(PublicRichFixture.json), "bodyText": .string(try RichDocument(json: PublicRichFixture.json).plainText)])]
+        value.records[1].body["createdAt"] = .number(Date().timeIntervalSince1970 * 1000)
         value.records.append(VaultRecord(id: "public-destination-record", clock: 1, body: ["kind": .string("journal"), "journalId": .string("public-destination"), "name": .string("Public destination"), "color": .string("#B0563A"), "cover": .string("dots")]))
+        if ProcessInfo.processInfo.arguments.contains("--chapter-media-fixture") {
+            // PUBLIC test identity only; real original crypto and protected local
+            // media staging, with NO relay, HTTP fixture or fake server success.
+            let publicIdentity = try VaultIdentity(seed:RecoveryPhrase.seed("legal winner thank year wave sausage worth useful legal winner thank yellow"))
+            let files = try EncryptedMediaFiles(directory:directory,namespace:"public-fixture-only")
+            let source = directory.appendingPathComponent("Public offline note.txt")
+            try Data("Public Chapter offline media fixture. This file was genuinely encrypted, queued and decrypted locally. No network authentication or upload is claimed.".utf8).write(to:source,options:.completeFileProtection)
+            defer { try? FileManager.default.removeItem(at:source) }
+            let upload = try files.stage(source:source,id:String(repeating:"a",count:32),name:"Public offline note",mime:"text/plain",key:publicIdentity.mediaKey)
+            try value.attach(upload,entryID:"public-rich-fixture",expectedDocument:PublicRichFixture.json)
+            identity = publicIdentity; mediaFiles = files
+        }
         try disk.save(value); store = disk; snapshot = value; unlocked = true; appearanceInitialized = true
-        // Deliberately no identity, relay or fake sync/auth result. Tests exercise
-        // real encrypted local editing, never production Keychain/server auth.
+        // Never creates a relay or pretends to authenticate. Default rich fixture
+        // still has no identity; optional media fixture uses public local keys.
     }
     #endif
     var entries: [VaultRecord] { snapshot.records.filter { $0.kind == "entry" && !$0.deleted }.sorted { $0.date > $1.date } }
     var journals: [VaultRecord] { snapshot.records.filter { $0.kind == "journal" && !$0.deleted }.sorted { $0.title < $1.title } }
     var templates: [VaultRecord] { snapshot.records.filter { $0.kind == "template" && !$0.deleted } }
     var mediaSession: UUID { generation }
+    var canSync: Bool { relay != nil && identity != nil }
     var canImportMedia: Bool { identity != nil && mediaFiles != nil }
     var pending: Int { snapshot.records.filter(\.dirty).count + (snapshot.mediaUploads?.count ?? 0) }
 
@@ -68,7 +83,7 @@ import ChapterCore
     func lock() {
         generation = UUID(); scheduledSync?.cancel(); scheduledSync = nil; backoff = SyncBackoff(); mediaErrors = [:]; mediaImport?.cancel(); mediaImport = nil; mediaFiles = nil; playbackFiles.forEach { try? FileManager.default.removeItem(at: $0) }; playbackFiles = []; relay?.cancel(); relay = nil; identity = nil; store = nil
         if let root = try? EncryptedSnapshotStore.applicationDirectory() { try? FileManager.default.removeItem(at: root.appendingPathComponent("ImportStaging", isDirectory: true)) }
-        snapshot = VaultSnapshot(); appearanceInitialized = false; unlocked = false; syncing = false; connecting = false; message = nil
+        snapshot = VaultSnapshot(); lastCompletePullID = nil; appearanceInitialized = false; unlocked = false; syncing = false; connecting = false; message = nil
     }
     private func commit(_ next: VaultSnapshot) throws {
         guard let store else { throw ChapterError.storage }
@@ -119,16 +134,22 @@ import ChapterCore
                 if !page.more { break }
                 pages += 1; guard pages < 10_000 else { throw ChapterError.corruptData }
             }
+            lastCompletePullID = UUID()
             appearanceInitialized = true // Never bootstrap unseen server AI settings while offline.
+            var uploadFailed = false
             if let mediaFiles {
                 for upload in snapshot.mediaUploads ?? [] {
+                    guard snapshot.liveMediaUploadIDs.contains(upload.id) else {
+                        mediaErrors[upload.id] = "Paused: retained encrypted for deleted/recovered writing. Restore a referencing entry to upload."
+                        continue
+                    }
                     do {
                         try await relay.uploadMedia(upload, files: mediaFiles, mediaKey: identity.mediaKey, token: token)
                         guard attempt == generation else { return }
                         var next = snapshot; next.mediaUploaded(upload); try commit(next); mediaErrors.removeValue(forKey: upload.id)
                     } catch {
                         guard attempt == generation else { return }
-                        mediaErrors[upload.id] = error.localizedDescription
+                        uploadFailed = true; mediaErrors[upload.id] = error.localizedDescription
                         // Retain this queue item; unrelated entries may still sync.
                         // Uploadable-record filtering prevents premature references.
                     }
@@ -148,7 +169,7 @@ import ChapterCore
                 }
                 try commit(next)
             }
-            if !mediaErrors.isEmpty { backoff.failed(); message = "Some attachments could not upload or be authenticated. Their pending references were not sent. Keep this device and retry; do not delete local work." }
+            if uploadFailed { backoff.failed(); message = "Some attachments could not upload or be authenticated. Their pending references were not sent. Keep this device and retry; do not delete local work." }
             else { backoff.succeeded(); message = pending == 0 ? "Synced with your server." : "\(pending) changes remain on this device. Sync again to retry." }
         } catch { if attempt == generation { backoff.failed(); message = "Offline or unable to sync: \(error.localizedDescription) Local saved changes are retained." } }
     }
@@ -241,6 +262,19 @@ import ChapterCore
         next.records[i] = try next.records[i].movingEntry(expected: expected, to: target)
         try commit(next); scheduleSync()
     }
+    func prepareNotebookDeletion(_ notebook: VaultRecord) throws -> NotebookDeletionPlan {
+        try NotebookDeletionPlan(snapshot:snapshot,notebook:notebook)
+    }
+    func deleteNotebook(_ plan: NotebookDeletionPlan) throws {
+        guard !syncing, mediaImport == nil else { throw ChapterError.conflict }
+        var next = snapshot; try next.deleteNotebookPreservingRecovery(plan)
+        try commit(next); scheduleSync()
+    }
+    func restoreNotebookDeletion(_ expected: VaultRecord) throws {
+        guard !syncing, mediaImport == nil else { throw ChapterError.conflict }
+        var next = snapshot; try next.restoreNotebookDeletion(expected)
+        try commit(next); scheduleSync()
+    }
     func deleteEntry(_ entry: VaultRecord) throws {
         var next = snapshot; try next.deleteEntryPreservingRecovery(expected: entry)
         try commit(next); scheduleSync()
@@ -276,7 +310,8 @@ import ChapterCore
         try? FileManager.default.removeItem(at: file); playbackFiles.removeAll { $0 == file }
     }
     func downloadMedia(_ media: VaultMedia) async throws -> URL {
-        guard let relay, let identity, let mediaFiles else { throw ChapterError.authentication }
+        guard let identity, let mediaFiles else { throw ChapterError.authentication }
+        let relay = self.relay // Offline queued/cached media needs NO server request.
         let attempt = generation, maximum = MediaLimits.maximumPlainBytes
         guard media.bytes <= maximum, MediaLimits.validID(media.id) else { throw ChapterError.unsupported }
         let pending = snapshot.mediaUploads?.first { $0.id == media.id }
@@ -286,6 +321,7 @@ import ChapterCore
         if let pending { metadata = MediaCache(id: pending.id, chunks: pending.chunks, cipherBytes: pending.cipherBytes) }
         else if let cached { metadata = cached }
         else {
+            guard let relay else { throw ChapterError.authentication }
             let auth = try await relay.authenticate(identity); token = auth
             guard attempt == generation else { throw CancellationError() }
             metadata = try await relay.mediaMetadata(id: media.id, token: auth)
@@ -303,7 +339,10 @@ import ChapterCore
         var written = 0, cipherBytes: Int64 = 0
         for index in 0..<metadata.chunks {
             let cipher: Data
-            if let token { cipher = try await relay.mediaChunk(id: media.id, index: index, token: token) }
+            if let token {
+                guard let relay else { throw ChapterError.authentication }
+                cipher = try await relay.mediaChunk(id: media.id, index: index, token: token)
+            }
             else { cipher = try mediaFiles.read(id: media.id, index: index) }
             guard attempt == generation else { throw CancellationError() }
             let plain = try VaultCipher.openMediaChunk(cipher, key: identity.mediaKey, id: media.id, index: index, total: metadata.chunks)

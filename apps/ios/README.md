@@ -255,3 +255,23 @@ and recovered text-copy saves. Existing plain-entry labels are read-only in the
 writing form; edit them in the real individual metadata form. New/explicit comma
 input is normalized like the original web LabelField. Metadata Cancel/Save are
 explicit; metadata form changes still are not autosaved before locking.
+
+### Actual page captures and recoverable notebook deletion
+
+CI exports `Chapter-actual-page-screenshots` early from REQUIRED real Simulator
+page-tour tests. These are public synthetic journal states, not app mockups.
+Only this screenshot tour disables animations; separate normal/XXXL functional
+and strict accessibility runs retain production animation and every finding.
+An artifact existing does not mean every intended page passed: inspect its
+manifest and test results. No full visual parity or final-design claim.
+
+Notebook deletion reviews a frozen DOWNLOADED set, then atomically stores an
+original encrypted local recovery and notebook/entry tombstones. It retains all
+writing/rich drafts, chunks, cache and queued media. Settings can restore the
+SAME original IDs only while every deletion checkpoint is unchanged. No remote
+newer data is overwritten. Queued attachments referenced only by deleted writing
+pause (not purge); shared live refs/restore reactivate them. Tombstones do not
+wait for pending upload. This is NOT secure erasure. The original server API has
+no cross-client atomic cascade/fence: sync+refresh the reviewed list first;
+unseen/concurrent remote entries are not claimed deleted. Recovery never travels
+as a relay record; crypto, snapshot version and original wire format stay intact.

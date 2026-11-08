@@ -205,7 +205,7 @@ final class ChapterUITests: XCTestCase {
         app.buttons["More"].tap(); app.buttons["Delete entry"].tap()
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","An encrypted recovery copy remains")).firstMatch.waitForExistence(timeout:5))
         app.buttons["Delete entry"].tap()
-        XCTAssertFalse(app.staticTexts["Public rich fixture"].exists)
+        XCTAssertTrue(app.staticTexts["Public rich fixture"].waitForNonExistence(timeout:5))
         app.tabBars.buttons["Settings"].tap()
         let restore = app.buttons["Restore as new entry"].firstMatch; reveal(restore,in:app); restore.tap()
         app.tabBars.buttons["Journal"].tap()
@@ -213,6 +213,26 @@ final class ChapterUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Public heading"].waitForExistence(timeout:5))
         XCTAssertTrue(app.buttons["Mark task complete"].exists)
         attach(app,name:"Chapter real recoverable deletion and restored native rich entry")
+    }
+
+    func testNotebookCascadeRetainsAndRestoresActualNativeRichEntry() throws {
+        let app = XCUIApplication(); app.launchArguments = ["--chapter-rich-fixture"]; app.launch()
+        app.tabBars.buttons["Notebooks"].tap()
+        let edit = app.buttons["Edit notebook Public notebook"]; XCTAssertTrue(edit.waitForExistence(timeout:10)); edit.tap()
+        let prepare = app.buttons["notebook.delete.prepare"]; reveal(prepare,in:app); prepare.tap()
+        let confirmation = app.textFields["notebook.delete.confirmation"]; reveal(confirmation,in:app)
+        XCTAssertFalse(app.buttons["notebook.delete.apply"].isEnabled)
+        confirmation.tap(); confirmation.typeText("delete")
+        attach(app,name:"Chapter real reviewed recoverable notebook deletion")
+        app.buttons["notebook.delete.apply"].tap()
+        XCTAssertTrue(app.navigationBars["Notebooks"].waitForExistence(timeout:5)); XCTAssertFalse(app.buttons["Edit notebook Public notebook"].exists)
+        app.tabBars.buttons["Journal"].tap(); XCTAssertTrue(app.staticTexts["Public rich fixture"].waitForNonExistence(timeout:5))
+        app.tabBars.buttons["Settings"].tap()
+        let restore = app.buttons["Restore notebook and entries"]; reveal(restore,in:app); restore.tap()
+        app.tabBars.buttons["Notebooks"].tap(); XCTAssertTrue(app.buttons["Edit notebook Public notebook"].waitForExistence(timeout:5))
+        app.tabBars.buttons["Journal"].tap(); let entry = app.staticTexts["Public rich fixture"]; XCTAssertTrue(entry.waitForExistence(timeout:5)); entry.tap()
+        XCTAssertTrue(app.staticTexts["Public heading"].waitForExistence(timeout:5)); XCTAssertTrue(app.buttons["Mark task complete"].exists)
+        attach(app,name:"Chapter actual notebook cascade restored original rich entry and tasks")
     }
 
     func testFailedPlainWritingKeepsEncryptedRecoveryAndResumes() throws {
@@ -250,4 +270,77 @@ final class ChapterUITests: XCTestCase {
         attach(app, name: "Chapter real native rich entry moved between notebooks")
     }
 
+}
+
+// Genuine public-fixture page captures, NOT mocks and not a substitute for the
+// separate strict production accessibility/functional test runs. Only this tour
+// disables animation to capture final native UI states rather than transitions.
+final class ChapterPageCaptures: XCTestCase {
+    private func launch(media:Bool = false) -> XCUIApplication {
+        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture","--chapter-still-captures"]
+        if media {app.launchArguments.append("--chapter-media-fixture")};app.launch();return app
+    }
+    private func shot(_ app:XCUIApplication,_ name:String) {
+        let image=XCTAttachment(screenshot:app.screenshot());image.name="Page — " + name;image.lifetime = .keepAlways;add(image)
+    }
+    private func reveal(_ element:XCUIElement,_ app:XCUIApplication) {
+        for _ in 0..<15 {if element.exists && element.isHittable {return};app.swipeUp()}
+        for _ in 0..<25 {if element.exists && element.isHittable {return};app.swipeDown()}
+        XCTAssertTrue(element.exists && element.isHittable,"Actual page control must be reachable: " + element.debugDescription)
+    }
+    func testConnectionInitialScreenNoSecrets() throws {
+        let app=XCUIApplication();app.launchArguments=["--chapter-still-captures"];app.launch()
+        XCTAssertTrue(app.textFields["connection.server"].waitForExistence(timeout:10));shot(app,"00 Actual server URL and recovery unlock screen")
+    }
+    func testJournalSearchCalendarComposeNotebookFormsAndMenus() throws {
+        let app=launch();let entry=app.staticTexts["Public rich fixture"];XCTAssertTrue(entry.waitForExistence(timeout:10))
+        shot(app,"01 Journal list")
+        let search=app.searchFields.firstMatch;XCTAssertTrue(search.waitForExistence(timeout:5));search.tap();search.typeText("Public rich")
+        XCTAssertTrue(entry.waitForExistence(timeout:5));shot(app,"02 Actual local search")
+        app.buttons["Cancel"].tap();app.buttons["New entry"].tap()
+        XCTAssertTrue(app.navigationBars["New entry"].waitForExistence(timeout:5));shot(app,"03 New plain entry")
+        app.buttons["writing.close"].tap();app.tabBars.buttons["Calendar"].tap()
+        XCTAssertTrue(app.navigationBars["Calendar"].waitForExistence(timeout:5));shot(app,"04 Calendar and local statistics")
+        app.tabBars.buttons["Notebooks"].tap();let edit=app.buttons["Edit notebook Public notebook"]
+        XCTAssertTrue(edit.waitForExistence(timeout:5));shot(app,"05 Original-theme notebook shelf");edit.tap()
+        XCTAssertTrue(app.textFields["notebook.name"].waitForExistence(timeout:5));shot(app,"06 Notebook details color and cover form")
+        app.buttons["notebook.cover"].tap();XCTAssertTrue(app.buttons["Grid"].waitForExistence(timeout:5));shot(app,"07 Original notebook cover pattern choices")
+        app.buttons["Lines"].tap();app.buttons["Cancel"].tap()
+        app.buttons["New notebook"].tap();XCTAssertTrue(app.alerts["New notebook"].waitForExistence(timeout:5));shot(app,"08 Create notebook dialog");app.buttons["Cancel"].tap()
+    }
+    func testRichEditorFormattingMoveMetadataAndAppearancePages() throws {
+        let app=launch();let entry=app.staticTexts["Public rich fixture"];XCTAssertTrue(entry.waitForExistence(timeout:10));entry.tap()
+        XCTAssertTrue(app.staticTexts["Public heading"].waitForExistence(timeout:5));shot(app,"09 Original rich reader")
+        app.buttons["More"].tap();XCTAssertTrue(app.buttons["Move to notebook"].waitForExistence(timeout:5));shot(app,"10 Entry actions")
+        app.buttons["Move to notebook"].tap();XCTAssertTrue(app.buttons["move.notebook"].waitForExistence(timeout:5));shot(app,"11 Move entry form")
+        app.buttons["move.notebook"].tap();XCTAssertTrue(app.buttons["Public destination"].waitForExistence(timeout:5));shot(app,"12 Move notebook choices")
+        app.buttons["Public notebook"].tap();app.buttons["Cancel"].tap()
+        app.buttons["Edit"].tap();XCTAssertTrue(app.buttons["rich.run.0/0"].waitForExistence(timeout:5));shot(app,"13 Lossless rich editor block list")
+        app.buttons["rich.run.0/0"].tap();XCTAssertTrue(app.textViews["Formatted text run"].waitForExistence(timeout:5));shot(app,"14 Actual formatted text-run editor")
+        app.buttons["rich.formatting"].tap();XCTAssertTrue(app.buttons["rich.format.italic"].waitForExistence(timeout:5));shot(app,"15 Expanded real formatting controls")
+        app.buttons["rich.format.italic"].tap();app.buttons["Save"].tap()
+        app.buttons["rich.add-block"].tap();let block=app.textViews["New block text"];XCTAssertTrue(block.waitForExistence(timeout:5));block.tap();block.typeText("Public native block")
+        shot(app,"29 Actual new rich block and encrypted draft")
+        app.buttons["rich.block-style"].tap();XCTAssertTrue(app.buttons["Heading 2"].waitForExistence(timeout:5));shot(app,"30 Actual native block style choices");app.buttons["Heading 2"].tap()
+        app.buttons["Save"].tap();app.buttons["Done"].tap()
+        app.buttons["More"].tap();app.buttons["Title, date and labels"].tap();XCTAssertTrue(app.textFields["metadata.title"].waitForExistence(timeout:5));shot(app,"16 Entry title date labels form");app.buttons["Cancel"].tap()
+        app.tabBars.buttons["Settings"].tap();XCTAssertTrue(app.buttons["appearance.skin"].waitForExistence(timeout:5));shot(app,"17 Settings upper appearance and sync")
+        app.buttons["appearance.skin"].tap();XCTAssertTrue(app.buttons["Forest"].waitForExistence(timeout:5));shot(app,"18 Matching original theme style choices");app.buttons["Forest"].tap()
+        app.buttons["appearance.palette"].tap();XCTAssertTrue(app.buttons["Moss"].waitForExistence(timeout:5));shot(app,"19 Original accent palette choices");app.buttons["Moss"].tap()
+        app.buttons["appearance.mode"].tap();XCTAssertTrue(app.buttons["Dark"].waitForExistence(timeout:5));shot(app,"20 Synced appearance mode choices");app.buttons["Dark"].tap();shot(app,"21 Actual dark Forest settings")
+        let licenses=app.buttons["Original font licenses"];reveal(licenses,app);shot(app,"22 Settings lower privacy limitations and licenses");licenses.tap()
+        XCTAssertTrue(app.staticTexts["license.hanken-grotesk"].waitForExistence(timeout:5));shot(app,"23 Original bundled offline font licenses")
+    }
+    func testRealEncryptedOfflineMediaPreviewOutboxAndRecoveryPages() throws {
+        let app=launch(media:true);let entry=app.staticTexts["Public rich fixture"];XCTAssertTrue(entry.waitForExistence(timeout:10));entry.tap()
+        let preview=app.buttons["media.preview." + String(repeating:"a",count:32)];reveal(preview,app);shot(app,"24 Real encrypted media controls and pending queue")
+        preview.tap();let done=app.buttons["Done"];XCTAssertTrue(done.waitForExistence(timeout:10),"Genuine decrypted local Quick Look must open without server authentication");shot(app,"25 Actual decrypted protected offline file preview");done.tap()
+        app.navigationBars.buttons["Journal"].tap()
+        app.tabBars.buttons["Settings"].tap();let retry=app.buttons["Retry attachments and sync"];reveal(retry,app);shot(app,"26 Durable encrypted attachment outbox offline")
+        app.tabBars.buttons["Journal"].tap();entry.tap();app.buttons["More"].tap();app.buttons["Delete entry"].tap()
+        XCTAssertTrue(app.buttons["Delete entry"].waitForExistence(timeout:5));shot(app,"27 Actual recoverable entry deletion confirmation")
+        app.buttons["Delete entry"].tap();XCTAssertTrue(entry.waitForNonExistence(timeout:5))
+        app.tabBars.buttons["Settings"].tap();let restore=app.buttons["Restore as new entry"];reveal(restore,app);shot(app,"28 Retained encrypted original recovery and media")
+        restore.tap();app.tabBars.buttons["Journal"].tap();XCTAssertTrue(entry.waitForExistence(timeout:5))
+    }
 }

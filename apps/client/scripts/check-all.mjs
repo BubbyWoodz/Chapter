@@ -15,6 +15,7 @@ const SCRIPTS = [
   'shared-appearance-ui', // actual Preact hook state/remote/no-echo/error transitions
   'shared-appearance', // encrypted extension validation and lossless settings patches
   'native-fonts', // original licensed glyph provenance and actual Xcode resources
+  'native-notebook-lifecycle', // actual original web crypto/router + adversarial fixture verification
   'native-vectors', // frozen native/web interoperability and registration fixture
   'keys-compat', // seed→identity derivation stays stable across dependency bumps
   'record-codec', // wire-codec field mapping (silent LWW field loss)

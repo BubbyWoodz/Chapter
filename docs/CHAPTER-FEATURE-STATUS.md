@@ -10,7 +10,7 @@ the exact revision; a failing strict accessibility audit remains a release block
 | Existing-vault recovery/authentication | English BIP39 validation, real owner-authorized registration/challenge/session; direct HTTPS URL | Native key/auth HTTP transcript and actual web/Go signature checks passed before this slice; real approval/recovery/phone integration still needed |
 | Connectivity/privacy | LAN/Tailscale URL/path; trusted TLS; no redirects/telemetry/cloud requirement | URL/HTTP rejection tests; physical permission, certificates and LAN/VPN matrix not run. HTTP LAN unsupported |
 | Entries | Plain CRUD/date/labels/notebook; encrypted failed-writing recovery, close/resume/retry/separate recovery/save-as-new; atomic deletion recovery checkpoint | Actual Apple encrypted fault/restart/old-byte preservation and actual failed-writing→Settings→resumed-editor UI PASS at4d9e6d3 (42520947366). Original encryption unchanged; this is not physical-device certification. Delete retains drafts/uploads and explicit encrypted original; not secure erasure or media purge. Broad two-device controller CRUD not certified |
-| Notebooks | Browse/create; rename, subtitle, original color and cover metadata editing; real non-destructive move-between-notebooks with optimistic stale-write rejection | Four actual Apple notebook tests, actual Swift→web ciphertext decoding and real native UI Save/persist test PASS at 6c7908c in run 42513126159. Unknown fields/IDs preserved. Move whole-document preservation, stale/deleted/overflow and actual Swift→web reverse decoding PASS at fd3d1ad (42519352453); real Move UI PASS atc810740 in42521928122. Updated native-Button controls verify separately. Cascade delete/media purge missing. Archive/reorder are not present in the reviewed original notebook API; do not invent a wire format or claim those synced. |
+| Notebooks | Browse/create; rename, subtitle, original color and cover metadata editing; real non-destructive move-between-notebooks with optimistic stale-write rejection | Four actual Apple notebook tests, actual Swift→web ciphertext decoding and real native UI Save/persist test PASS at 6c7908c in run 42513126159. Unknown fields/IDs preserved. Move whole-document preservation, stale/deleted/overflow and actual Swift→web reverse decoding PASS at fd3d1ad (42519352453); real Move UI PASS atc810740 in42521928122. Updated native-Button controls verify separately. Recoverable downloaded-set notebook cascade + guarded original-ID restore now implemented; new Apple/live gates pending. Permanent/shared-media purge missing. Archive/reorder are not present in the reviewed original notebook API; do not invent a wire format or claim those synced. |
 | Local discovery | Text/label substring search, day calendar, entry/day counts | Full query, heatmap/stats/streak/badge parity missing |
 | Native rich viewing | Styled inline marks, headings, paragraphs, lists/tasks, quotes/code, approximate tables, source math, simplified media/location/interview cards | New web-generated golden document and actual Foundation logic tests. Actual Apple core tests and Simulator compile passed at b8ba3d9; actual rich UI/task/text-run edit passed in run 42511652869; strict onboarding audits still fail; unknown nodes kept opaque |
 | Rich editing | Existing text-run/task editing, five whole-run format toggles, nine-style new block authoring and re-editable empty known blocks; patch original JSON | New tests assert full tree/unknown attrs/marks/media IDs retained, stale writes rejected, Unicode/empty-run behavior. Actual Apple authoring/encrypted draft migration and original schema/reverse-codec PASS at98885d0 (42518974244); universal Simulator app builds. New real authoring UI and all strict audits remain required/pending. New explicit-save rich title/date/individual-label controls preserve exact rich JSON and unknown label schemas; actual Apple core, new Swift ciphertext→original-web decoder, original Go verifier and universal Simulator app build PASS ata0f2b1d in42522662183; real new metadata UI and subsequent Unicode/fault-injection improvements verify separately. No full selection-based editor, arbitrary-position existing-block restructuring or full custom-node editor |
@@ -24,12 +24,52 @@ the exact revision; a failing strict accessibility audit remains a release block
 | Audio/transcription/video/films | Read-only simplified cards/transcripts + existing attachment preview | Recording, per-question capture, STT, film rendering/editor all missing |
 | Locations/maps | Read-only place names and explicit encrypted attachment previews | Native insertion/editing/snapshot flows and explicit network consent missing |
 | Import/export/backups | NOT implemented natively | Day One, journal exports/import, recovery/restore and operator backup UI missing |
-| Appearance/language | Actual encrypted web↔native theme round trip, native restart/offline editing, six skins/palettes and real native theme/cover UI test passed; browser transaction/recovery increment under verification | Updated Chapter web required (original upstream stores themes only locally). Native Forest paper screenshot RGB assertion and actual cover/theme picker PASS at929e8ea run42517557894. Strict onboarding audits still fail. Original licensed Hanken Grotesk/Newsreader/Spline Sans Mono normal/italic Latin faces are now bundled and applied to journal/notebook headings, prose/editor/code and unlocked UI default using original skin roles. Font tables/glyphs, byte-reproducibility/provenance/license checks and native role-selection tests PASS locally; actual iOS UIFont loading/Dynamic Type test pending. Onboarding/native navigation and unavailable glyphs retain native fallback. Live web visual comparison,12 locales/RTL and whole-app/device audits missing |
+| Appearance/language | Actual encrypted web↔native theme round trip, native restart/offline editing, six skins/palettes and real native theme/cover UI test passed; browser transaction/recovery increment under verification | Updated Chapter web required (original upstream stores themes only locally). Native Forest paper screenshot RGB assertion and actual cover/theme picker PASS at929e8ea run42517557894. Strict onboarding audits still fail. Original licensed Hanken Grotesk/Newsreader/Spline Sans Mono normal/italic Latin faces are now bundled and applied to journal/notebook headings, prose/editor/code and unlocked UI default using original skin roles. Font tables/glyphs, byte-reproducibility/provenance/license checks and native role-selection tests PASS locally; Actual six-face UIFont loading, font-screen strict Dynamic Type audit and offline license viewer PASS at ae4f0be6 in42523109089 and a7c9fdba in42523742373; production onboarding strict audits still FAIL. Onboarding/native navigation and unavailable glyphs retain native fallback. Live web visual comparison,12 locales/RTL and whole-app/device audits missing |
 | Reminders/lifecycle | Background lock only | Reminders, phrase creation/rotation, vault/journal deletion, WebAuthn/PRF and operator administration/update UI missing |
 | Sync reliability | Debounced local-edit + foreground sync, bounded retry backoff, up to 10,000 attempted records/pass in 100-record batches, durable media ordering, recoverable entry conflicts | Actual core adversarial ack/clock/conflict/drain/retry and genuine trusted TLS/Go/Postgres native relay/pagination/media/theme round trips PASS; latest whole native/S3/backup-restore42519352385 PASS atfd3d1ad. No guaranteed background schedule or full two-device lifecycle certification |
 | Local storage | Device-only user-presence Keychain + AES-GCM snapshot; protected/excluded from backup | Version 1/2/3→4 read migration preserves keys and old file until next save; older previews reject v4 instead of dropping formatting/new-block drafts/media outbox. Actual Apple v3→v4 encrypted migration/restart/old-version write refusal PASS at98885d0; earlier backup-preparation fault/reopen/retry PASS. Actual hardware Keychain/backup extraction not certified |
 | Server distribution | Chapter-owned source-build compose/install profile, separate volumes, private setup, optional STT; image/source artifact + real S3/backup-restore CI added | Real source-image builds, trusted HTTPS/auth/web crypto, actual PostgreSQL/S3 media and restore into a different empty stack PASS at 551236b (run 42511822303). Downloadable Linux amd64 image/source/checksum bundle exists. Not deployed; no direct live-volume migration or general historical-upgrade certification |
 | iPhone distribution | Xcode source and unsigned Simulator artifacts only | No signed device IPA, TestFlight or physical-device certification. Apple signing route later, not obtained here |
+
+## November 8, 2026, 4:31 PM EST page coverage and recoverable notebook increment
+
+- Current a7c9fdba Apple full core, exact Unicode/label and encrypted metadata
+  fault/retry preservation tests, actual web decoder, Go verifier, Simulator
+  app/package PASS (42523742373). Metadata, heading/formatting, original-font
+  load/audit/license, move, deletion/restore, failed-writing and XXXL geometry
+  screens PASS in that run. Overall native workflow FAIL: both normal and XXXL
+  production onboarding Dynamic Type audits still report an unknown element.
+  Earlier ae4 deletion/geometry failures were intermittent, not ignored; deletion
+  now explicitly waits for real disappearance instead of an immediate query.
+- A separate REQUIRED real Simulator page-tour stage now exports genuine page
+  screenshots BEFORE independent functional/strict audit runs. Only the capture
+  tour disables animations (DEBUG switch); the real UI states/controls/data are
+  not mocked, and ALL normal/XXXL production audit findings remain failures.
+  Target inventory includes Journal/search, Calendar, notebook create/edit/cover,
+  move form/choices, rich block/run/expanded formatting, metadata, all appearance
+  choices/dark settings, privacy/licenses, actual offline media/outbox/recovery.
+  Screenshots and successful navigation must be observed before claiming coverage.
+- New DEBUG-only public media fixture genuinely stages original encrypted chunks
+  and durable outbox, then opens the production offline decrypted preview. It has
+  no relay and claims no authentication/upload/server success. Production cached
+  and queued previews no longer require an unused relay object; remote fetches
+  still require original identity/auth/trusted TLS. Native crypto is unchanged.
+- Notebook cascade freezes the reviewed DOWNLOADED original set; it commits one
+  encrypted recovery plus notebook/entry tombstones atomically. Pending writing,
+  rich drafts, encrypted cache/chunks and media queues are retained. Same-ID
+  restoration requires every original tombstone unchanged, refuses remote edits,
+  missing/new/duplicate records and overflow; checked limits fail without eviction.
+  Byte-exact checkpoint comparison also refuses concurrent NFC/NFD-only changes.
+  This is recoverable deletion, NOT secure erasure or an atomic server-wide fence.
+  Unseen/concurrent remote additions remain an explicit original-protocol limit.
+- Deleted-only media uploads pause and remain retained; shared live refs and a
+  restored original reactivate uploading. Tombstones are publishable without
+  waiting for a failed pending attachment. Actual Foundation source adversarial
+  tests PASS; eight new Apple tests, original-web decrypt/router assertions and
+  genuine TLS/Go/Postgres delete/restore/shared-media cases are added and pending.
+- Full feature/visual parity and physical iPhone/installable release remain NOT
+  complete. Professional cohesive design is acceptance, not current certification.
+  The source protocol/keys/ciphertext and existing server behavior are unchanged.
 
 ## November 8, 2026, 4:09 PM EST verified screen/metadata checkpoint
 

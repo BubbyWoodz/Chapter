@@ -117,8 +117,11 @@ extension VaultSnapshot {
         var cache = mediaCache ?? []; cache.removeAll { $0.id == upload.id }
         cache.append(MediaCache(id: upload.id, chunks: upload.chunks, cipherBytes: upload.cipherBytes)); mediaCache = cache
     }
+    public var liveMediaUploadIDs: Set<String> {
+        Set(records.filter {$0.kind == "entry" && !$0.deleted}.flatMap {$0.mediaReferences.map(\.id)})
+    }
     public var uploadableRecords: [VaultRecord] {
         let pending = Set((mediaUploads ?? []).map(\.id))
-        return records.filter { $0.dirty && Set($0.mediaReferences.map(\.id)).isDisjoint(with: pending) }
+        return records.filter { $0.dirty && ($0.deleted || Set($0.mediaReferences.map(\.id)).isDisjoint(with: pending)) }
     }
 }

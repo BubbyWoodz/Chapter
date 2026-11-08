@@ -1,3 +1,4 @@
+import { verifyNotebookLifecycle } from './native-notebook-vectors';
 import { verifyThemeCatalog } from './native-theme-vectors';
 // Public BIP39 test phrase only. Never use these identities for real journals.
 // --write refreshes committed Swift fixtures; default verifies native-generated
@@ -75,3 +76,5 @@ if(process.argv.includes('--write')) {
 }
 
 verifyRichFixture(process.argv.includes('--write'), id, process.env.CHAPTER_NATIVE_OUTPUT);
+
+if (process.env.CHAPTER_NATIVE_OUTPUT) await verifyNotebookLifecycle(process.env.CHAPTER_NATIVE_OUTPUT+'.notebook-lifecycle',id.dataKey);

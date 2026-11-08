@@ -7,6 +7,12 @@ import ChapterCore
 import QuickLook
 
 @main struct ChapterApp: App {
+    init() {
+        #if DEBUG
+        UIView.setAnimationsEnabled(!ProcessInfo.processInfo.arguments.contains("--chapter-still-captures"))
+        #endif
+    }
+
     @StateObject private var model = VaultModel()
     @Environment(\.scenePhase) private var phase
     @ViewBuilder private var normalContent: some View {
@@ -210,7 +216,7 @@ struct EntryDetail: View {
                             } label: {
                                 if loadingMedia == media.id { ProgressView("Decrypting attachment") }
                                 else { Label("Preview \(media.name)", systemImage: "paperclip") }
-                            }.disabled(loadingMedia != nil)
+                            }.disabled(loadingMedia != nil).accessibilityIdentifier("media.preview." + media.id)
                         }
                         if model.canImportMedia, entry.body["bodyJson"]?.string != nil {
                             Button { importSession = model.mediaSession; importingFile = true } label: { Label("Attach file", systemImage: "doc.badge.plus") }
@@ -441,6 +447,11 @@ struct NotebookEditor: View {
     @State private var color: String
     @State private var cover: String
     @State private var error: String?
+    @State private var deletionPlan: NotebookDeletionPlan?
+    @State private var deletionCompleted = false
+    private var hasMetadataEdits: Bool {
+        name != (journal.body["name"]?.string ?? journal.title) || subtitle != (journal.body["subtitle"]?.string ?? "") || color != (journal.body["color"]?.string ?? "") || cover != (journal.body["cover"]?.string ?? "plain")
+    }
     private let covers = ["lines", "dots", "grid", "plain", "photo"]
     init(journal: VaultRecord) {
         self.journal = journal
@@ -461,11 +472,20 @@ struct NotebookEditor: View {
                     Picker("Cover pattern", selection: $cover) {
                         ForEach(covers, id: \.self) { Text($0.capitalized).tag($0) }
                         if !covers.contains(cover) { Text("Existing: " + cover).tag(cover) }
-                    }
+                    }.accessibilityIdentifier("notebook.cover")
                     Text("These settings sync to the original web client. The notebook cover retains its original web pattern. Photo preserves the original cover style; this does not upload a cover image.").font(.footnote)
+                }
+                Section("Recoverable deletion") {
+                    Button("Delete notebook and downloaded entries",role:.destructive) {
+                        do { deletionPlan = try model.prepareNotebookDeletion(journal) } catch { self.error = "Unable to prepare deletion. Reopen after changes finish. " + error.localizedDescription }
+                    }.disabled(hasMetadataEdits || model.syncing).accessibilityIdentifier("notebook.delete.prepare")
+                    Text("Save or cancel notebook detail edits first. Deletion retains an encrypted local recovery, drafts and media; it is not secure erasure. Review the downloaded entry list before confirming.").font(.footnote)
                 }
                 if let error { Section { Text(error).accessibilityIdentifier("notebook.error") } }
             }.modifier(ChapterScreenSurface()).navigationTitle("Edit notebook")
+                .sheet(item:$deletionPlan,onDismiss:{ if deletionCompleted { dismiss() } }) { plan in
+                    NotebookDeletionView(plan:plan,onDeleted:{deletionCompleted = true})
+                }
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                     ToolbarItem(placement: .confirmationAction) {
@@ -510,6 +530,12 @@ struct SettingsView: View {
                             VStack(alignment: .leading) { Text(record.title).font(.headline); Text(record.text).lineLimit(4)
                                 if record.kind == PlainEntryDraft.recoveryKind, let draft = try? PlainEntryDraft(recovery:record) {
                                     NavigationLink("Resume unsaved writing") { EntryEditor(recovery:draft) }
+                                } else if record.kind == NotebookDeletionRecovery.recoveryKind, let recovery = try? NotebookDeletionRecovery(recovery:record) {
+                                    if recovery.restored { Text("Notebook and original entries were restored. Encrypted history remains retained.").font(.footnote) }
+                                    else {
+                                        Text("Restores the original notebook and its " + String(recovery.plan.entries.count) + " entries only if their deletion checkpoints are unchanged. Media and drafts remain retained.").font(.footnote)
+                                        Button("Restore notebook and entries") { do { try model.restoreNotebookDeletion(record) } catch { model.message = "Notebook restore refused; existing records/recovery are unchanged. " + error.localizedDescription } }.disabled(model.syncing)
+                                    }
                                 } else if record.kind == "entry" {
                                     Button("Restore as new entry") { do { try model.restoreConflict(record) } catch { model.message = error.localizedDescription } }
                                 } else if record.kind == "aiSettings", let preference=try? SharedAppearance(value:record.body["settings"]?["chapterAppearance"] ?? .null) {
@@ -748,3 +774,55 @@ private struct NativeSecureFieldAuditReproduction: View {
     var body: some View { NavigationStack { Form { SecureField("Public secure field",text:$text) }.navigationTitle("Secure field comparison") } }
 }
 #endif
+
+struct NotebookDeletionView: View {
+    @EnvironmentObject private var model: VaultModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var plan: NotebookDeletionPlan
+    @State private var confirmation = ""
+    @State private var refreshing = false
+    @State private var error: String?
+    let onDeleted: () -> Void
+    init(plan:NotebookDeletionPlan,onDeleted:@escaping ()->Void) { _plan = State(initialValue:plan); self.onDeleted = onDeleted }
+    private func refresh() async {
+        let previous = model.lastCompletePullID
+        refreshing = true; defer { refreshing = false }
+        await model.sync()
+        guard let completed = model.lastCompletePullID, completed != previous else {
+            error = "A full server pull did not complete. The deletion list is unchanged. " + (model.message ?? "Retry when your server is reachable."); return
+        }
+        do {
+            guard let current = model.journals.first(where:{$0.id == plan.notebook.id}) else { throw ChapterError.conflict }
+            plan = try model.prepareNotebookDeletion(current); confirmation = ""; error = nil
+        } catch { self.error = "Notebook changed. Close and reopen deletion to review it. " + error.localizedDescription }
+    }
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Review downloaded data") {
+                    Text(plan.notebook.title).font(.headline)
+                    Text("This removes the notebook and " + String(plan.entries.count) + " entries currently downloaded on this device. An encrypted local original checkpoint, unsynced writing, rich drafts and media remain retained. This is recoverable deletion, NOT secure erasure.")
+                    Text("Sync before confirming to include other devices’ entries. The original relay has no atomic notebook-wide transaction: unseen or concurrent remote entries may remain; later changes cause local confirmation/restore to refuse rather than overwrite them.").font(.footnote)
+                    if model.canSync {
+                        Button { Task { await refresh() } } label: {
+                            if refreshing { ProgressView("Refreshing downloaded entries") } else { Text("Sync and refresh deletion list") }
+                        }.disabled(refreshing || model.syncing)
+                    }
+                }
+                Section("Downloaded entries in this deletion") {
+                    if plan.entries.isEmpty { Text("No downloaded entries; only the notebook is removed.") }
+                    ForEach(plan.entries) { entry in Text(entry.title) }
+                }
+                Section("Confirm recoverable deletion") {
+                    TextField("Type delete",text:$confirmation).textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityIdentifier("notebook.delete.confirmation")
+                    Button("Delete reviewed notebook and entries",role:.destructive) {
+                        do { try model.deleteNotebook(plan); onDeleted(); dismiss() }
+                        catch { self.error = "Nothing was intentionally discarded. The notebook changed, a sync/import is active, or encrypted storage could not save. Review/retry. " + error.localizedDescription }
+                    }.disabled(confirmation != "delete" || refreshing || model.syncing).accessibilityIdentifier("notebook.delete.apply")
+                }
+                if let error { Text(error).accessibilityIdentifier("notebook.delete.error") }
+            }.modifier(ChapterScreenSurface()).navigationTitle("Delete notebook")
+            .toolbar { ToolbarItem(placement:.cancellationAction) { Button("Cancel") { dismiss() } } }
+        }
+    }
+}

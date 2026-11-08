@@ -1,7 +1,7 @@
 name: Native iOS
 on:
   pull_request:
-    paths: ['apps/ios/**', 'apps/client/scripts/native-vectors.ts', 'server/internal/api/native_interop_test.go', '.github/workflows/ios.yml']
+    paths: ['apps/ios/**', 'apps/client/scripts/native-*.ts', 'server/internal/api/native_interop_test.go', '.github/workflows/ios.yml']
 permissions:
   contents: read
 concurrency:
@@ -54,6 +54,7 @@ jobs:
         env:
           CHAPTER_NATIVE_OUTPUT: ${{ runner.temp }}/chapter-native-output.json
       - name: Build genuine native app for iOS Simulator (no signing credentials)
+        id: simulator_build
         run: xcodebuild -project apps/ios/Chapter.xcodeproj -scheme Chapter -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/ChapterBuild" ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO build
 
       - name: Package unsigned Simulator app (not an iPhone IPA)
@@ -63,7 +64,27 @@ jobs:
           name: Chapter-unsigned-Simulator
           path: ${{ runner.temp }}/Chapter-Simulator.zip
           retention-days: 7
+      - name: Capture actual implemented native pages (public fixture, no mocks)
+        run: |
+          device='${{ steps.simulator.outputs.id }}'
+          xcrun simctl ui "$device" content_size large
+          xcodebuild -project apps/ios/Chapter.xcodeproj -scheme Chapter -configuration Debug -destination "platform=iOS Simulator,id=$device" -destination-timeout 120 -parallel-testing-enabled NO -test-timeouts-enabled YES -maximum-test-execution-time-allowance 180 -derivedDataPath "$RUNNER_TEMP/ChapterUITestBuild" -resultBundlePath "$RUNNER_TEMP/ChapterPages.xcresult" -only-testing:ChapterUITests/ChapterPageCaptures CODE_SIGNING_ALLOWED=NO test
+      - name: Export real page screenshots before independent strict audit runs
+        if: always()
+        run: |
+          if [[ -d "$RUNNER_TEMP/ChapterPages.xcresult" ]]; then
+            xcrun xcresulttool export attachments --path "$RUNNER_TEMP/ChapterPages.xcresult" --output-path "$RUNNER_TEMP/ChapterPageAttachments"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Chapter-actual-page-screenshots
+          path: |
+            ${{ runner.temp }}/ChapterPages.xcresult
+            ${{ runner.temp }}/ChapterPageAttachments
+          retention-days: 7
       - name: Native UI smoke tests and accessibility audits
+        if: always() && steps.simulator_build.outcome == 'success' && !cancelled()
         run: |
           # Use the actual OS preference: a launch-argument override can lock the
           # category while the dynamicType audit tries to change it. No findings
@@ -72,7 +93,7 @@ jobs:
           trap 'xcrun simctl ui "$device" content_size large' EXIT
           xcrun simctl ui "$device" content_size large
           status=0
-          xcodebuild -project apps/ios/Chapter.xcodeproj -scheme Chapter -configuration Debug -destination "platform=iOS Simulator,id=$device" -destination-timeout 120 -parallel-testing-enabled NO -test-timeouts-enabled YES -maximum-test-execution-time-allowance 180 -derivedDataPath "$RUNNER_TEMP/ChapterUITestBuild" -resultBundlePath "$RUNNER_TEMP/ChapterUITests.xcresult" -skip-testing:ChapterUITests/ChapterUITests/testLargestDynamicTypeConnectionScreen -skip-testing:ChapterUITests/ChapterUITests/testLargestDynamicTypeControlGeometry -skip-testing:ChapterUITests/ChapterUITests/testLargestDynamicTypeUnmodifiedNativeFormReproduction CODE_SIGNING_ALLOWED=NO test || status=$?
+          xcodebuild -project apps/ios/Chapter.xcodeproj -scheme Chapter -configuration Debug -destination "platform=iOS Simulator,id=$device" -destination-timeout 120 -parallel-testing-enabled NO -test-timeouts-enabled YES -maximum-test-execution-time-allowance 180 -derivedDataPath "$RUNNER_TEMP/ChapterUITestBuild" -resultBundlePath "$RUNNER_TEMP/ChapterUITests.xcresult" -skip-testing:ChapterUITests/ChapterPageCaptures -skip-testing:ChapterUITests/ChapterUITests/testLargestDynamicTypeConnectionScreen -skip-testing:ChapterUITests/ChapterUITests/testLargestDynamicTypeControlGeometry -skip-testing:ChapterUITests/ChapterUITests/testLargestDynamicTypeUnmodifiedNativeFormReproduction CODE_SIGNING_ALLOWED=NO test || status=$?
           xcrun simctl ui "$device" content_size accessibility-extra-extra-extra-large
           xcodebuild -project apps/ios/Chapter.xcodeproj -scheme Chapter -configuration Debug -destination "platform=iOS Simulator,id=$device" -destination-timeout 120 -parallel-testing-enabled NO -test-timeouts-enabled YES -maximum-test-execution-time-allowance 180 -derivedDataPath "$RUNNER_TEMP/ChapterUITestBuild" -resultBundlePath "$RUNNER_TEMP/ChapterLargeTypeUITests.xcresult" -only-testing:ChapterUITests/ChapterUITests/testLargestDynamicTypeConnectionScreen -only-testing:ChapterUITests/ChapterUITests/testLargestDynamicTypeControlGeometry -only-testing:ChapterUITests/ChapterUITests/testLargestDynamicTypeUnmodifiedNativeFormReproduction CODE_SIGNING_ALLOWED=NO test-without-building || status=$?
           exit "$status"
