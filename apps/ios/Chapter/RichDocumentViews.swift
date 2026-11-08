@@ -128,6 +128,7 @@ struct RichDraftEditor: View {
     @State private var current: RichDraft
     @State private var error: String?
     @State private var savedDraft = false
+    @State private var formattingExpanded = false
     private let formats = [("bold", "Bold"), ("italic", "Italic"), ("underline", "Underline"), ("strike", "Strikethrough"), ("code", "Inline code")]
     init(draft: RichDraft) { _current = State(initialValue: draft) }
     var body: some View {
@@ -138,13 +139,19 @@ struct RichDraftEditor: View {
                 }.pickerStyle(.menu).padding().accessibilityIdentifier("rich.block-style")
             }
             if current.supportsFormatting {
-                Menu("Formatting") {
-                    ForEach(formats, id: \.0) { type, title in
-                        Button { do { current = try current.togglingMark(type) } catch { self.error = error.localizedDescription } } label: {
-                            Label(title, systemImage: current.hasMark(type) ? "checkmark" : "circle")
-                        }.accessibilityIdentifier("rich.format." + type)
-                    }
-                }.frame(minHeight:44).padding(.horizontal).accessibilityIdentifier("rich.formatting")
+                Button("Formatting") { formattingExpanded.toggle() }
+                    .frame(minWidth:44,minHeight:44).padding(.horizontal).accessibilityIdentifier("rich.formatting")
+                if formattingExpanded {
+                    VStack(alignment:.leading) {
+                        ForEach(formats,id:\.0) { type,title in
+                            Button {
+                                do { current = try current.togglingMark(type); formattingExpanded = false }
+                                catch { self.error = error.localizedDescription }
+                            } label: { Label(title,systemImage:current.hasMark(type) ? "checkmark":"circle").frame(maxWidth:.infinity,minHeight:44,alignment:.leading) }
+                                .buttonStyle(.bordered).accessibilityIdentifier("rich.format." + type)
+                        }
+                    }.padding(.horizontal)
+                }
             }
             TextEditor(text: $current.text).scrollContentBackground(.hidden).background(chapterToken("paper",preference:model.snapshot.appearance ?? .standard)).accessibilityLabel(current.newBlockStyle == nil ? "Formatted text run" : "New block text").autocorrectionDisabled().padding()
             if current.supportsFormatting {

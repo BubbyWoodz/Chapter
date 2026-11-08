@@ -4,6 +4,7 @@ import { getSchema, type JSONContent } from '@tiptap/core';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { buildExtensions, docToText, docMediaIds } from '../src/editor/doc';
 import { decryptRecord } from '../src/sync/engine';
+import { normalizeEntryLabel } from '../src/labels';
 const text = (text: string, marks?: JSONContent["marks"]): JSONContent => ({type:'text', text, ...(marks ? {marks} : {})});
 const p = (s: string): JSONContent => ({type:'paragraph', content:[text(s)]});
 const media = (id: string) => ({id, mime:'image/png', bytes:10, name:'Public photo'});
@@ -40,6 +41,10 @@ export function verifyRichFixture(write: boolean, identity: {dataKey:Uint8Array}
  const url = new URL('../../ios/ChapterCore/Tests/ChapterCoreTests/Fixtures/rich-document.json',import.meta.url);
  if (write) writeFileSync(url,JSON.stringify(fixture,null,2)+'\n');
  else assert.deepEqual(JSON.parse(readFileSync(url,'utf8')),fixture,'Frozen native rich fixture drifted from actual web preview/media logic');
+ const labelCases = ['  TRAVEL, FRIENDS  ', '\uFEFFWork\u00A0 LIFE\uFEFF', '\u0085X\u0085', '\u200BKeep\u200B', 'İ ΟΣ', '  ', 'MUSIC\n\t NOTES', 'Straße'].map(input => ({input,expected:normalizeEntryLabel(input)}));
+ const labelURL = new URL('../../ios/ChapterCore/Tests/ChapterCoreTests/Fixtures/entry-labels.json',import.meta.url);
+ if (write) writeFileSync(labelURL,JSON.stringify(labelCases,null,2)+'\n');
+ else assert.deepEqual(JSON.parse(readFileSync(labelURL,'utf8')),labelCases,'Native label fixtures must match the original LabelField normalization');
  const viewSource = readFileSync(new URL('../../ios/Chapter/RichDocumentViews.swift',import.meta.url),'utf8');
  const publicFixture = /enum PublicRichFixture \{ static let json = #"(.+)"# \}/.exec(viewSource);
  assert(publicFixture, 'Debug public rich fixture missing');
@@ -63,6 +68,13 @@ export function verifyRichFixture(write: boolean, identity: {dataKey:Uint8Array}
   assert.equal(movedBody.journalId,'public-destination');assert.equal(movedBody.createdAt,1);
   assert.deepEqual(JSON.parse(movedBody.bodyJson),original);assert.deepEqual(movedBody.unknownFuture,{preserve:true});
   assert.deepEqual(docMediaIds(JSON.parse(movedBody.bodyJson)),fixture.mediaIds);
+  const metadata = JSON.parse(readFileSync(nativePath+'.entry-metadata','utf8')) as {id:string;record:string};
+  const metadataBody = JSON.parse(Buffer.from(decryptRecord(identity.dataKey,metadata.id,Buffer.from(metadata.record,'base64'))).toString());
+  assert.deepEqual(JSON.parse(metadataBody.bodyJson),original);assert.equal(metadataBody.bodyText,fixture.originalPreview);
+  assert.equal(metadataBody.title,'Native metadata');assert.equal(metadataBody.createdAt,1700000000000);
+  assert.equal(metadataBody.journalId,'original');assert.deepEqual(metadataBody.labels,['travel, friends','ImportedCase']);
+  assert.deepEqual(metadataBody.unknownFuture,{preserve:true});assert.deepEqual(docMediaIds(JSON.parse(metadataBody.bodyJson)),fixture.mediaIds);
+  console.log('Swift → actual web: title/date/individual labels (including comma) retain exact original rich tree, opaque metadata and every media reference.');
   console.log('Swift → actual web: moved rich entry retains original content, dates, opaque fields and every media reference.');
   console.log('Swift → actual web: all nine authored block styles + native formatting preserve every original node/attribute/media reference; genuine upstream schema accepts new blocks.');
  }

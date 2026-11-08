@@ -166,6 +166,20 @@ final class ChapterUITests: XCTestCase {
         XCTAssertTrue(heading.exists); attach(app, name: "Chapter actual persisted native-authored heading")
     }
 
+    func testRichEntryMetadataRetainsDocumentAndCommaLabel() throws {
+        let app = XCUIApplication(); app.launchArguments = ["--chapter-rich-fixture"]; app.launch()
+        let entry = app.staticTexts["Public rich fixture"]; XCTAssertTrue(entry.waitForExistence(timeout:10)); entry.tap()
+        app.buttons["More"].tap(); app.buttons["Title, date and labels"].tap()
+        let title = app.textFields["metadata.title"]; XCTAssertTrue(title.waitForExistence(timeout:5)); title.tap(); title.typeText("-METADATA")
+        let label = app.textFields["metadata.new-label"]; reveal(label,in:app); label.tap(); label.typeText("TRAVEL, FRIENDS\n")
+        XCTAssertTrue(app.staticTexts["travel, friends"].waitForExistence(timeout:5))
+        attach(app,name:"Chapter real rich-entry metadata form and single comma label")
+        app.buttons["Save"].tap()
+        XCTAssertTrue(app.staticTexts["Public heading"].waitForExistence(timeout:5)); XCTAssertFalse(app.staticTexts["metadata.error"].exists)
+        let labels = app.staticTexts["entry.labels"]; reveal(labels,in:app); XCTAssertEqual(labels.label,"travel, friends")
+        attach(app,name:"Chapter original rich document retained after native metadata edit")
+    }
+
     func testDeleteEntryKeepsOriginalAndRestoresNativeRichContent() throws {
         let app = XCUIApplication(); app.launchArguments = ["--chapter-rich-fixture"]; app.launch()
         let entry = app.staticTexts["Public rich fixture"]; XCTAssertTrue(entry.waitForExistence(timeout:10)); entry.tap()

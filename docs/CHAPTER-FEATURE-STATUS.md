@@ -9,11 +9,11 @@ the exact revision; a failing strict accessibility audit remains a release block
 |---|---|---|
 | Existing-vault recovery/authentication | English BIP39 validation, real owner-authorized registration/challenge/session; direct HTTPS URL | Native key/auth HTTP transcript and actual web/Go signature checks passed before this slice; real approval/recovery/phone integration still needed |
 | Connectivity/privacy | LAN/Tailscale URL/path; trusted TLS; no redirects/telemetry/cloud requirement | URL/HTTP rejection tests; physical permission, certificates and LAN/VPN matrix not run. HTTP LAN unsupported |
-| Entries | Plain CRUD/date/labels/notebook; encrypted failed-writing recovery, close/resume/retry/separate recovery/save-as-new; atomic deletion recovery checkpoint | New pure-source CAS/capacity/restart/old-v4 preservation tests pass locally; new Apple encrypted fault/restart and real failure/resume UI gates pending. Delete retains drafts/uploads and explicit encrypted original; not secure erasure or media purge. Broad two-device controller CRUD not certified |
+| Entries | Plain CRUD/date/labels/notebook; encrypted failed-writing recovery, close/resume/retry/separate recovery/save-as-new; atomic deletion recovery checkpoint | Actual Apple encrypted fault/restart/old-byte preservation and actual failed-writing→Settings→resumed-editor UI PASS at4d9e6d3 (42520947366). Original encryption unchanged; this is not physical-device certification. Delete retains drafts/uploads and explicit encrypted original; not secure erasure or media purge. Broad two-device controller CRUD not certified |
 | Notebooks | Browse/create; rename, subtitle, original color and cover metadata editing; real non-destructive move-between-notebooks with optimistic stale-write rejection | Four actual Apple notebook tests, actual Swift→web ciphertext decoding and real native UI Save/persist test PASS at 6c7908c in run 42513126159. Unknown fields/IDs preserved. Move whole-document preservation, stale/deleted/overflow and actual Swift→web reverse decoding PASS at fd3d1ad (42519352453); real new Move UI gate is still pending. Cascade delete/media purge missing. Archive/reorder are not present in the reviewed original notebook API; do not invent a wire format or claim those synced. |
 | Local discovery | Text/label substring search, day calendar, entry/day counts | Full query, heatmap/stats/streak/badge parity missing |
 | Native rich viewing | Styled inline marks, headings, paragraphs, lists/tasks, quotes/code, approximate tables, source math, simplified media/location/interview cards | New web-generated golden document and actual Foundation logic tests. Actual Apple core tests and Simulator compile passed at b8ba3d9; actual rich UI/task/text-run edit passed in run 42511652869; strict onboarding audits still fail; unknown nodes kept opaque |
-| Rich editing | Existing text-run/task editing, five whole-run format toggles, nine-style new block authoring and re-editable empty known blocks; patch original JSON | New tests assert full tree/unknown attrs/marks/media IDs retained, stale writes rejected, Unicode/empty-run behavior. Actual Apple authoring/encrypted draft migration and original schema/reverse-codec PASS at98885d0 (42518974244); universal Simulator app builds. New real authoring UI and all strict audits remain required/pending. No full selection-based editor, arbitrary-position existing-block restructuring, title/date/label controls for rich records or full custom-node editor |
+| Rich editing | Existing text-run/task editing, five whole-run format toggles, nine-style new block authoring and re-editable empty known blocks; patch original JSON | New tests assert full tree/unknown attrs/marks/media IDs retained, stale writes rejected, Unicode/empty-run behavior. Actual Apple authoring/encrypted draft migration and original schema/reverse-codec PASS at98885d0 (42518974244); universal Simulator app builds. New real authoring UI and all strict audits remain required/pending. New explicit-save rich title/date/individual-label controls preserve exact rich JSON and unknown label schemas; new core/reverse-web/UI gates pending. No full selection-based editor, arbitrary-position existing-block restructuring or full custom-node editor |
 | Rich local drafts | Encrypted autosaved text/formatting/new-block drafts; resume in Settings; explicit apply rejects changed/deleted/wrong-ID records | New native migration/encrypted recovery tests and real Debug fixture UI edit test added; device failure/restart/disk-full acceptance not complete |
 | Rich cross-client sync | Same encrypted record protocol after patch, regenerate bodyText with actual web docToText semantics | Native-produced edited ciphertext must open in actual web decoder with entire expected tree/media IDs. Passed at b8ba3d9 in macOS CI; not a live server/browser round trip |
 | Entry links/Markdown/math | Stored link labels and LaTeX source retained; external web/mail links require explicit confirmation | Backlink/navigation UI, Markdown/source editing and exact native math typesetting missing; no silent external fetches |
@@ -30,6 +30,33 @@ the exact revision; a failing strict accessibility audit remains a release block
 | Local storage | Device-only user-presence Keychain + AES-GCM snapshot; protected/excluded from backup | Version 1/2/3→4 read migration preserves keys and old file until next save; older previews reject v4 instead of dropping formatting/new-block drafts/media outbox. Actual Apple v3→v4 encrypted migration/restart/old-version write refusal PASS at98885d0; earlier backup-preparation fault/reopen/retry PASS. Actual hardware Keychain/backup extraction not certified |
 | Server distribution | Chapter-owned source-build compose/install profile, separate volumes, private setup, optional STT; image/source artifact + real S3/backup-restore CI added | Real source-image builds, trusted HTTPS/auth/web crypto, actual PostgreSQL/S3 media and restore into a different empty stack PASS at 551236b (run 42511822303). Downloadable Linux amd64 image/source/checksum bundle exists. Not deployed; no direct live-volume migration or general historical-upgrade certification |
 | iPhone distribution | Xcode source and unsigned Simulator artifacts only | No signed device IPA, TestFlight or physical-device certification. Apple signing route later, not obtained here |
+
+## November 8, 2026, 3:57 PM EST increment (new metadata Apple gates pending)
+
+- Real failed-writing → close → Settings encrypted recovery → resume native editor
+  screen test PASSED in42520947366, with an actual screenshot artifact. Apple
+  encrypted fault/restart/old-byte tests, original-web reverse crypto, original Go
+  verifier and universal Simulator build also passed. That run is NOT green: both
+  strict production Dynamic Type audits and two real Menu interactions still fail.
+- Rich entries now have a real explicit-save title/date/individual-label form.
+  Commas stay inside one label; existing imported spelling and unknown future
+  label schemas are preserved. Changes patch ONLY requested fields, never parse
+  or rebuild rich JSON/media. Optimistic body/clock guards reject concurrent edits;
+  ack-only/no-op saves do not bump clocks. Unsaved metadata is NOT autosaved:
+  Cancel confirms discard and dirty swipe dismissal is blocked; save before lock.
+- New actual-source Linux Foundation regressions PASS for lossless metadata,
+  stale/overflow/invalid dates/opaque labels/no-op and web Unicode golden cases.
+  A real Greek final-sigma mismatch was caught and fixed using Foundation root-
+  locale whole-string casing, not a custom case algorithm. New Apple tests and
+  native-encrypted ciphertext → actual original-web decoder checks are required,
+  not declared passing from Linux syntax/harness results.
+- Moving Menu wrappers into content did NOT resolve actual AX scroll-to-visible
+  failures. Replaced them with actual native Buttons and expandable action rows;
+  formatting selection still runs the same durable-draft operations. Plain Edit
+  now also uses real action buttons. All strict tests/assertions remain. New UI
+  verification is pending; Dynamic Type release blocker remains independently.
+- Notebook cascade/shared-media purge and licensed original font integration are
+  still outstanding. Deletion recovery is intentionally NOT secure erasure.
 
 ## November 8, 2026, 3:36 PM EST increment (verification pending)
 

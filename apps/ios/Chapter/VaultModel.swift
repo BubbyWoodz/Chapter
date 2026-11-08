@@ -216,6 +216,13 @@ import ChapterCore
         var next = snapshot; next.records.append(VaultRecord(id: UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased(), clock: clock, body: body, dirty: true))
         try commit(next); scheduleSync()
     }
+    func updateEntryMetadata(_ expected: VaultRecord, title: String? = nil, date: Date? = nil, labels: [String]? = nil) throws {
+        var next = snapshot
+        guard let index = next.records.firstIndex(where: { $0.id == expected.id }) else { throw ChapterError.conflict }
+        let edited = try next.records[index].editingEntryMetadata(expected: expected, title: title, date: date, labels: labels)
+        guard edited != next.records[index] else { return }
+        next.records[index] = edited; try commit(next); scheduleSync()
+    }
     func updateJournal(_ expected: VaultRecord, name: String, subtitle: String, color: String, cover: String) throws {
         var next = snapshot
         guard let i = next.records.firstIndex(where: { $0.id == expected.id }) else { throw ChapterError.conflict }

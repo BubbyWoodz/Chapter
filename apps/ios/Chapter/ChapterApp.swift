@@ -157,6 +157,9 @@ struct EntryDetail: View {
     @State private var moving = false
     @State private var deleting = false
     @State private var deletionExpected: VaultRecord?
+    @State private var editingMetadata = false
+    @State private var showingActions = false
+    @State private var showingPlainEdit = false
     @State private var previewURL: URL?
     @State private var loadingMedia: String?
     @State private var mediaError: String?
@@ -169,11 +172,20 @@ struct EntryDetail: View {
                     VStack(alignment: .leading, spacing: 16) {
                         HStack {
                             Spacer()
-                    Menu("More") {
-                        Button("Move to notebook") { moving = true }.disabled(model.journals.isEmpty)
-                        Button(role: .destructive) { deletionExpected = entry; deleting = true } label: { Label("Delete entry", systemImage: "trash") }
-                    }
-                                .frame(minWidth:44,minHeight:44).buttonStyle(.bordered)
+                            Button("More") { showingActions.toggle() }.frame(minWidth:44,minHeight:44).buttonStyle(.bordered)
+                        }
+                        if showingActions {
+                            VStack(alignment:.leading) {
+                                Button("Title, date and labels") { showingActions = false; editingMetadata = true }.frame(minHeight:44)
+                                Button("Move to notebook") { showingActions = false; moving = true }.frame(minHeight:44).disabled(model.journals.isEmpty)
+                                Button("Delete entry",role:.destructive) { showingActions = false; deletionExpected = entry; deleting = true }.frame(minHeight:44)
+                            }
+                        }
+                        if showingPlainEdit {
+                            VStack(alignment:.leading) {
+                                Button("Text and details") { showingPlainEdit = false; editRich = false; editing = true }.frame(minHeight:44)
+                                Button("Rich document") { showingPlainEdit = false; editRich = true; editing = true }.frame(minHeight:44)
+                            }
                         }
                         Text(entry.title).font(.largeTitle).accessibilityAddTraits(.isHeader)
                         Text(entry.date, style: .date).foregroundStyle(.secondary)
@@ -182,7 +194,7 @@ struct EntryDetail: View {
                             RichDocumentView(entry: entry, document: document)
                         } else { Text(entry.text).textSelection(.enabled) }
                         let labels = entry.labels
-                        if !labels.isEmpty { Text(labels.joined(separator: " · ")).font(.caption) }
+                        if !labels.isEmpty { Text(labels.joined(separator: " · ")).font(.caption).accessibilityIdentifier("entry.labels") }
                         ForEach(entry.mediaReferences) { media in
                             Button {
                                 loadingMedia = media.id; mediaError = nil
@@ -209,10 +221,7 @@ struct EntryDetail: View {
                 }
                 .toolbar {
                     if entry.editablePlainText {
-                        Menu("Edit") {
-                            Button("Text and details") { editRich = false; editing = true }
-                            Button("Rich document") { editRich = true; editing = true }
-                        }
+                        Button("Edit") { showingPlainEdit.toggle() }
                     } else if entry.body["bodyJson"]?.string.flatMap({ try? RichDocument(json: $0) }) != nil { Button("Edit") { editRich = true; editing = true } }
 
                 }
@@ -221,6 +230,7 @@ struct EntryDetail: View {
                     else if let raw = entry.body["bodyJson"]?.string, (try? RichDocument(json: raw)) != nil { RichEntryEditor(entry: entry) }
                 }
                 .sheet(isPresented: $moving) { MoveEntryView(entry: entry) }
+                .sheet(isPresented: $editingMetadata) { EntryMetadataEditor(entry: entry) }
                 .confirmationDialog("Delete this entry on all synced devices?", isPresented: $deleting, titleVisibility: .visible) {
                     Button("Delete entry", role: .destructive) { do { guard let deletionExpected else { throw ChapterError.conflict }; try model.deleteEntry(deletionExpected); dismiss() } catch { model.message = error.localizedDescription } }
                 } message: { Text("An encrypted recovery copy remains in Settings. Pending writing, rich drafts and attachment uploads are retained. This is not secure erasure; notebook/media purge is not implemented.") }
@@ -319,6 +329,66 @@ struct EntryEditor: View {
                 Button("Save new text entry") { save(asNew: true) }
                 Button("Cancel", role: .cancel) {}
             } message: { Text("The original entry and attachments remain unchanged. This creates a separate text entry with your title, date, labels and selected notebook; attachments are not duplicated.") }
+        }
+    }
+}
+/// Explicit-save native metadata form. Rich JSON and media never pass through a text editor.
+struct EntryMetadataEditor: View {
+    @EnvironmentObject private var model: VaultModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var expected: VaultRecord
+    @State private var title: String
+    @State private var date: Date
+    @State private var labels: [MetadataLabel]
+    @State private var newLabel = ""
+    @State private var error: String?
+    @State private var discarding = false
+    private struct MetadataLabel: Identifiable { let id = UUID(); let text: String }
+    init(entry: VaultRecord) {
+        _expected = State(initialValue: entry); _title = State(initialValue: entry.title)
+        _date = State(initialValue: entry.date)
+        _labels = State(initialValue: (entry.editableEntryLabels ?? []).map { MetadataLabel(text:$0) })
+    }
+    private var candidate: String { EntryLabels.normalized(newLabel) }
+    private var values: [String] { labels.map(\.text) }
+    private var hasChanges: Bool { title != expected.title || date != expected.date || values != (expected.editableEntryLabels ?? []) || !candidate.isEmpty }
+    private var suggestions: [String] {
+        Array(Set(model.entries.flatMap(\.labels))).sorted().filter { !values.contains($0) && (candidate.isEmpty || $0.contains(candidate)) }.prefix(8).map { $0 }
+    }
+    private func add(_ value: String) { if !value.isEmpty && !values.contains(value) { labels.append(MetadataLabel(text:value)) }; newLabel = "" }
+    private func save() {
+        do {
+            var finalLabels = values
+            if !candidate.isEmpty && !finalLabels.contains(candidate) { finalLabels.append(candidate) }
+            try model.updateEntryMetadata(expected, title:title == expected.title ? nil:title, date:date == expected.date ? nil:date, labels:expected.editableEntryLabels == nil || finalLabels == expected.editableEntryLabels ? nil:finalLabels)
+            dismiss()
+        } catch { self.error = "Not saved. Your original entry was not changed. " + error.localizedDescription }
+    }
+    var body: some View {
+        NavigationStack {
+            Form {
+                Text("Tap Save to apply metadata. Original rich content, attachments and other fields stay intact. Unsaved form changes are not autosaved; save before leaving or locking the app.").font(.footnote)
+                TextField("Title",text:$title).accessibilityIdentifier("metadata.title")
+                DatePicker("Entry date and time",selection:$date).accessibilityIdentifier("metadata.date")
+                Section("Labels") {
+                    if expected.editableEntryLabels != nil {
+                        ForEach(labels) { label in
+                            HStack { Text(label.text); Spacer(); Button { labels.removeAll { $0.text == label.text } } label: { Image(systemName:"xmark.circle") }.buttonStyle(.borderless).frame(minWidth:44,minHeight:44).accessibilityLabel("Remove label " + label.text) }
+                        }
+                        TextField("New label",text:$newLabel).textInputAutocapitalization(.never).autocorrectionDisabled().onSubmit { add(candidate) }.accessibilityIdentifier("metadata.new-label")
+                        Button("Add label") { add(candidate) }.disabled(candidate.isEmpty || values.contains(candidate))
+                        ForEach(suggestions,id:\.self) { value in Button("Use label " + value) { add(value) } }
+                    } else { Text("These labels use a newer format. They are preserved unchanged; title/date editing is still available.") }
+                }
+                if let error { Text(error).foregroundStyle(.red).accessibilityIdentifier("metadata.error") }
+            }.modifier(ChapterScreenSurface()).navigationTitle("Entry details")
+            .toolbar {
+                ToolbarItem(placement:.cancellationAction) { Button("Cancel") { if hasChanges { discarding = true } else { dismiss() } } }
+                ToolbarItem(placement:.confirmationAction) { Button("Save") { save() } }
+            }.interactiveDismissDisabled(hasChanges)
+            .confirmationDialog("Discard unsaved metadata changes?",isPresented:$discarding,titleVisibility:.visible) {
+                Button("Discard changes",role:.destructive) { dismiss() }; Button("Keep editing",role:.cancel) {}
+            }
         }
     }
 }

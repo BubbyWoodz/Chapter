@@ -11,14 +11,10 @@ import { Z } from './Sheet';
 import { labelInfo } from '../data/sample';
 import { hexA } from './color';
 import { t } from '../i18n';
+import { normalizeEntryLabel } from '../labels';
 
 const MENU_W = 220;
 const MENU_MAX_H = 240;
-
-/** Labels are matched and stored case-insensitively, single-spaced. */
-function normalize(raw: string): string {
-  return raw.trim().toLowerCase().replace(/\s+/g, ' ');
-}
 
 export function LabelField({
   labels,
@@ -35,7 +31,7 @@ export function LabelField({
   const [index, setIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const q = normalize(query);
+  const q = normalizeEntryLabel(query);
   const matches = useMemo(
     () => suggestions.filter((s) => !labels.includes(s) && (!q || s.includes(q))),
     [suggestions, labels, q],

@@ -217,3 +217,14 @@ Settings resume/retry/separate recovery and explicit save-as-new-text behavior.
 Deletion retains an encrypted original together with its tombstone; drafts/media
 outboxes are not discarded. This is not secure erasure, notebook cascade or media
 purge. See [local recovery and verification limits](../../docs/CHAPTER-LOCAL-RECOVERY.md).
+
+### Rich-entry metadata (unfinished preview)
+
+The entry **More → Title, date and labels** native form explicitly saves only
+changed metadata, retaining original rich JSON/media/opaque fields. Individual
+labels match original web normalization and keep commas inside a label. Imported
+labels are not silently renamed; unknown future label schemas remain read-only.
+Concurrent source changes fail closed. Unlike writing drafts, unsubmitted metadata
+form values are not autosaved: save before leaving or locking. Dirty Cancel asks
+before discarding and interactive swipe dismissal is blocked. Apple core,
+reverse-web decoder and actual UI verification for this increment remain required.
