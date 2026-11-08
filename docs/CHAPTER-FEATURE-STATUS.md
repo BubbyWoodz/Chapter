@@ -10,7 +10,7 @@ the exact revision; a failing strict accessibility audit remains a release block
 | Existing-vault recovery/authentication | English BIP39 validation, real owner-authorized registration/challenge/session; direct HTTPS URL | Native key/auth HTTP transcript and actual web/Go signature checks passed before this slice; real approval/recovery/phone integration still needed |
 | Connectivity/privacy | LAN/Tailscale URL/path; trusted TLS; no redirects/telemetry/cloud requirement | URL/HTTP rejection tests; physical permission, certificates and LAN/VPN matrix not run. HTTP LAN unsupported |
 | Entries | Plain entry CRUD, dates/labels, notebook association | Existing core safeguards; broad app/controller/live-stack CRUD not certified |
-| Notebooks | Browse/create; rename, subtitle, original color and cover metadata editing with optimistic stale-write rejection | New Foundation mutation checks passed locally; four actual native tests, native UI save and Swift→web decoder checks added, Apple execution pending. Unknown fields/IDs preserved. Cascade delete/media purge missing. Archive/reorder are not present in the reviewed original notebook API; do not invent a wire format or claim those synced. |
+| Notebooks | Browse/create; rename, subtitle, original color and cover metadata editing with optimistic stale-write rejection | Four actual Apple notebook tests, actual Swift→web ciphertext decoding and real native UI Save/persist test PASS at 6c7908c in run 42513126159. Unknown fields/IDs preserved. Cascade delete/media purge missing. Archive/reorder are not present in the reviewed original notebook API; do not invent a wire format or claim those synced. |
 | Local discovery | Text/label substring search, day calendar, entry/day counts | Full query, heatmap/stats/streak/badge parity missing |
 | Native rich viewing | Styled inline marks, headings, paragraphs, lists/tasks, quotes/code, approximate tables, source math, simplified media/location/interview cards | New web-generated golden document and actual Foundation logic tests. Actual Apple core tests and Simulator compile passed at b8ba3d9; actual rich UI/task/text-run edit passed in run 42511652869; strict onboarding audits still fail; unknown nodes kept opaque |
 | Rich editing | Existing text-run editing and task checked state only; patch original JSON | New tests assert full tree/unknown attrs/marks/media IDs retained, stale writes rejected, Unicode/empty-run behavior. No full selection-based rich editor, structural/formatting toolbar, title/date/label controls for rich records or full custom-node editor |
@@ -149,7 +149,11 @@ run outside a disposable GitHub-hosted macOS VM. It does NOT change authorizatio
 disable TLS checks, trust arbitrary certificates, or touch a persistent/user Mac.
 GitHub destroys the VM after the job, including residual trust metadata:
 https://docs.github.com/en/actions/how-tos/manage-runners/github-hosted-runners/use-github-hosted-runners
-The corrected whole job is still pending actual execution; no green result inferred.
+The corrected ENTIRE workflow PASSED at 1189383 in run 42513915967:
+package-and-clean-stack AND native-live-relay, including fingerprint deletion
+verification and clean job exit. This is real native core→URLSession→trusted TLS→Go/
+PostgreSQL→media→web reverse decoding, not whole SwiftUI/device or native→S3 proof.
+The distinct complete Docker gate proves actual S3 + backup/restore.
 
 Separate storage review follow-up: native snapshot save currently performs a
 throwing backup-exclusion attribute update AFTER the atomic content write. A
@@ -158,3 +162,28 @@ pre-commit metadata/write design or explicit uncertain-commit recovery before
 release; do not silently retry over newly committed state. Original wire crypto
 is unrelated and must remain unchanged. Entry deletion/media purge/outbox cancellation
 also needs full lifecycle acceptance; do not label tombstoning alone media parity.
+
+## Verified notebook milestone and controlled accessibility comparison
+
+Run42513126159 at6c7908c executed43 native cases:42 passed and1 intentional live-test
+skip (the separate real live gate executes that case). Actual Swift→web notebook
+ciphertext decode, Go signatures, universal Simulator build and notebook UI rename/
+persist PASS. Real screenshots: artifact13631060358; local reviewed screenshot
+`/workspace/chapter-notebook-6c-ui/ChapterUIAttachments/BF47A7C3-61EB-4B07-8090-A52DF0AF3856.png`.
+Full native workflow still FAILS both required production Dynamic Type audits.
+
+The completely unmodified SwiftUI Form + string-title Button diagnostic PASSED
+strict Dynamic Type in the SAME Simulator/test run. Therefore framework-wide
+failure is NOT established. The production action's custom Text/font/fixedSize/
+frame/padding wrapper is now replaced with the genuinely plain string-title Button
+pattern that passed, keeping the action/auth/validation logic unchanged. Both
+original strict audits and real XXXL geometry remain required; this controlled
+production change needs actual next CI execution before calling accessibility fixed.
+
+Shared matching themes remain REQUIRED and NOT implemented. Source investigation
+also found a possible compatible appearance extension inside the original encrypted
+AiSettings settings object: the original codec and form spread preserve unknown
+settings fields, unlike unknown top-level record kinds. Evaluate with real old/new
+client tests before choosing it; preserve all AI fields/secrets and do not enable
+AI or issue external requests just to save appearance. This is a design candidate,
+not a schema change or completed sync feature.

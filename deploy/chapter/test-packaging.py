@@ -37,3 +37,12 @@ assert 'ghcr.io/mneme-blog/' not in compose and 'minio/minio:' not in compose
 assert 'UPDATE_CHECK: "off"' in compose and 'UPDATE_SPOOL_DIR: ""' in compose
 assert 'docker.sock' not in compose and 'privileged:' not in compose
 print('PASS: exclusive 0600 secret setup, no overwrite/leak, isolated wrapper, Chapter image names and disabled upstream updater. Container execution is a separate CI gate.')
+
+# Trust changes must never run on a persistent/self-hosted Mac, even when CI env
+# variables exist. These negative checks stop before brew, DB or security calls.
+with tempfile.TemporaryDirectory(prefix='chapter-runner-guard-') as temporary:
+    for hosted, system, actions in [('self-hosted','macOS','true'), ('github-hosted','Linux','true'), ('github-hosted','macOS','false')]:
+        env = dict(os.environ, RUNNER_TEMP=temporary, RUNNER_ENVIRONMENT=hosted, RUNNER_OS=system, GITHUB_ACTIONS=actions)
+        result = subprocess.run(['bash',str(root/'deploy/chapter/native-live-ci.sh')],env=env,capture_output=True,text=True,timeout=2)
+        assert result.returncode == 1 and 'Disposable GitHub-hosted macOS runner required' in result.stderr
+print('PASS: fixture trust/database workflow refuses self-hosted, non-macOS and non-Actions environments before mutation.')
