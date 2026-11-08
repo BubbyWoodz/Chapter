@@ -3,6 +3,9 @@
 # not a trust-all delegate or disabled certificate verification.
 set -euo pipefail
 : "${RUNNER_TEMP:?CI only}"
+# This workflow changes trust only inside a disposable hosted VM, never a
+# self-hosted runner/user Mac. GitHub decommissions this VM when the job ends.
+[[ "${GITHUB_ACTIONS:-}" == true && "${RUNNER_ENVIRONMENT:-}" == github-hosted && "${RUNNER_OS:-}" == macOS ]] || { echo 'Disposable GitHub-hosted macOS runner required' >&2; exit 1; }
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 pg=$(brew --prefix postgresql@17)/bin
 work=$(mktemp -d "$RUNNER_TEMP/chapter-live.XXXXXX")
@@ -21,15 +24,25 @@ cleanup() {
     kill -KILL "$relay_pid" 2>/dev/null || true
     wait "$relay_pid" 2>/dev/null || true
   fi
-  echo "LIVE cleanup: remove disposable public CA trust"
+  echo "LIVE cleanup: delete exact disposable public CA certificate"
   if [[ -f "$work/root.pem" ]]; then
-    # A system trust dialog must not strand a hosted runner indefinitely.
+    # remove-trusted-cert opens a headless authorization prompt on hosted macOS:
+    # https://github.com/actions/runner-images/issues/12116 . Use the documented
+    # exact-certificate delete, never authorizationdb changes or a wildcard.
+    # Any remaining per-cert trust metadata dies with this disposable VM.
     # Failure remains a job failure; certificate verification is never disabled.
     python3 - "$work/root.pem" <<'PYCA' || status=1
-import subprocess,sys
+import hashlib,re,ssl,subprocess,sys
 try:
-    subprocess.run(['sudo','-n','security','remove-trusted-cert','-d',sys.argv[1]], check=True, timeout=15, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-except (subprocess.SubprocessError, OSError):
+    with open(sys.argv[1]) as f: der=ssl.PEM_cert_to_DER_cert(f.read())
+    # SHA-1 is the platform's certificate locator, NOT a protocol/crypto choice.
+    fingerprint=hashlib.sha1(der).hexdigest().upper()
+    subprocess.run(['sudo','-n','security','delete-certificate','-Z',fingerprint,'/Library/Keychains/System.keychain'], check=True, timeout=15, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    anchors=subprocess.run(['security','find-certificate','-a','-p','/Library/Keychains/System.keychain'], check=True, timeout=15, capture_output=True,text=True).stdout
+    for pem in re.findall(r'-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----',anchors,re.S):
+        if hashlib.sha1(ssl.PEM_cert_to_DER_cert(pem)).hexdigest().upper()==fingerprint:
+            raise RuntimeError('Fixture certificate still installed')
+except (subprocess.SubprocessError, OSError, ValueError, RuntimeError):
     print('FAIL: disposable CA trust cleanup failed or exceeded 15 seconds',file=sys.stderr)
     sys.exit(1)
 PYCA

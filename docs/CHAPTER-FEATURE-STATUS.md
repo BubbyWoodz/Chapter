@@ -131,3 +131,30 @@ non-destructive original edit operation, not a partial delete pretending parity.
 Required audits remain unchanged. An additional minimal unmodified SwiftUI Form
 Dynamic Type reproduction is added to distinguish framework behavior from the
 production screen; it does NOT replace or suppress the production audits.
+
+## Genuine native network result and hosted-runner teardown diagnosis
+
+In run 42513433243, the actual native URLSession/TLS/Go/PostgreSQL test PASSED
+(205 records/pagination, multi-chunk media, repeated-finalization recovery), and
+the actual web decoder PASSED on native ciphertext fetched back from that server.
+The job nevertheless FAILED: `security remove-trusted-cert -d` hung in cleanup.
+The bounded diagnostic exposed the exact command; this was not an auth/crypto
+failure or a license to skip TLS. Earlier duplicate runs were canceled only after
+preserving their logs and the already-completed server artifacts, freeing CI slots.
+
+Known hosted-macOS issue: https://github.com/actions/runner-images/issues/12116 .
+The corrected test harness deletes ONLY its random fixture certificate by exact
+platform fingerprint, verifies absence from the System keychain, and refuses to
+run outside a disposable GitHub-hosted macOS VM. It does NOT change authorizationdb,
+disable TLS checks, trust arbitrary certificates, or touch a persistent/user Mac.
+GitHub destroys the VM after the job, including residual trust metadata:
+https://docs.github.com/en/actions/how-tos/manage-runners/github-hosted-runners/use-github-hosted-runners
+The corrected whole job is still pending actual execution; no green result inferred.
+
+Separate storage review follow-up: native snapshot save currently performs a
+throwing backup-exclusion attribute update AFTER the atomic content write. A
+post-write attribute error can make memory disagree with durable disk. Add a tested
+pre-commit metadata/write design or explicit uncertain-commit recovery before
+release; do not silently retry over newly committed state. Original wire crypto
+is unrelated and must remain unchanged. Entry deletion/media purge/outbox cancellation
+also needs full lifecycle acceptance; do not label tombstoning alone media parity.
