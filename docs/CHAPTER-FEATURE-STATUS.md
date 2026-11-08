@@ -31,6 +31,16 @@ the exact revision; a failing strict accessibility audit remains a release block
 | Server distribution | Chapter-owned source-build compose/install profile, separate volumes, private setup, optional STT; image/source artifact + real S3/backup-restore CI added | Real source-image builds, trusted HTTPS/auth/web crypto, actual PostgreSQL/S3 media and restore into a different empty stack PASS at 551236b (run 42511822303). Downloadable Linux amd64 image/source/checksum bundle exists. Not deployed; no direct live-volume migration or general historical-upgrade certification |
 | iPhone distribution | Xcode source and unsigned Simulator artifacts only | No signed device IPA, TestFlight or physical-device certification. Apple signing route later, not obtained here |
 
+## Original-card fidelity and native notebook navigation increment
+
+Source-grounded shared cards now use original surface/line tokens,14pt radius,
+3pt notebook-colored leading edge and original typography in Journal/Calendar.
+Removed nested NavigationStack from pushed notebook Journal; real notebook
+cover/subtitle and title remain. Required exact RGB/native back-path UI tests and
+capture43 added, pending. A new isolated prominent full-width CTA strict audit
+comparison investigates the unknown-element font finding without hiding it.
+Full professional visual/usability acceptance remains unfinished, not certified.
+
 ## New structural increment and actual verification evidence
 
 - Native whole-block Arrange screen, checked multi-block move, encrypted atomic

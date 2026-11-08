@@ -127,6 +127,12 @@ final class ChapterUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Mark task incomplete"].exists)
         attach(app, name: "Chapter actual native formatted-run edit")
     }
+    func testNativeFullWidthActionDynamicTypeReproduction() throws {
+        let app=XCUIApplication();app.launchArguments=["--chapter-full-width-action-audit-repro"];app.launch()
+        XCTAssertTrue(app.buttons["repro.full-width-action"].waitForExistence(timeout:10))
+        attach(app,name:"Actual isolated production full-width native CTA strict comparison")
+        try audit(app,for:.dynamicType)
+    }
     func testUnmodifiedNativeFormDynamicTypeReproduction() throws {
         let app = XCUIApplication(); app.launchArguments = ["--chapter-native-form-audit-repro"]; app.launch()
         XCTAssertTrue(app.buttons["repro.native-button"].waitForExistence(timeout: 10))
@@ -147,6 +153,28 @@ final class ChapterUITests: XCTestCase {
         XCTAssertFalse(app.staticTexts["notebook.error"].exists)
         XCTAssertTrue(app.staticTexts["Public subtitle"].exists)
         attach(app, name: "Chapter actual persisted notebook metadata edit")
+    }
+    func testActualJournalCardOriginalColorsAndNativeNotebookBackNavigation() throws {
+        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture"];app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout:10));app.tabBars.buttons["Settings"].tap()
+        app.buttons["appearance.mode"].tap();app.buttons["Light"].tap();app.tabBars.buttons["Journal"].tap()
+        let card=app.descendants(matching:.any).matching(identifier:"entry.card.public-rich-fixture").firstMatch
+        XCTAssertTrue(card.waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["Public rich fixture"].exists)
+        let image=try XCTUnwrap(app.screenshot().image.cgImage),scale=CGFloat(image.width)/app.frame.width
+        func sample(_ offset:CGFloat,expected:[Int]) throws {
+            let rect=CGRect(x:(card.frame.minX+offset)*scale,y:card.frame.midY*scale,width:1,height:1)
+            let crop=try XCTUnwrap(image.cropping(to:rect));var pixel=[UInt8](repeating:0,count:4)
+            let context=try XCTUnwrap(CGContext(data:&pixel,width:1,height:1,bitsPerComponent:8,bytesPerRow:4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue))
+            context.draw(crop,in:CGRect(x:0,y:0,width:1,height:1))
+            for (actual,target) in zip(pixel.prefix(3),expected) {XCTAssertLessThanOrEqual(abs(Int(actual)-target),2,"Original card color must really render")}
+        }
+        try sample(1.5,expected:[78,139,133]);try sample(8,expected:[251,247,239])
+        attach(app,name:"Chapter genuine original-color journal cards and notebook edge")
+        app.tabBars.buttons["Notebooks"].tap();app.staticTexts["Public notebook"].tap()
+        XCTAssertTrue(app.navigationBars["Public notebook"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["Public subtitle"].exists)
+        app.staticTexts["Public rich fixture"].tap();XCTAssertTrue(app.staticTexts["Public heading"].waitForExistence(timeout:5))
+        app.navigationBars.buttons["Public notebook"].tap()
+        app.navigationBars.buttons["Notebooks"].tap();XCTAssertTrue(app.navigationBars["Notebooks"].waitForExistence(timeout:5))
     }
     func testAppearanceChoicesAndNativeNotebookCovers() throws {
         let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture"];app.launch()
@@ -328,7 +356,8 @@ final class ChapterPageCaptures: XCTestCase {
         app.buttons["writing.close"].tap();app.navigationBars.buttons["Journal"].tap();app.tabBars.buttons["Calendar"].tap()
         XCTAssertTrue(app.navigationBars["Calendar"].waitForExistence(timeout:5));shot(app,"04 Calendar and local statistics")
         app.tabBars.buttons["Notebooks"].tap();let edit=app.buttons["Edit notebook Public notebook"]
-        XCTAssertTrue(edit.waitForExistence(timeout:5));shot(app,"05 Original-theme notebook shelf");edit.tap()
+        XCTAssertTrue(edit.waitForExistence(timeout:5));shot(app,"05 Original-theme notebook shelf")
+        app.staticTexts["Public notebook"].tap();XCTAssertTrue(app.navigationBars["Public notebook"].waitForExistence(timeout:5));shot(app,"43 Notebook-filtered Journal original covers and cards");app.navigationBars.buttons["Notebooks"].tap();edit.tap()
         XCTAssertTrue(app.textFields["notebook.name"].waitForExistence(timeout:5));shot(app,"06 Notebook details color and cover form")
         app.buttons["notebook.cover"].tap();XCTAssertTrue(app.buttons["Grid"].waitForExistence(timeout:5));shot(app,"07 Original notebook cover pattern choices")
         app.buttons["Lines"].tap();let deletion=app.buttons["notebook.delete.prepare"];reveal(deletion,app);deletion.tap()

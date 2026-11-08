@@ -11,7 +11,7 @@ animations for settled static frames; the actual system-media/picker tour and pr
 | Implemented screen | Intended genuine capture states |
 |---|---|
 | ConnectView | 00 URL/recovery unlock; no real secrets |
-| EntryList | 01 Journal, 02 local search; notebook-filtered list remains separately uncaptured |
+| EntryList | 01 Journal, 02 local search; 43 notebook-filtered list with original cover/subtitle/cards (fresh capture pending) |
 | CalendarView | 04 real graphical calendar and local counts |
 | NotebookList | 05 shelf, 08 actual create dialog |
 | NotebookEditor | 06 metadata/color form, 07 actual cover-pattern choices |

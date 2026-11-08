@@ -29,3 +29,35 @@ The user's requirement is **the same notebooks, covers, themes, colors, content 
 ## Local review preview (not committed or deployed)
 
 The executor prepared a localhost-only Vite preview rendering the **actual** original `JournalsScreen` and original public sample `JOURNALS` under its real providers/fonts/tokens. Desktop: `http://127.0.0.1:4179/chapter-preview.html`; mobile adaptation: `http://127.0.0.1:4179/chapter-preview.html?mobile=1`. Notebook controls are intentionally disabled; light/dark toggle works. It is unauthenticated synthetic visual reference, **not** live server integration. The parent should visually inspect and capture this; the executor has not operated a browser or claimed to have seen it. Source preview files are ignored local helpers, not shipped in the product.
+
+## Native card/navigation correction — source grounded, fresh images pending
+
+Genuine `docs/screenshots/mobile-journal.png` was visually inspected again; it
+shows original warm surfaces, notebook-colored leading card edges, serif titles
+and notebook covers. Actual `screens/JournalEntries.tsx:84` and
+`screens/Calendar.tsx:548` use14px radius,1px `--line`,3px notebook leading edge
+and `--surface`. Native `ChapterEntryCard` now shares these original tokens,
+heading/UI/mono roles across Journal and Calendar instead of generic white rows.
+Layout/native chevrons/date placement adapt to iPhone; this is NOT full pixel parity.
+A new required genuine screenshot RGB test checks Paper surface#fbf7ef and public
+notebook#4e8b85 edge. It must pass before rendered colors are certified.
+
+Source also revealed pushed notebook Journal created a SECOND NavigationStack;
+only the root Journal tab now creates one. A real new shelf→filtered notebook→
+entry→notebook→shelf UI test checks the native back path, and capture43 covers
+this previously missing page. No data/network/crypto behavior changed.
+
+Strict production onboarding audits remain required and failing in completed be
+and94 runs; unknown-element unsupported Dynamic Type and intermittent XXXL server
+reachability were inspected in real logs/screenshots. Native Form/SecureField
+comparisons pass, not proof of a framework-wide false positive. A NEW isolated
+full-width prominent bottom-CTA comparison tests one layout hypothesis, required
+independently; it does not alter the production screen or ignore findings.
+Required normal/XXXL audits now export their real evidence BEFORE independent
+functional tests. Unreachable-control failures retain actual screenshot/hierarchy.
+
+Outstanding professional gates: actual new-card/arrangement/back-stack screenshots,
+dark interactive contrast, complete card/custom-node/math/table/interview fidelity,
+all palettes/locales/VoiceOver/landscape, coherent recovery/settings copy, genuine
+live original-web rendering comparison and physical-device usability. Passing
+unit/pixel tests alone does not satisfy these gates or make this a final design.

@@ -22,6 +22,8 @@ import QuickLook
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("--chapter-native-form-audit-repro") {
             NativeFormAuditReproduction()
+        } else if ProcessInfo.processInfo.arguments.contains("--chapter-full-width-action-audit-repro") {
+            NativeFullWidthActionAuditReproduction()
         } else if ProcessInfo.processInfo.arguments.contains("--chapter-font-diagnostic") {
             ChapterFontDiagnostic()
         } else if ProcessInfo.processInfo.arguments.contains("--chapter-native-secure-field-audit-repro") {
@@ -136,25 +138,69 @@ struct EntryList: View {
         let searchable = [entry.title, entry.text, labelText].joined(separator: " ")
         return searchable.localizedCaseInsensitiveContains(query)
     }
-    var body: some View {
-        NavigationStack {
-            List {
-                if filtered.isEmpty { Text(query.isEmpty ? "No downloaded entries. Sync or create your first entry." : "No matching entries.") }
-                ForEach(filtered) { entry in NavigationLink { EntryDetail(entryID: entry.id) } label: {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(entry.title).font(chapterFont(.heading,skin:model.snapshot.appearance?.skin ?? "paper",size:20,relativeTo:.headline))
-                        Text(entry.text).font(.subheadline).foregroundStyle(.secondary).lineLimit(2)
-                        Text(entry.date, format: .dateTime.month().day().year()).font(.caption).foregroundStyle(.secondary)
+    private var notebook: VaultRecord? { model.journals.first { $0.journalID == journal } }
+    @ViewBuilder var body: some View {
+        // A pushed notebook already has the shelf's NavigationStack. A second
+        // stack loses its native back path and makes the journal feel detached.
+        if journal == nil { NavigationStack { content } } else { content }
+    }
+    private var content: some View {
+        List {
+            if let notebook {
+                HStack(spacing: 14) {
+                    NotebookCover(color:notebook.body["color"]?.string ?? "#B0563A",pattern:notebook.body["cover"]?.string ?? "plain")
+                    VStack(alignment:.leading,spacing:4) {
+                        if let subtitle=notebook.body["subtitle"]?.string,!subtitle.isEmpty { Text(subtitle).font(.subheadline) }
+                        Text("\(model.entries.filter { $0.journalID == journal }.count) entries").font(.caption).foregroundStyle(.secondary)
                     }
-                }}
+                }.padding(.vertical,8).listRowBackground(Color.clear).listRowSeparator(.hidden)
             }
-            .modifier(ChapterScreenSurface()).navigationTitle("Journal").searchable(text: $query, prompt: "Search this device")
-            .refreshable { await model.sync() }
-            .toolbar { ToolbarItem(placement: .topBarTrailing) { Button { compose = true } label: { Label("New entry", systemImage: "square.and.pencil") } } }
-            .sheet(isPresented: $compose) { EntryEditor(journal: journal ?? model.journals.first?.journalID ?? "default") }
-        }
+            if filtered.isEmpty { Text(query.isEmpty ? "No downloaded entries. Sync or create your first entry." : "No matching entries.").listRowBackground(Color.clear) }
+            ForEach(filtered) { entry in
+                NavigationLink { EntryDetail(entryID: entry.id) } label: { ChapterEntryCard(entry:entry) }
+                    .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                    .listRowInsets(EdgeInsets(top:6,leading:16,bottom:6,trailing:16))
+            }
+        }.listStyle(.plain)
+        .modifier(ChapterScreenSurface()).navigationTitle(notebook?.title ?? "Journal")
+        .searchable(text:$query,prompt:"Search this device")
+        .refreshable { await model.sync() }
+        .toolbar { ToolbarItem(placement:.topBarTrailing) { Button { compose=true } label: { Label("New entry",systemImage:"square.and.pencil") } } }
+        .sheet(isPresented:$compose) { EntryEditor(journal:journal ?? model.journals.first?.journalID ?? "default") }
     }
 }
+
+/// Original JournalEntries/Calendar card: 14pt radius, original --surface/line,
+/// notebook-colored 3pt leading edge, original heading/UI/mono roles. Native
+/// NavigationLink, Dynamic Type, selection and RTL remain real iOS behavior.
+struct ChapterEntryCard: View {
+    @EnvironmentObject private var model: VaultModel
+    let entry: VaultRecord
+    private var preference: SharedAppearance { model.snapshot.appearance ?? .standard }
+    private var notebookColor: Color {
+        if let color=model.journals.first(where:{$0.journalID == entry.journalID})?.body["color"]?.string { return Color(chapterHex:color) }
+        return chapterToken("ink-3",preference:preference)
+    }
+    var body: some View {
+        VStack(alignment:.leading,spacing:5) {
+            Text(entry.title).font(chapterFont(.heading,skin:preference.skin,size:20,relativeTo:.headline))
+                .foregroundStyle(chapterToken("ink",preference:preference))
+            if !entry.text.isEmpty {
+                Text(entry.text).font(chapterFont(.ui,skin:preference.skin,size:15,relativeTo:.subheadline))
+                    .foregroundStyle(chapterToken("ink-2",preference:preference)).lineLimit(2)
+            }
+            Text(entry.date,format:.dateTime.month().day().year())
+                .font(chapterFont(.mono,skin:preference.skin,size:12,relativeTo:.caption))
+                .foregroundStyle(chapterToken("ink-2",preference:preference))
+        }.frame(maxWidth:.infinity,alignment:.leading).padding(14)
+        .background(chapterToken("surface",preference:preference))
+        .overlay { RoundedRectangle(cornerRadius:14).strokeBorder(chapterToken("line",preference:preference),lineWidth:1) }
+        .overlay(alignment:.leading) { Rectangle().fill(notebookColor).frame(width:3) }
+        .clipShape(RoundedRectangle(cornerRadius:14))
+        .accessibilityElement(children:.contain).accessibilityIdentifier("entry.card."+entry.id)
+    }
+}
+
 struct EntryDetail: View {
     @EnvironmentObject private var model: VaultModel
     let entryID: String
@@ -504,7 +550,8 @@ struct CalendarView: View {
             List {
                 DatePicker("Date", selection: $day, displayedComponents: .date).datePickerStyle(.graphical)
                 Section("Entries on this day") { ForEach(model.entries.filter { Calendar.current.isDate($0.date, inSameDayAs: day) }) { entry in
-                    NavigationLink(entry.title) { EntryDetail(entryID: entry.id) }
+                    NavigationLink { EntryDetail(entryID:entry.id) } label: { ChapterEntryCard(entry:entry) }
+                        .listRowBackground(Color.clear).listRowSeparator(.hidden)
                 } }
                 Section("On this device") { LabeledContent("Entries", value: "\(model.entries.count)")
                     LabeledContent("Writing days", value: "\(Set(model.entries.map { Calendar.current.startOfDay(for: $0.date) }).count)") }
@@ -767,6 +814,26 @@ private struct ChapterFontDiagnostic: View {
         } }
     }
 }
+/// Isolates the production CTA's layout from text inputs. This is an additional
+/// required DEBUG diagnosis, never a replacement or suppression of real audits.
+private struct NativeFullWidthActionAuditReproduction: View {
+    @State private var tapped = false
+    var body: some View {
+        NavigationStack {
+            Form { Text(tapped ? "Tapped" : "Public action layout comparison").font(.title2) }
+                .navigationTitle("Action comparison")
+                .safeAreaInset(edge:.bottom) {
+                    Button { tapped=true } label: {
+                        Text("Unlock and connect").font(.body).multilineTextAlignment(.center)
+                            .fixedSize(horizontal:false,vertical:true).foregroundStyle(.white)
+                            .frame(maxWidth:.infinity,minHeight:44)
+                    }.buttonStyle(.borderedProminent).tint(.black)
+                        .accessibilityIdentifier("repro.full-width-action").padding().background(.regularMaterial)
+                }
+        }
+    }
+}
+
 /// A separate unchanged SecureField comparison; does not replace production tests
 /// or the existing unmodified Form control, and never handles a real phrase.
 private struct NativeSecureFieldAuditReproduction: View {
