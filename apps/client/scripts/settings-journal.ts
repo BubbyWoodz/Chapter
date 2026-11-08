@@ -78,4 +78,9 @@ for(const results of [[],[{entry_id:'foreign',applied:true}],[{entry_id:queued.r
 assert(rejected.state.dirty);await rejected.journal.receive([{...queued,updatedAt:701,settings:{...initial,enabled:true}}]);
 assert(rejected.state.recovered.some(row=>row.updatedAt===700));const rejectedRestart=setup('stale-server');await rejectedRestart.journal.load();assert.deepEqual(rejectedRestart.state,rejected.state);
 assert.equal(await pushAiSettings(makeRelay([{entry_id:queued.recordId,applied:true}]),'PUBLIC',identity.dataKey,queued),true);
+// A legacy authenticated future payload or malformed sync clock is NOT a foreign vault.
+const futureLegacy=sealAiSettings(identity.aiKey,{...initial,v:2} as unknown as Parameters<typeof sealAiSettings>[1]);
+await storeAiSettingsRecord(futureLegacy);await assert.rejects(setup('future-legacy').journal.load(),/unsupported ai-settings version/);assert.deepEqual(await loadAiSettingsRecord(),futureLegacy);
+const badMeta=sealAiSettings(identity.aiKey,initial,{recordId:'bad-clock',updatedAt:Number.MAX_SAFE_INTEGER+1,dirty:true});
+await storeAiSettingsRecord(badMeta);await assert.rejects(setup('bad-legacy-meta').journal.load(),/Invalid settings clock/);assert.deepEqual(await loadAiSettingsRecord(),badMeta);await clearAiSettingsRecord();
 console.log('PASS actual settings journal + original crypto + IDB adapter: transaction abort, serial save/pull/ack, equal-clock encrypted recovery/restart, offline tombstone, cross-tab CAS/reload, lock and rekeyed recovery preservation.');

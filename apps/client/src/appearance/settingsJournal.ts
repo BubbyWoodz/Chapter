@@ -1,5 +1,5 @@
 // Serial, durable settings/outbox/recovery state over ORIGINAL v1 seals/record codecs.
-import { sealAiSettings,openAiSettings,type SealedAiSettings } from '../ai/settings';
+import { sealAiSettings,openAiSettings,AiSettingsDecryptionError,type SealedAiSettings } from '../ai/settings';
 import { defaultAiSettings,type AiSettings } from '../ai/types';
 import type { AiSettingsRecord } from '../sync/engine';
 import { newRecordId } from '../sync/ids';
@@ -39,7 +39,7 @@ export class SettingsJournal {
    const seal=await this.disk.load();this.check();this.saved=seal;
    if(!seal){this.ready=true;this.publish(this.state);return}
    let current:AiSettingsRecord;
-   try {current=this.open(seal)}catch(error){if(seal.legacy){this.saved=null;this.ready=true;this.publish(this.state);return}throw error}
+   try {current=this.open(seal)}catch(error){if(seal.legacy&&error instanceof AiSettingsDecryptionError){this.saved=null;this.ready=true;this.publish(this.state);return}throw error}
    const recovered=(seal.recovered??[]).map(s=>this.open(s));
    if(this.state.dirty&&this.state.current&&!same(this.state.current,current)&&!recovered.some(r=>same(r,this.state.current!)))recovered.push(this.state.current);
    const next={current,recovered,dirty:seal.sync?.dirty??true};

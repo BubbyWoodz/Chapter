@@ -42,9 +42,13 @@ export function sealAiSettings(aiKey: Uint8Array, settings: AiSettings, sync?: A
   return { v: 1, blob: encrypt(aiKey, utf8(JSON.stringify(settings)), AAD), sync };
 }
 
+export class AiSettingsDecryptionError extends Error { constructor(){super('Saved settings could not be decrypted');this.name='AiSettingsDecryptionError';} }
+
 /** Throws on tamper or a record sealed by a different vault. */
 export function openAiSettings(aiKey: Uint8Array, record: SealedAiSettings): AiSettings {
-  const parsed = JSON.parse(fromUtf8(decrypt(aiKey, record.blob, AAD))) as AiSettings;
+  let plaintext:Uint8Array;
+  try {plaintext=decrypt(aiKey,record.blob,AAD);}catch{throw new AiSettingsDecryptionError();}
+  const parsed = JSON.parse(fromUtf8(plaintext)) as AiSettings;
   if (parsed.v !== 1) throw new Error(`unsupported ai-settings version ${parsed.v}`);
   return parsed;
 }
