@@ -1,0 +1,31 @@
+name: Native iOS
+on:
+  pull_request:
+    paths: ['apps/ios/**', 'apps/client/scripts/native-vectors.ts', '.github/workflows/ios.yml']
+permissions:
+  contents: read
+concurrency:
+  group: native-ios-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+jobs:
+  native:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Native core tests and Swift-generated ciphertext
+        run: swift test --package-path apps/ios/ChapterCore
+        env:
+          CHAPTER_NATIVE_OUTPUT: ${{ runner.temp }}/chapter-native-output.json
+      - name: Verify Swift ciphertext with actual web decoder
+        run: pnpm --filter client exec tsx scripts/native-vectors.ts
+        env:
+          CHAPTER_NATIVE_OUTPUT: ${{ runner.temp }}/chapter-native-output.json
+      - name: Build genuine native app for iOS Simulator (no signing credentials)
+        run: xcodebuild -project apps/ios/Chapter.xcodeproj -scheme Chapter -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/ChapterBuild" CODE_SIGNING_ALLOWED=NO build

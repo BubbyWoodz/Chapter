@@ -89,6 +89,7 @@ func (s *Server) Routes() http.Handler {
 	// unlimited owners, push unlimited blobs, and flood auth_challenges.
 	// Health probes stay unthrottled so a monitoring loop can't lock itself out.
 	mux.HandleFunc("GET /healthz", s.handleHealth)
+	mux.HandleFunc("GET /v1/info", s.handleInfo)
 	mux.HandleFunc("GET /readyz", s.handleReady)
 	mux.Handle("POST /v1/register", s.limit(http.HandlerFunc(s.handleRegister)))
 	mux.Handle("POST /v1/auth/challenge", s.limit(http.HandlerFunc(s.handleChallenge)))
@@ -167,7 +168,7 @@ func (s *Server) auth(next http.Handler) http.Handler {
 		// blip tells every client its session was revoked, and a client that
 		// reacts by re-authenticating lands in the same outage.
 		if err != nil && !errors.Is(err, store.ErrNotFound) {
-			log.Printf("%s %s: session lookup failed: %v", r.Method, r.URL.Path, err)
+			log.Printf("%s: session lookup failed (%T)", requestRoute(r), err)
 			writeError(w, http.StatusServiceUnavailable, "temporarily unavailable")
 			return
 		}
@@ -215,7 +216,7 @@ func (s *Server) logging(next http.Handler) http.Handler {
 		if strings.HasPrefix(r.URL.Path, "/v1/") {
 			s.metrics.observe(sw.status, elapsed)
 		}
-		log.Printf("%s %s -> %d (%s)", r.Method, r.URL.Path, sw.status, elapsed.Round(time.Millisecond))
+		log.Printf("%s -> %d (%s)", requestRoute(r), sw.status, elapsed.Round(time.Millisecond))
 	})
 }
 
@@ -234,4 +235,14 @@ func (w *statusWriter) WriteHeader(code int) {
 // and Flush/ReaderFrom fast paths (streamed backup downloads) come back too.
 func (w *statusWriter) Unwrap() http.ResponseWriter {
 	return w.ResponseWriter
+}
+
+// requestRoute never logs user-controlled paths, record IDs, filenames or query
+// credentials. ServeMux sets Pattern on matched requests; unmatched paths stay
+// opaque. The method is deliberately not copied from untrusted request bytes.
+func requestRoute(r *http.Request) string {
+	if r.Pattern == "" {
+		return "unmatched route"
+	}
+	return r.Pattern
 }

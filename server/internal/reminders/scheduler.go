@@ -20,8 +20,8 @@ type Dispatcher interface {
 // LogDispatcher is the placeholder until push transport lands.
 type LogDispatcher struct{}
 
-func (LogDispatcher) Dispatch(_ context.Context, d store.DueReminder) error {
-	log.Printf("reminder due: owner=%s reminder=%s fire_at=%s", d.OwnerID, d.ReminderID, d.FireAt.UTC().Format(time.RFC3339))
+func (LogDispatcher) Dispatch(_ context.Context, _ store.DueReminder) error {
+	log.Printf("reminder due (delivery not configured)")
 	return nil
 }
 

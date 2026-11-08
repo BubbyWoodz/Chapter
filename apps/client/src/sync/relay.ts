@@ -234,6 +234,9 @@ export function normalizeRelayUrl(input: string): string | null {
   try {
     const u = new URL(raw);
     if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
+    // Base URLs are not credential containers. Queries/fragments otherwise get
+    // appended ahead of /v1 routes or expose secrets in logs/history.
+    if (!u.hostname || u.username || u.password || u.search || u.hash) return null;
     return u.href.replace(/\/+$/, '');
   } catch {
     return null;

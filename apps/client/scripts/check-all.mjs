@@ -11,12 +11,14 @@ import { spawnSync } from 'node:child_process';
 const SCRIPTS = [
   // security-relevant regressions first — fail fast on what matters most
   'aead-compat', // entry-AEAD ciphertext stays readable across dependency bumps
+  'native-vectors', // frozen native/web interoperability and registration fixture
   'keys-compat', // seed→identity derivation stays stable across dependency bumps
   'record-codec', // wire-codec field mapping (silent LWW field loss)
   'record-binding', // AAD record binding (audit M2)
   'state-helpers', // provider merge/convergence rules
   'seedlock-methods', // at-rest seals (Argon2id / PRF)
   'link-safety', // href allowlist (audit M1, #42)
+  'relay-url', // reject embedded credentials and ambiguous endpoint bases
   'ollama-url', // privacy-badge URL classification (audit L4, #49)
   'phrase-quiz', // recovery-phrase confirm quiz (gates onboarding + rotation)
   'transcribe-repro', // transcription gating incl. CSP + same-origin default

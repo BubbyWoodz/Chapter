@@ -1,4 +1,12 @@
-# Mneme
+# Chapter
+
+Chapter is a privacy-focused fork of [Mneme](https://github.com/mneme-blog/mneme).
+The upstream application and protocol remain intact; its original overview follows.
+The real SwiftUI iOS project is in [apps/ios](apps/ios/README.md), with exact current
+scope, build instructions and limitations. **Native full-feature parity is in progress,
+not complete.** See the [implementation ledger](docs/CHAPTER-IMPLEMENTATION.md).
+
+## Upstream Mneme
 
 > An open-source, local-first, **end-to-end-encrypted** journal. Your thoughts are encrypted on your
 > device before they go anywhere, and the server is too clueless to read them if it tried.
