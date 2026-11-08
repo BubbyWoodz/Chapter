@@ -22,6 +22,7 @@ services:
     restart: unless-stopped
     command: [server, /data]
     environment:
+      MINIO_UPDATE: "off"
       MINIO_ROOT_USER: chapter
       MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:?run init.sh}
     volumes: [media:/data]

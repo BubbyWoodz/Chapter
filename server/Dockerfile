@@ -14,6 +14,7 @@ RUN CGO_ENABLED=0 go build -ldflags "-X main.version=${VERSION}" -o /journald ./
 
 FROM gcr.io/distroless/static-debian12
 COPY --from=build /journald /journald
+COPY LICENSE /LICENSE
 EXPOSE 8080
 # The updater's health gate waits on this: a release that fails to start, or
 # fails to migrate, never reports healthy and gets rolled back automatically.

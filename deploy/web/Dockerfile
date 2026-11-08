@@ -19,4 +19,5 @@ RUN pnpm --filter client build --base=/mneme/
 
 FROM caddy:2
 COPY deploy/web/Caddyfile /etc/caddy/Caddyfile
+COPY LICENSE /LICENSE
 COPY --from=build /app/apps/client/dist /srv
