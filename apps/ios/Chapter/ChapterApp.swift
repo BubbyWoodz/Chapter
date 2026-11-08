@@ -167,6 +167,14 @@ struct EntryDetail: View {
             if let entry {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
+                        HStack {
+                            Spacer()
+                    Menu("More") {
+                        Button("Move to notebook") { moving = true }.disabled(model.journals.isEmpty)
+                        Button(role: .destructive) { deletionExpected = entry; deleting = true } label: { Label("Delete entry", systemImage: "trash") }
+                    }
+                                .frame(minWidth:44,minHeight:44).buttonStyle(.bordered)
+                        }
                         Text(entry.title).font(.largeTitle).accessibilityAddTraits(.isHeader)
                         Text(entry.date, style: .date).foregroundStyle(.secondary)
                         if let notebook = model.journals.first(where: { $0.journalID == entry.journalID }) { Text("Notebook: " + notebook.title).font(.footnote).accessibilityIdentifier("entry.notebook") }
@@ -206,10 +214,7 @@ struct EntryDetail: View {
                             Button("Rich document") { editRich = true; editing = true }
                         }
                     } else if entry.body["bodyJson"]?.string.flatMap({ try? RichDocument(json: $0) }) != nil { Button("Edit") { editRich = true; editing = true } }
-                    Menu("More") {
-                        Button("Move to notebook") { moving = true }.disabled(model.journals.isEmpty)
-                        Button(role: .destructive) { deletionExpected = entry; deleting = true } label: { Label("Delete entry", systemImage: "trash") }
-                    }
+
                 }
                 .sheet(isPresented: $editing) {
                     if entry.editablePlainText && !editRich { EntryEditor(existing: entry, journal: entry.journalID) }

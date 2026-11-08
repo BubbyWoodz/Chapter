@@ -57,6 +57,11 @@ the exact revision; a failing strict accessibility audit remains a release block
   system Form header `UNLOCK VAULT` as partially non-scaling. Formatting menu
   moved to a44pt content control and section headings to genuinely scalable
   body rows with header traits; all tests/audits retained, fixes verifying.
+- Completedfd3 UI42519352453 separately confirms Move fails the same unreachable
+  implicit toolbar Menu AX action (`More`), not the move core or server. More now
+  uses an actual44pt native content menu like formatting; tests/assertions remain
+  unchanged and the new placement is not yet certified. That run also precisely
+  identifies the SERVER system header; both production headers were corrected.
 -332 Apple core42519961437 fails ONE fixture assertion: test bodyJson text did
   not match omitted bodyText, so correctly was not a canonical plain entry. The
   fixture now supplies matching bodyText; assertion is unchanged. Do not claim
