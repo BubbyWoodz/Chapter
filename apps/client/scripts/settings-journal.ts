@@ -8,7 +8,7 @@ import { defaultAiSettings } from '../src/ai/types';
 import { sealAiSettings,openAiSettings,SettingsWriteConflict } from '../src/ai/settings';
 import { loadAiSettingsRecord,storeAiSettingsRecord } from '../src/platform/keystore.web';
 import { identityFromMnemonic } from '../src/sync/identity';
-import { toPushAiSettings,decryptRecord } from '../src/sync/engine';
+import { pushAiSettings,toPushAiSettings,decryptRecord } from '../src/sync/engine';
 const identity=identityFromMnemonic('legal winner thank year wave sausage worth useful legal winner thank yellow');
 const initial={...defaultAiSettings(),anthropic:{apiKey:'PUBLIC-RECOVERY-KEY',model:'future-model'},future:{keep:true},chapterAppearance:{v:1,mode:'light',palette:'sea',skin:'forest'}};
 const choice={v:1 as const,mode:'dark' as const,palette:'plum',skin:'lavender'};
@@ -68,4 +68,14 @@ const newKey=new Uint8Array(32).fill(9);let migrated:SettingsState|undefined;
 const rotation=new SettingsJournal(newKey,{load:()=>loadAiSettingsRecord('rotated'),store:(value,expected)=>storeAiSettingsRecord(value,'rotated',expected)},()=>true,value=>{migrated=value});
 await rotation.restore({...checkpoint,dirty:false});assert(migrated);assert.deepEqual(migrated.recovered,checkpoint.recovered);assert.deepEqual(await loadAiSettingsRecord('tabs'),oldBytes);const rotatedSeal=(await loadAiSettingsRecord('rotated'))!;assert.throws(()=>openAiSettings(identity.aiKey,rotatedSeal));assert.deepEqual(openAiSettings(newKey,rotatedSeal),checkpoint.current?.settings);
 const blocked=new SettingsJournal(newKey,{load:()=>loadAiSettingsRecord('rotated'),store:(value,expected)=>storeAiSettingsRecord(value,'rotated',expected)},()=>true,()=>{});await assert.rejects(blocked.restore(checkpoint),SettingsWriteConflict);assert.deepEqual(await loadAiSettingsRecord('tabs'),oldBytes);
+// The ORIGINAL push helper previously retired a stale rejection as if applied.
+// A newer remote clock must not erase that unacknowledged local edit.
+const rejected=setup('stale-server');await rejected.journal.load();await rejected.journal.edit(()=>initial,700);
+const makeRelay=(results:unknown)=>({push:async()=>({results})}) as unknown as Parameters<typeof pushAiSettings>[0];
+const queued=rejected.state.current!;
+assert.equal(await pushAiSettings(makeRelay([{entry_id:queued.recordId,applied:false}]),'PUBLIC',identity.dataKey,queued),false);
+for(const results of [[],[{entry_id:'foreign',applied:true}],[{entry_id:queued.recordId,applied:'yes'}],[{entry_id:queued.recordId,applied:true},{entry_id:queued.recordId,applied:true}]])await assert.rejects(pushAiSettings(makeRelay(results),'PUBLIC',identity.dataKey,queued));
+assert(rejected.state.dirty);await rejected.journal.receive([{...queued,updatedAt:701,settings:{...initial,enabled:true}}]);
+assert(rejected.state.recovered.some(row=>row.updatedAt===700));const rejectedRestart=setup('stale-server');await rejectedRestart.journal.load();assert.deepEqual(rejectedRestart.state,rejected.state);
+assert.equal(await pushAiSettings(makeRelay([{entry_id:queued.recordId,applied:true}]),'PUBLIC',identity.dataKey,queued),true);
 console.log('PASS actual settings journal + original crypto + IDB adapter: transaction abort, serial save/pull/ack, equal-clock encrypted recovery/restart, offline tombstone, cross-tab CAS/reload, lock and rekeyed recovery preservation.');

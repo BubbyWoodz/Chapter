@@ -517,9 +517,9 @@ export function AppDataProvider({ children }: { children: ComponentChildren }): 
         // Either outcome retires the queued record: accepted → it's on the relay;
         // rejected as stale → the relay already holds something newer and the
         // next pull brings it here.
-        await pushAiSettings(relay, s.token, s.identity.dataKey, aiBatch);
+        const applied=await pushAiSettings(relay, s.token, s.identity.dataKey, aiBatch);
         if (identity.current !== s.identity || session.current !== s) return false;
-        await settingsJournal.current?.acknowledge(aiBatch);
+        if(applied)await settingsJournal.current?.acknowledge(aiBatch);
       }
       syncPendingCount();
       setStatusLive('online');
