@@ -11,6 +11,7 @@ import { spawnSync } from 'node:child_process';
 const SCRIPTS = [
   // security-relevant regressions first — fail fast on what matters most
   'aead-compat', // entry-AEAD ciphertext stays readable across dependency bumps
+  'shared-appearance-ui', // actual Preact hook state/remote/no-echo/error transitions
   'shared-appearance', // encrypted extension validation and lossless settings patches
   'native-vectors', // frozen native/web interoperability and registration fixture
   'keys-compat', // seed→identity derivation stays stable across dependency bumps

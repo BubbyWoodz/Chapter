@@ -38,4 +38,4 @@ export function verifyThemeCatalog():void {
  console.log('PASS: native shared appearance opens in actual original web settings codec, all opaque/AI fields preserved.');
  }
 }
-if(process.argv.includes('--write'))verifyThemeCatalog();
+if(process.argv[1]?.endsWith('native-theme-vectors.ts'))verifyThemeCatalog();

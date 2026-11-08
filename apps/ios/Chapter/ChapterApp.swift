@@ -70,19 +70,26 @@ struct ConnectView: View {
                 Section {
                     SecureField("12 words", text: $phrase).font(.body).fixedSize(horizontal: false, vertical: true).accessibilityLabel("12-word recovery phrase").accessibilityIdentifier("connection.phrase").textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
                     Text("The phrase stays on this device and is not saved. A device passcode is required to protect offline journals. Face ID or device authentication protects the local storage key.").font(.footnote).fixedSize(horizontal: false, vertical: true)
-                    Button(model.connecting ? "Connecting…" : "Unlock and connect") {
-                        guard !model.connecting else { return }
-                        guard !server.isEmpty, !phrase.isEmpty else {
-                            model.message = "Enter your server URL and recovery phrase."; return
-                        }
-                        let input = phrase; phrase = ""
-                        Task { await model.unlock(server: server, phrase: input) }
-                    }.buttonStyle(.automatic).tint(Color.primary)
-                        .disabled(model.connecting).accessibilityIdentifier("connection.unlock")
+
                 } header: { Text("Unlock vault").foregroundStyle(Color.primary) }
                 if let message = model.message { Section { Text(message).accessibilityLabel("Connection status: \(message)").accessibilityIdentifier("connection.status") } }
                 Section { Text("This is an early native client, not full feature parity yet. Rich edits preserve the original document; formatted text-run/task editing and file/photo attachments up to 128 MiB are available. Full structural editing and capture remain in development. Use the web client for recovery-phrase creation/rotation and advanced features.") } header: { Text("Native preview").foregroundStyle(Color.primary) }
             }.navigationTitle("Chapter").scrollDismissesKeyboard(.interactively)
+                .safeAreaInset(edge:.bottom) {
+                    Button {
+                        guard !model.connecting else { return }
+                        guard !server.isEmpty, !phrase.isEmpty else {
+                            model.message="Enter your server URL and recovery phrase.";return
+                        }
+                        let input=phrase;phrase=""
+                        Task { await model.unlock(server:server,phrase:input) }
+                    } label: {
+                        Text(model.connecting ? "Connecting…":"Unlock and connect")
+                            .font(.body).multilineTextAlignment(.center).fixedSize(horizontal:false,vertical:true)
+                            .frame(maxWidth:.infinity,minHeight:44)
+                    }.buttonStyle(.borderedProminent).disabled(model.connecting)
+                        .accessibilityIdentifier("connection.unlock").padding().background(.regularMaterial)
+                }
         }
     }
 }

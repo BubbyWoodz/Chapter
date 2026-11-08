@@ -75,6 +75,9 @@ echo "LIVE phase: native URLSession integration test"
 swift test --package-path "$root/apps/ios/ChapterCore" --filter LiveRelayTests
 echo "LIVE phase: actual web reverse decoder"
 pnpm --filter client exec tsx scripts/native-live-verify.ts
+echo "LIVE phase: native appearance crypto/restart/conflict/save-failure regressions"
+swift test --package-path "$root/apps/ios/ChapterCore" --filter AppearanceTests
+pnpm --filter client exec tsx scripts/native-theme-vectors.ts
 echo "LIVE phase: actual web → native → web appearance with normal CA validation"
 NODE_EXTRA_CA_CERTS="$work/root.pem" pnpm --filter client exec tsx scripts/native-live-theme.ts --seed
 swift test --package-path "$root/apps/ios/ChapterCore" --filter LiveThemeTests
