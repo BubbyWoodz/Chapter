@@ -16,9 +16,11 @@ final class ChapterUITests: XCTestCase {
     }
     func testLargestDynamicTypeConnectionScreen() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+        // CI sets the Simulator OS text-size preference, not a launch override
+        // that could prevent the audit itself from changing preferred sizes.
         app.launch()
         XCTAssertTrue(app.navigationBars["Chapter"].waitForExistence(timeout: 10))
+        XCTAssertGreaterThan(app.staticTexts["connection.heading"].frame.height, 60, "This test must actually start at accessibility XXXL, not default text size")
         attach(app, name: "Chapter accessibility XXXL viewport")
         try audit(app, for: .dynamicType)
         // At XXXL the form correctly scrolls; off-screen lazy rows need revealing.

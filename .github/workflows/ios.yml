@@ -64,13 +64,26 @@ jobs:
           path: ${{ runner.temp }}/Chapter-Simulator.zip
           retention-days: 7
       - name: Native UI smoke tests and accessibility audits
-        run: xcodebuild -project apps/ios/Chapter.xcodeproj -scheme Chapter -configuration Debug -destination 'platform=iOS Simulator,id=${{ steps.simulator.outputs.id }}' -destination-timeout 120 -parallel-testing-enabled NO -derivedDataPath "$RUNNER_TEMP/ChapterUITestBuild" -resultBundlePath "$RUNNER_TEMP/ChapterUITests.xcresult" CODE_SIGNING_ALLOWED=NO test
+        run: |
+          # Use the actual OS preference: a launch-argument override can lock the
+          # category while the dynamicType audit tries to change it. No findings
+          # or audit categories are excluded in either run.
+          device='${{ steps.simulator.outputs.id }}'
+          trap 'xcrun simctl ui "$device" content_size large' EXIT
+          xcrun simctl ui "$device" content_size large
+          status=0
+          xcodebuild -project apps/ios/Chapter.xcodeproj -scheme Chapter -configuration Debug -destination "platform=iOS Simulator,id=$device" -destination-timeout 120 -parallel-testing-enabled NO -test-timeouts-enabled YES -maximum-test-execution-time-allowance 180 -derivedDataPath "$RUNNER_TEMP/ChapterUITestBuild" -resultBundlePath "$RUNNER_TEMP/ChapterUITests.xcresult" -skip-testing:ChapterUITests/ChapterUITests/testLargestDynamicTypeConnectionScreen CODE_SIGNING_ALLOWED=NO test || status=$?
+          xcrun simctl ui "$device" content_size accessibility-extra-extra-extra-large
+          xcodebuild -project apps/ios/Chapter.xcodeproj -scheme Chapter -configuration Debug -destination "platform=iOS Simulator,id=$device" -destination-timeout 120 -parallel-testing-enabled NO -test-timeouts-enabled YES -maximum-test-execution-time-allowance 180 -derivedDataPath "$RUNNER_TEMP/ChapterUITestBuild" -resultBundlePath "$RUNNER_TEMP/ChapterLargeTypeUITests.xcresult" -only-testing:ChapterUITests/ChapterUITests/testLargestDynamicTypeConnectionScreen CODE_SIGNING_ALLOWED=NO test-without-building || status=$?
+          exit "$status"
       - name: Export genuine test screenshots for review
         if: always()
         run: |
-          if [[ -d "$RUNNER_TEMP/ChapterUITests.xcresult" ]]; then
-            xcrun xcresulttool export attachments --path "$RUNNER_TEMP/ChapterUITests.xcresult" --output-path "$RUNNER_TEMP/ChapterUIAttachments"
-          fi
+          for kind in Chapter ChapterLargeType; do
+            if [[ -d "$RUNNER_TEMP/${kind}UITests.xcresult" ]]; then
+              xcrun xcresulttool export attachments --path "$RUNNER_TEMP/${kind}UITests.xcresult" --output-path "$RUNNER_TEMP/${kind}UIAttachments"
+            fi
+          done
       - name: Save real UI test results and fixture-only screen captures
         if: always()
         uses: actions/upload-artifact@v4
@@ -79,4 +92,6 @@ jobs:
           path: |
             ${{ runner.temp }}/ChapterUITests.xcresult
             ${{ runner.temp }}/ChapterUIAttachments
+            ${{ runner.temp }}/ChapterLargeTypeUITests.xcresult
+            ${{ runner.temp }}/ChapterLargeTypeUIAttachments
           retention-days: 7

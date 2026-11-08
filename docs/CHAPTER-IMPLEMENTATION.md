@@ -145,3 +145,12 @@ button; explanatory text and input rows are allowed their full natural height.
 No maximum Dynamic Type cap, shrinking font, ignored audit issue or test exclusion
 was introduced. The first strict UI run already passes HTTPS rejection; remaining
 audit status is recorded in actual CI, not inferred from the source changes.
+
+The natural-height custom button did **not** resolve the audit: actual 767f6c6
+captures still reported partial Dynamic Type support on it and an unidentified
+XXXL finding. The next diagnostic uses a standard Form action (no custom button
+style), and applies XXXL through the Simulator's real OS preference rather than
+a forced launch override. All original audits remain required, and the XXXL test
+asserts the heading really grew. This is a hypothesis being tested, not a claim
+that the remaining findings were false positives. Separate xcresults/captures
+retain both sizes, with bounded test timeouts so failures cannot silently hang.

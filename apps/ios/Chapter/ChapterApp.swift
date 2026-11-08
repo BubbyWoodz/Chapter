@@ -26,7 +26,7 @@ struct ConnectView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section { Text("Your journal. Your server.").font(.title2).accessibilityAddTraits(.isHeader)
+                Section { Text("Your journal. Your server.").font(.title2).accessibilityAddTraits(.isHeader).accessibilityIdentifier("connection.heading")
                     Text("Connect directly over your local network or Tailscale. No Chapter account is required.") }
                 Section {
                     TextField("Server URL", text: $server).font(.body).fixedSize(horizontal: false, vertical: true).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityLabel("Server URL").accessibilityIdentifier("connection.server")
@@ -43,17 +43,10 @@ struct ConnectView: View {
                         let input = phrase; phrase = ""
                         Task { await model.unlock(server: server, phrase: input) }
                     } label: {
-                        Group {
-                            if model.connecting { ProgressView("Connecting") }
-                            else { Text("Unlock and connect").fixedSize(horizontal: false, vertical: true) }
-                        }
-                        .font(.headline).multilineTextAlignment(.center)
-                        .frame(maxWidth: .infinity, minHeight: 44)
-                        .padding(.vertical, 8).padding(.horizontal, 12)
-                        .foregroundStyle(Color(uiColor: .systemBackground))
-                        .background(Color.primary, in: RoundedRectangle(cornerRadius: 12))
-                        .contentShape(Rectangle())
-                    }.buttonStyle(.plain)
+                        Text(model.connecting ? "Connecting…" : "Unlock and connect")
+                            .font(.body).fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 8)
+                    }.buttonStyle(.automatic).tint(Color.primary)
                         .disabled(model.connecting).accessibilityIdentifier("connection.unlock")
                 } header: { Text("Unlock vault").foregroundStyle(Color.primary) }
                 if let message = model.message { Section { Text(message).accessibilityLabel("Connection status: \(message)").accessibilityIdentifier("connection.status") } }
