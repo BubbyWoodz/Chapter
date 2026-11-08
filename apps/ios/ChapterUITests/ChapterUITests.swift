@@ -276,8 +276,9 @@ final class ChapterUITests: XCTestCase {
 // separate strict production accessibility/functional test runs. Only this tour
 // disables animation to capture final native UI states rather than transitions.
 final class ChapterPageCaptures: XCTestCase {
-    private func launch(media:Bool = false) -> XCUIApplication {
-        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture","--chapter-still-captures"]
+    private func launch(media:Bool = false,systemMedia:Bool = false) -> XCUIApplication {
+        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture"]
+        if !systemMedia { app.launchArguments.append("--chapter-still-captures") }
         if media {app.launchArguments.append("--chapter-media-fixture")};app.launch();return app
     }
     private func shot(_ app:XCUIApplication,_ name:String) {
@@ -351,9 +352,15 @@ final class ChapterPageCaptures: XCTestCase {
         XCTAssertTrue(app.staticTexts["license.hanken-grotesk"].waitForExistence(timeout:5));shot(app,"23 Original bundled offline font licenses")
     }
     func testRealEncryptedOfflineMediaPreviewOutboxAndRecoveryPages() throws {
-        let app=launch(media:true);let entry=app.staticTexts["Public rich fixture"];XCTAssertTrue(entry.waitForExistence(timeout:10));entry.tap()
+        // System Quick Look/pickers retain production animations and lifecycle.
+        let app=launch(media:true,systemMedia:true);let entry=app.staticTexts["Public rich fixture"];XCTAssertTrue(entry.waitForExistence(timeout:10));entry.tap()
         let preview=app.buttons["media.preview." + String(repeating:"a",count:32)];reveal(preview,app);shot(app,"24 Real encrypted media controls and pending queue")
-        preview.tap();let done=app.buttons["Done"];XCTAssertTrue(done.waitForExistence(timeout:10),"Genuine decrypted local Quick Look must open without server authentication");shot(app,"25 Actual decrypted protected offline file preview");done.tap()
+        preview.tap();let done=app.buttons["QLOverlayDoneButtonAccessibilityIdentifier"]
+        XCTAssertTrue(done.waitForExistence(timeout:10),"Genuine decrypted local Quick Look must open without server authentication")
+        let rendered=app.textViews.matching(NSPredicate(format:"label CONTAINS %@","Public Chapter offline media fixture.")).firstMatch
+        XCTAssertTrue(rendered.waitForExistence(timeout:15),"Opening chrome is not proof that genuine decrypted text rendered")
+        shot(app,"25 Actual decrypted protected offline file preview");done.tap()
+        XCTAssertTrue(done.waitForNonExistence(timeout:10),"Do not tap controls underneath a still-present system preview")
         let filePicker=app.buttons["Attach file"];reveal(filePicker,app);filePicker.tap()
         XCTAssertTrue(app.buttons["Cancel"].waitForExistence(timeout:10));shot(app,"38 Actual iOS Files picker no file selected");app.buttons["Cancel"].tap()
         let photoPicker=app.buttons["Attach photo"];reveal(photoPicker,app);photoPicker.tap()

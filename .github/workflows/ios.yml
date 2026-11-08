@@ -74,6 +74,8 @@ jobs:
         run: |
           if [[ -d "$RUNNER_TEMP/ChapterPages.xcresult" ]]; then
             xcrun xcresulttool export attachments --path "$RUNNER_TEMP/ChapterPages.xcresult" --output-path "$RUNNER_TEMP/ChapterPageAttachments"
+            xcrun xcresulttool get test-results summary --path "$RUNNER_TEMP/ChapterPages.xcresult" > "$RUNNER_TEMP/ChapterPageAttachments/test-summary.json"
+            xcrun xcresulttool get test-results tests --path "$RUNNER_TEMP/ChapterPages.xcresult" > "$RUNNER_TEMP/ChapterPageAttachments/tests.json"
           fi
       - uses: actions/upload-artifact@v4
         if: always()

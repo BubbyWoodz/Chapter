@@ -25,5 +25,5 @@ export async function verifyNotebookLifecycle(path:string,dataKey:Uint8Array) {
   assert.equal(decoded.entries[0].id,records[1].id);assert.equal(decoded.entries[0].deleted,stage === 'deleted');
   assert.equal(decoded.entries[0].bodyJson,fixture.original[1].bodyJson);assert.deepEqual(decoded.entries[0].labels,fixture.original[1].labels ?? []);
  }
- console.log('PASS Swift notebook cascade/restore → actual original web crypto, sync router and journal/entry codecs; same IDs, full original bodies, media and opaque fields, later restore clocks.');
+ console.log('PASS notebook cascade/restore ciphertext → actual original web crypto, sync router and journal/entry codecs; same IDs, full original bodies, media and opaque fields, later restore clocks.');
 }
