@@ -36,7 +36,9 @@ authored.content.push(...authoringBlocks as any);
 const schema = getSchema(buildExtensions(''));
 schema.nodeFromJSON({type:'doc',content:authoringBlocks}).check();
 schema.nodeFromJSON({type:'doc',content:[{type:'paragraph',content:[text('formatted',[{type:'bold'},{type:'italic'},{type:'underline'},{type:'strike'}])]}, {type:'paragraph',content:[text('code',[{type:'code'}])]}]}).check();
-const fixture = {original, edited, authored, authoredPreview:docToText(authored as any), previewCases, originalPreview:docToText(original as any), editedPreview:docToText(edited as any), mediaIds:docMediaIds(original as any)};
+const reordered = structuredClone(original);
+reordered.content = [...original.content.filter((_,index) => ![0,2].includes(index)), original.content[0], original.content[2]];
+const fixture = {original, edited, authored, reordered, reorderedPreview:docToText(reordered as any), authoredPreview:docToText(authored as any), previewCases, originalPreview:docToText(original as any), editedPreview:docToText(edited as any), mediaIds:docMediaIds(original as any)};
 export function verifyRichFixture(write: boolean, identity: {dataKey:Uint8Array}, nativePath?: string) {
  const url = new URL('../../ios/ChapterCore/Tests/ChapterCoreTests/Fixtures/rich-document.json',import.meta.url);
  if (write) writeFileSync(url,JSON.stringify(fixture,null,2)+'\n');
@@ -57,6 +59,13 @@ export function verifyRichFixture(write: boolean, identity: {dataKey:Uint8Array}
   assert.deepEqual(body.unknownFuture,{preserve:true});
   assert.deepEqual(docMediaIds(JSON.parse(body.bodyJson)),fixture.mediaIds);
   console.log('Swift → actual web: edited rich document, task state, all opaque fields and media references preserved.');
+  const arranged = JSON.parse(readFileSync(nativePath+'.rich-structure','utf8')) as {id:string;record:string};
+  const arrangedBody = JSON.parse(Buffer.from(decryptRecord(identity.dataKey,arranged.id,Buffer.from(arranged.record,'base64'))).toString());
+  assert.deepEqual(JSON.parse(arrangedBody.bodyJson),reordered,'Native block move lost, flattened or rewrote an original/opaque block');
+  assert.equal(arrangedBody.bodyText,fixture.reorderedPreview);
+  assert.deepEqual(docMediaIds(JSON.parse(arrangedBody.bodyJson)),fixture.mediaIds);
+  assert.deepEqual(arrangedBody.unknownFuture,{preserve:true});
+  console.log('Swift → actual web: genuine whole-block rearrangement, full original/opaque trees, preview and every media reference preserved.');
   const authoring = JSON.parse(readFileSync(nativePath+'.rich-authoring','utf8')) as {id:string;record:string};
   const authoredBody = JSON.parse(Buffer.from(decryptRecord(identity.dataKey,authoring.id,Buffer.from(authoring.record,'base64'))).toString());
   assert.deepEqual(JSON.parse(authoredBody.bodyJson),authored,'Native formatting/structural insertion lost content');

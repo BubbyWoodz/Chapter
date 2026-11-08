@@ -226,6 +226,12 @@ import ChapterCore
         next.richDrafts = (next.richDrafts ?? []).filter { $0.id != draft.id }
         try commit(next); scheduleSync()
     }
+    func reorderRichBlocks(_ expected: VaultRecord, from offsets: IndexSet, to destination: Int) throws -> VaultRecord {
+        guard unlocked else { throw ChapterError.storage }
+        var next = snapshot
+        let saved = try next.reorderRichBlocks(expected: expected, from: offsets, to: destination)
+        try commit(next); scheduleSync(); return saved
+    }
     func toggleRichTask(_ entry: VaultRecord, path: [Int]) throws {
         var next = snapshot
         guard let raw = entry.body["bodyJson"]?.string, let i = next.records.firstIndex(where: { $0.id == entry.id }) else { throw ChapterError.conflict }

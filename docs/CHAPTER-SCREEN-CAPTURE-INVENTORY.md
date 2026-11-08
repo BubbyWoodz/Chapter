@@ -6,7 +6,7 @@ UI tours export unchanged screenshots in `Chapter-actual-page-screenshots` befor
 separate strict production accessibility/functional runs. Observe the actual
 Xcode attachment manifest and test results; source calls are intended coverage,
 not proof that navigation/capture succeeded. Only screenshot tours disable
-animations for settled static frames; production audits do not.
+animations for settled static frames; the actual system-media/picker tour and production audits retain normal animations.
 
 | Implemented screen | Intended genuine capture states |
 |---|---|
@@ -21,6 +21,7 @@ animations for settled static frames; production audits do not.
 | MoveEntryView | 11 form, 12 actual notebook choices |
 | EntryEditor | 03 new, 32 existing plain, 36 failed-writing recovery controls, 41 resumed writer |
 | RichEntryEditor | 13 actual original rich-node/run list |
+| RichStructureEditor | 42 actual whole-block arrangement; fresh capture pending |
 | RichDraftEditor | 14 text run, 15 expanded formats, 29 new block, 30 all block styles, 35 resumed draft |
 | SettingsView | 17 upper, 22 lower, 26 durable media outbox, 28 original recovery, 34 rich drafts, 37 writing recovery |
 | AppearanceSettings | 18 style choices, 19 palette choices, 20 mode choices, 21 actual dark Forest |
@@ -44,3 +45,13 @@ Public data only. Default rich fixture uses a real encrypted local store and no
 identity/relay. Optional media fixture adds a PUBLIC identity plus real protected
 media staging/queue/original encryption, never a fake server or auth/upload success.
 Original server/ciphertext/keys/protocol remain unchanged.
+
+## Observed94bbbc8 gallery (November8,2026)
+
+Actual42-state dedicated tour42525937610 PASSED. Visual review delivered40 usable
+unchanged states:25 showed only blank loading Quick Look chrome and39 showed a
+Photos loading spinner, so neither was falsely presented as a fully rendered
+media/picker screen. New tests require actual decrypted text and completed system
+preview dismissal. The additional arrangement screen42 is a new planned capture,
+not yet observed. Current galleries and actual source inventories are versioned;
+never blend builds/themes without labels.

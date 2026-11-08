@@ -85,7 +85,27 @@ final class ChapterUITests: XCTestCase {
             if element.exists && element.isHittable { return }
             app.swipeUp()
         }
+        if !(element.exists && element.isHittable) {
+            attach(app, name: "Actual unreached control after bounded scrolling")
+            let hierarchy = XCTAttachment(string: app.debugDescription); hierarchy.name = "Actual unreachable-control hierarchy"; hierarchy.lifetime = .keepAlways; add(hierarchy)
+        }
         XCTAssertTrue(element.exists && element.isHittable, "Required control must be reachable by scrolling")
+    }
+    func testActualNativeWholeBlockReorderingPersistsAndKeepsOpaqueContent() throws {
+        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture"];app.launch()
+        let entry=app.staticTexts["Public rich fixture"];XCTAssertTrue(entry.waitForExistence(timeout:10));entry.tap()
+        app.buttons["Edit"].tap();app.buttons["rich.arrange-blocks"].tap()
+        let first=app.descendants(matching:.any).matching(identifier:"rich.block.0").firstMatch
+        XCTAssertTrue(first.waitForExistence(timeout:5));XCTAssertTrue(first.label.contains("Public heading"))
+        first.press(forDuration:1)
+        let down=app.buttons["Move down"];XCTAssertTrue(down.waitForExistence(timeout:5));down.tap()
+        let moved=NSPredicate(format:"label CONTAINS %@","Hello")
+        expectation(for:moved,evaluatedWith:first);waitForExpectations(timeout:5)
+        attach(app,name:"Chapter actual native rearranged whole blocks saved encrypted")
+        app.navigationBars.buttons["Edit rich entry"].tap();app.buttons["rich.arrange-blocks"].tap()
+        XCTAssertTrue(first.waitForExistence(timeout:5));XCTAssertTrue(first.label.contains("Hello"),"Reopened order must come from durable encrypted snapshot")
+        let opaque=app.descendants(matching:.any).matching(identifier:"rich.block.13").firstMatch
+        reveal(opaque,in:app);XCTAssertTrue(opaque.label.contains("futureNode"),"Whole opaque future block must remain")
     }
     func testNativeRichRenderingEditingAndTaskPersistence() throws {
         let app = XCUIApplication(); app.launchArguments = ["--chapter-rich-fixture"]; app.launch()
@@ -332,6 +352,7 @@ final class ChapterPageCaptures: XCTestCase {
         app.buttons["move.notebook"].tap();XCTAssertTrue(app.buttons["Public destination"].waitForExistence(timeout:5));shot(app,"12 Move notebook choices")
         app.buttons["Public notebook"].tap();app.buttons["Cancel"].tap()
         app.buttons["Edit"].tap();XCTAssertTrue(app.buttons["rich.run.0/0"].waitForExistence(timeout:5));shot(app,"13 Lossless rich editor block list")
+        app.buttons["rich.arrange-blocks"].tap();XCTAssertTrue(app.navigationBars["Arrange blocks"].waitForExistence(timeout:5));shot(app,"42 Native whole-block arrangement");app.navigationBars.buttons["Edit rich entry"].tap()
         app.buttons["rich.run.0/0"].tap();XCTAssertTrue(app.textViews["Formatted text run"].waitForExistence(timeout:5));shot(app,"14 Actual formatted text-run editor")
         app.buttons["rich.formatting"].tap();XCTAssertTrue(app.buttons["rich.format.italic"].waitForExistence(timeout:5));shot(app,"15 Expanded real formatting controls")
         app.buttons["rich.format.italic"].tap();app.buttons["Save"].tap()

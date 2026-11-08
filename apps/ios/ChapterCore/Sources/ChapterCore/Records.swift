@@ -94,7 +94,12 @@ public struct VaultRecord: Codable, Identifiable, Equatable {
         return copy
     }
     public func requiringUnchanged(expected: VaultRecord) throws {
-        guard id == expected.id, clock == expected.clock, body == expected.body, deleted == expected.deleted else { throw ChapterError.conflict }
+        // Canonically equivalent Swift Strings can still be distinct original
+        // web data. Only delivery acknowledgement may differ from a checkpoint.
+        var current = self, previous = expected
+        current.dirty = false; previous.dirty = false
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
+        guard try encoder.encode(current) == encoder.encode(previous) else { throw ChapterError.conflict }
     }
     /// Move without flattening rich content, changing dates, or reuploading media.
     public func movingEntry(expected: VaultRecord, to notebook: VaultRecord, now: Date = Date()) throws -> VaultRecord {

@@ -110,6 +110,10 @@ struct RichEntryEditor: View {
                         let pending = model.snapshot.richDrafts?.first { $0.entryID == live.id && $0.newBlockStyle != nil }
                         NavigationLink { RichDraftEditor(draft: pending ?? RichDraft.newBlock(entryID: live.id, expectedDocument: raw)) } label: { Label("Add block", systemImage: "plus") }.accessibilityIdentifier("rich.add-block")
                     }
+                    Section {
+                        NavigationLink { RichStructureEditor(entry: live) } label: { Label("Arrange blocks", systemImage: "arrow.up.arrow.down") }
+                            .accessibilityIdentifier("rich.arrange-blocks")
+                    }
                     Section("Text and empty blocks") {
                         ForEach(document.editableTextNodes) { leaf in
                             let draft = model.snapshot.richDrafts?.first { $0.entryID == live.id && $0.path == leaf.path && $0.newBlockStyle == nil }
@@ -121,6 +125,73 @@ struct RichEntryEditor: View {
                 } else { Text("This entry is no longer available for editing. Saved drafts remain in Settings.") }
             }.modifier(ChapterScreenSurface()).navigationTitle("Edit rich entry").toolbar { ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } } }
         }
+    }
+}
+
+struct RichStructureEditor: View {
+    @EnvironmentObject private var model: VaultModel
+    @State private var checkpoint: VaultRecord
+    @State private var error: String?
+    init(entry: VaultRecord) { _checkpoint = State(initialValue: entry) }
+    private var blocks: [RichNode] { (try? RichDocument(json: checkpoint.body["bodyJson"]?.string ?? ""))?.node.children ?? [] }
+    var body: some View {
+        List {
+            Section {
+                Text("Drag whole blocks to rearrange your entry. Each move saves automatically. Text drafts are kept on their original version.").font(.footnote).foregroundStyle(.secondary)
+            }
+            Section("Document order") {
+                ForEach(Array(blocks.enumerated()), id: \.offset) { index, block in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(title(block)).font(.headline)
+                        if let text = preview(block), !text.isEmpty { Text(text).lineLimit(3).foregroundStyle(.secondary) }
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("rich.block." + String(index))
+                    .contextMenu {
+                        if index > 0 { Button("Move up", systemImage: "arrow.up") { move(IndexSet(integer: index), to: index - 1) } }
+                        if index + 1 < blocks.count { Button("Move down", systemImage: "arrow.down") { move(IndexSet(integer: index), to: index + 2) } }
+                    }
+                    .accessibilityAction(named: Text("Move up")) { if index > 0 { move(IndexSet(integer: index), to: index - 1) } }
+                    .accessibilityAction(named: Text("Move down")) { if index + 1 < blocks.count { move(IndexSet(integer: index), to: index + 2) } }
+                }.onMove { offsets, destination in move(offsets, to: destination) }
+            }
+        }.modifier(ChapterScreenSurface()).navigationTitle("Arrange blocks")
+        .toolbar { EditButton() }
+        .alert("Could not rearrange", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {
+            Button("Keep reviewing", role: .cancel) {}
+            Button("Review latest saved entry") {
+                if let latest = model.snapshot.records.first(where: { $0.id == checkpoint.id && !$0.deleted }) { checkpoint = latest }
+            }
+        } message: { Text((error ?? "") + " Your saved entry and text drafts were not overwritten.") }
+    }
+    private func move(_ offsets: IndexSet, to destination: Int) {
+        do { checkpoint = try model.reorderRichBlocks(checkpoint, from: offsets, to: destination) }
+        catch { self.error = error.localizedDescription }
+    }
+    private func title(_ node: RichNode) -> String {
+        switch node.type {
+        case "paragraph": return "Paragraph"
+        case "heading": return "Heading"
+        case "blockquote": return "Quote"
+        case "codeBlock": return "Code"
+        case "bulletList": return "Bulleted list"
+        case "orderedList": return "Numbered list"
+        case "taskList": return "Tasks"
+        case "table": return "Table"
+        case "mediaAttachment", "mediaGallery": return "Attachment"
+        case "blockMath": return "Formula"
+        case "locationMap": return "Location"
+        case "videoInterview": return "Interview"
+        case "horizontalRule": return "Separator"
+        default: return node.type + " — preserved"
+        }
+    }
+    private func preview(_ node: RichNode) -> String? {
+        // Never interpret an unknown block's future payload as editable text.
+        guard RichDocument.containers.contains(node.type) else { return node.value["attrs"]["name"].string }
+        let wrapped: JSONValue = .object(["type": .string("doc"), "content": .array([node.value])])
+        guard let data = try? JSONEncoder().encode(wrapped), let doc = try? RichDocument(json: String(decoding: data, as: UTF8.self)) else { return nil }
+        return String(doc.plainText.prefix(240))
     }
 }
 

@@ -95,6 +95,21 @@ public struct RichDocument {
         // Enforce the same document/complexity limits as imported original trees.
         self = try RichDocument(json: String(decoding: JSONEncoder().encode(JSONValue.object(fields)), as: UTF8.self))
     }
+    /// SwiftUI move semantics: destination is an insertion offset BEFORE removal.
+    /// Move whole root blocks, including opaque future nodes, without rebuilding them.
+    @discardableResult public mutating func moveBlocks(from offsets: IndexSet, to destination: Int) throws -> Bool {
+        guard case .object(var fields) = root, case .array(let blocks) = fields["content"],
+              !offsets.isEmpty, offsets.allSatisfy({ blocks.indices.contains($0) }),
+              (0...blocks.count).contains(destination) else { throw ChapterError.unsupported }
+        let remaining = blocks.indices.filter { !offsets.contains($0) }
+        let insertion = destination - offsets.filter { $0 < destination }.count
+        var order = remaining; order.insert(contentsOf: offsets, at: insertion)
+        guard order != Array(blocks.indices) else { return false }
+        fields["content"] = .array(order.map { blocks[$0] })
+        // Validate before mutating. Unknown payloads and root attrs stay opaque.
+        let next = try RichDocument(json: String(decoding: JSONEncoder().encode(JSONValue.object(fields)), as: UTF8.self))
+        self = next; return true
+    }
     public mutating func appendMedia(_ attributes: [String: JSONValue]) throws {
         guard case .object(var fields) = root, fields["type"]?.string == "doc" else { throw ChapterError.corruptData }
         var content = fields["content"]?.array ?? []
@@ -175,7 +190,7 @@ public struct RichNode: Identifiable {
 
 extension VaultRecord {
     public func editingRichDocument(expected: String, now: Date = Date(), edit: (inout RichDocument) throws -> Void) throws -> VaultRecord {
-        guard kind == "entry", !deleted, body["bodyJson"]?.string == expected else { throw ChapterError.conflict }
+        guard kind == "entry", !deleted, body["bodyJson"]?.string.map({ Data($0.utf8) == Data(expected.utf8) }) == true else { throw ChapterError.conflict }
         var document = try RichDocument(json: expected); try edit(&document)
         document = try RichDocument(json: document.encoded())
         var next = self
