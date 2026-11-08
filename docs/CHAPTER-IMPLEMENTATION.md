@@ -154,3 +154,14 @@ a forced launch override. All original audits remain required, and the XXXL test
 asserts the heading really grew. This is a hypothesis being tested, not a claim
 that the remaining findings were false positives. Separate xcresults/captures
 retain both sizes, with bounded test timeouts so failures cannot silently hang.
+
+The real-OS test at d8e1bca **also failed** both Dynamic Type audits, while the
+XXXL-size assertion, HTTPS rejection, native core/interop and universal app build
+passed. Thus neither extra space/custom styling nor a launch-argument override
+has been established as the cause. Do not call this resolved or dismiss the
+findings as false positives. Next diagnostic logs Apple's compact/detailed issue
+descriptions and adds a separate real-XXXL input/button geometry test with genuine
+captures; the original strict audits still fail the workflow on every finding.
+No rich-document/media feature implementation was started while this verification
+gate remained unresolved. The correct next step is evidence-driven localization,
+not repeated unverified styling edits or ignoring a category to make CI green.

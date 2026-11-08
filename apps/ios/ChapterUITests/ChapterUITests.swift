@@ -33,6 +33,22 @@ final class ChapterUITests: XCTestCase {
         try audit(app, for: .dynamicType)
 
     }
+    func testLargestDynamicTypeControlGeometry() throws {
+        let app = XCUIApplication(); app.launch()
+        XCTAssertTrue(app.navigationBars["Chapter"].waitForExistence(timeout: 10))
+        XCTAssertGreaterThan(app.staticTexts["connection.heading"].frame.height, 60)
+        let server = app.textFields["connection.server"]
+        reveal(server, in: app)
+        print("XXXL server frame: \(server.frame)")
+        XCTAssertGreaterThan(server.frame.height, 45, "The input must grow beyond its default-size row")
+        attach(app, name: "Chapter actual OS XXXL server input")
+        let action = app.buttons["connection.unlock"]
+        reveal(action, in: app)
+        print("XXXL action frame: \(action.frame)")
+        XCTAssertGreaterThan(action.frame.height, 70, "The long native action must wrap and grow at XXXL")
+        attach(app, name: "Chapter actual OS XXXL action")
+        // This supplements, never replaces, the separate strict audit tests.
+    }
     private func attach(_ app: XCUIApplication, name: String) {
         let shot = XCTAttachment(screenshot: app.screenshot()); shot.name = name; shot.lifetime = .keepAlways; add(shot)
     }
@@ -40,6 +56,8 @@ final class ChapterUITests: XCTestCase {
         try app.performAccessibilityAudit(for: types) { issue in
             // Public fixture screens only. Returning false keeps EVERY finding a failure.
             print("AUDIT type: \(issue.auditType); element: \(issue.element?.debugDescription ?? "unknown")")
+            print("AUDIT summary: \(issue.compactDescription)")
+            print("AUDIT details: \(issue.detailedDescription)")
             return false
         }
     }
