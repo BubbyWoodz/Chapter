@@ -195,7 +195,7 @@ struct EntryDetail: View {
                 do {
                     guard let imported = try await selected.loadTransferable(type: PrivateImportedFile.self) else { throw ChapterError.unsupported }
                     defer { try? FileManager.default.removeItem(at: imported.url.deletingLastPathComponent()) }
-                    try await model.importMedia(source: imported.url, name: "Photo." + imported.url.pathExtension, mime: selected.supportedContentTypes.first?.preferredMIMEType ?? "application/octet-stream", entry: entry, session: session)
+                    try await model.importMedia(source: imported.url, name: "Photo." + imported.url.pathExtension, mime: selected.supportedContentTypes.compactMap(\.preferredMIMEType).first ?? UTType(filenameExtension: imported.url.pathExtension)?.preferredMIMEType ?? "application/octet-stream", entry: entry, session: session)
                 } catch { mediaError = error.localizedDescription }
             }
         }
@@ -305,6 +305,17 @@ struct SettingsView: View {
                         ForEach(drafts) { draft in
                             NavigationLink { RichDraftEditor(draft: draft) } label: { Text(draft.text.isEmpty ? "Empty text-run draft" : draft.text).lineLimit(2) }
                         }
+                    }
+                }
+                if let uploads = model.snapshot.mediaUploads, !uploads.isEmpty {
+                    Section("Encrypted attachment outbox") {
+                        ForEach(uploads) { upload in
+                            VStack(alignment: .leading) {
+                                Text(upload.name)
+                                Text(model.mediaErrors[upload.id] ?? "Waiting to upload. Local encrypted chunks are retained.").font(.footnote)
+                            }
+                        }
+                        Button("Retry attachments and sync") { Task { await model.sync() } }.disabled(model.syncing)
                     }
                 }
                 Section("Privacy") {

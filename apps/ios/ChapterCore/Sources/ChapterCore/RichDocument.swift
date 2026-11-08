@@ -25,7 +25,11 @@ public struct RichDocument {
         }
         try validate(root, 0)
     }
-    public func encoded() throws -> String { String(decoding: try JSONEncoder().encode(root), as: UTF8.self) }
+    public func encoded() throws -> String {
+        let data = try JSONEncoder().encode(root)
+        guard data.count <= 8 * 1024 * 1024 else { throw ChapterError.unsupported }
+        return String(decoding: data, as: UTF8.self)
+    }
     public var node: RichNode { RichNode(value: root, path: []) }
     public var textLeaves: [RichNode] {
         func walk(_ node: RichNode) -> [RichNode] {

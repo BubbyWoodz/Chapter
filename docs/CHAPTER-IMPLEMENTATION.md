@@ -210,3 +210,25 @@ Debug-only public fixture code was compiled out. The follow-up explicitly define
 DEBUG for Debug only; Release retains no fixture path. This fix is being verified
 in the next Apple run. No successful rich edit screenshot or device test is
 claimed from that failed smoke run. The production renderer/core did compile.
+
+
+## Native encrypted media stage — November 8, 2026 AST
+
+Commit f3865b0 adds a real Files/selected Photos import, original-protocol chunk
+staging, v3 encrypted snapshot outbox, retry/lost-finalization-ack reconciliation,
+reference gating and encrypted durable cache with protected explicit previews.
+Original server encryption/keys/schema/behavior are unchanged; only server e2e
+coverage changes. Existing rich drafts remain lossless and stale drafts are refused.
+
+Original CI run 42451599519 PASSED server (including real ephemeral PostgreSQL e2e),
+client and updater. Local all25 web regressions/frozen vectors and Go tests/vet
+passed; local e2e was SKIPPED without a DB, not presented as a live local pass.
+Native run 42451599537 is pending at this entry: do not call the new native media
+tests, app compile or UI/provider behavior verified before Apple executes them.
+See CHAPTER-FEATURE-STATUS.md for the exact remaining matrix and privacy acceptance.
+
+Still required: strict onboarding accessibility resolution, full structural/rich
+editing, camera/audio/video/film/codec coverage, all remaining feature groups,
+actual clean Chapter-owned server packaging and cross-client integration, physical
+device tests, and the eventual user-authorized signing route for iPhone installation.
+No deployment, registry publication, main merge or signing/submission occurred.

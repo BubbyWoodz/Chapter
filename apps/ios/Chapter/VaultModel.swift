@@ -7,6 +7,7 @@ import ChapterCore
 @MainActor final class VaultModel: ObservableObject {
     @Published private(set) var unlocked = false
     @Published private(set) var snapshot = VaultSnapshot()
+    @Published private(set) var mediaErrors: [String: String] = [:]
     @Published var message: String?
     @Published private(set) var syncing = false
     @Published var connecting = false
@@ -61,7 +62,7 @@ import ChapterCore
         } catch { if attempt == generation { message = error.localizedDescription } }
     }
     func lock() {
-        generation = UUID(); mediaImport?.cancel(); mediaImport = nil; mediaFiles = nil; playbackFiles.forEach { try? FileManager.default.removeItem(at: $0) }; playbackFiles = []; relay?.cancel(); relay = nil; identity = nil; store = nil
+        generation = UUID(); mediaErrors = [:]; mediaImport?.cancel(); mediaImport = nil; mediaFiles = nil; playbackFiles.forEach { try? FileManager.default.removeItem(at: $0) }; playbackFiles = []; relay?.cancel(); relay = nil; identity = nil; store = nil
         if let root = try? EncryptedSnapshotStore.applicationDirectory() { try? FileManager.default.removeItem(at: root.appendingPathComponent("ImportStaging", isDirectory: true)) }
         snapshot = VaultSnapshot(); unlocked = false; syncing = false; connecting = false; message = nil
     }
@@ -98,9 +99,10 @@ import ChapterCore
                     do {
                         try await relay.uploadMedia(upload, files: mediaFiles, mediaKey: identity.mediaKey, token: token)
                         guard attempt == generation else { return }
-                        var next = snapshot; next.mediaUploaded(upload); try commit(next)
+                        var next = snapshot; next.mediaUploaded(upload); try commit(next); mediaErrors.removeValue(forKey: upload.id)
                     } catch {
                         guard attempt == generation else { return }
+                        mediaErrors[upload.id] = error.localizedDescription
                         // Retain this queue item; unrelated entries may still sync.
                         // Uploadable-record filtering prevents premature references.
                     }
@@ -118,7 +120,8 @@ import ChapterCore
                 }
                 try commit(next)
             }
-            message = pending == 0 ? "Synced with your server." : "\(pending) changes remain safely on this device. Sync again to retry."
+            if !mediaErrors.isEmpty { message = "Some attachments could not upload or be authenticated. Their pending references were not sent. Keep this device and retry; do not delete local work." }
+            else { message = pending == 0 ? "Synced with your server." : "\(pending) changes remain on this device. Sync again to retry." }
         } catch { if attempt == generation { message = "Offline or unable to sync: \(error.localizedDescription) Local saved changes are retained." } }
     }
     private func nextClock(after clock: Int64 = 0) throws -> Int64 {

@@ -59,7 +59,7 @@ A Linux `swiftc -frontend -parse` check is syntax only, not an iOS build.
   by web exports (single/gallery/map/interview/legacy attachments); authenticate,
   fetch chunks, verify per-chunk AAD, decrypt to a protected temporary local file,
   then use native Quick Look. 128 MiB preview limit; unsupported codecs (including
-  some WebM) report failure rather than deleting content. No capture/upload yet.
+  some WebM) report failure rather than deleting content. File/photo import and durable encrypted upload are now implemented below; camera/audio/video capture is not.
 - Native snapshot is AES-256-GCM encrypted under an independent random,
   non-synchronizing, passcode-bound device-only Keychain key with user presence.
   Namespace includes server AND owner. Atomic encrypted replacement commits
@@ -68,7 +68,7 @@ A Linux `swiftc -frontend -parse` check is syntax only, not an iOS build.
 - iOS complete file protection + backup-exclusion request; background lock,
   app-switcher privacy cover and clearing in-memory references. Playback files
   are temporary plaintext under complete file protection, deleted on lock/failure
-  and cleaned after process restart. They are NOT encrypted durable media caches.
+  and cleaned after process restart. Separate durable media-cache files contain only original-protocol ciphertext.
 
 ## Server compatibility
 
@@ -92,7 +92,7 @@ full version negotiation and service discovery remain future work.
 
 Not yet implemented: full rich structural/formatting editor, exact math/custom-node/
 merged-table rendering, Markdown/backlink navigation,
-media capture/upload/offline media cache, templates/interview-type management,
+camera/audio/video capture and media above 128 MiB, templates/interview-type management,
 AI Q&A/writing/interviews, video interviews/film rendering, transcription,
 Day One import/journal export, interactive location insertion, theme/locale/RTL
 parity, badges/streak/heatmap parity, reminder UI/scheduling, phrase generation
@@ -155,11 +155,11 @@ behavior, server isolation, unknown fields, outbox acknowledgments, conflict cop
 and all media-bearing document nodes. Tests are not a substitute for a live stack
 or physical iOS device.
 
-## Local snapshot version 2: encrypted rich drafts
+## Local snapshot version 3: encrypted rich drafts and media outbox
 
-The local-only payload now uses version 2 so older preview binaries reject it
-instead of silently dropping new draft fields. Current code reads version 1,
-upgrades only in memory, and writes version 2 on the next successful atomic save.
+The local-only payload now uses version 3 so older preview binaries reject it
+instead of silently dropping new draft fields. Current code reads versions 1 and 2,
+upgrades only in memory, and writes version 3 on the next successful atomic save.
 There is no rekey, AAD/cipher change, browser migration or server wire change.
 Unsupported/corrupt versions still fail closed. Do not downgrade a native preview
 while it holds unsynced entries or drafts. Recover pending edits before uninstalling;
@@ -172,3 +172,35 @@ actual rendering, encrypted task/run writes and draft save—not to claim produc
 Keychain or real-server integration was tested. This mode is absent from Release.
 
 See [per-feature test status](../../docs/CHAPTER-FEATURE-STATUS.md).
+
+## Encrypted media import/upload/offline preview (partial media parity)
+
+Files and selected Photos images can be attached to an existing valid rich or
+plain document, up to 128 MiB. The document tree and metadata are patched, never
+flattened. File imports use security-scoped access; selected Photos content uses a
+bounded protected transient file. A selected system provider may fetch from iCloud
+or another configured provider at the user's request; Chapter adds no analytics,
+automatic external-content loading, or cloud upload destination.
+
+- Prepare original XChaCha media chunks (1 MiB plaintext, 41-byte overhead) in a
+  protected, backup-excluded, server/owner-namespaced ciphertext directory.
+- Atomic local snapshot v3 commits outbox and reference together after all chunks
+  exist. Manual Sync uploads immutable ciphertext before sending referencing
+  entries. A failed upload is retained; unrelated entries may still sync.
+- PUT binary chunks, then POST complete with CIPHERTEXT byte total. Recovery after
+  a lost complete acknowledgment GETs finalized metadata and compares every remote
+  chunk to the queued bytes before clearing the queue. No regeneration/re-encrypt
+  on retry. Corruption/missing chunks fail closed, not as a successful save/sync.
+- Cache originals encrypted for offline previews; decryption uses protected
+  temporary Quick Look files, cleaned on dismissal/lock/startup. Import cancels on
+  lock; queued ciphertext is never treated as purgeable cache.
+- Never downgrade a device with pending work: older v1/v2 previews reject v3.
+  New readers migrate v1/v2 in memory, without rekeying or overwriting on read.
+
+NOT certified: actual iPhone picker/provider interruptions, locked-file/backup
+extraction, OS-private Quick Look copies, disk-full/power-loss durability, codec
+matrix or a real phone→server→browser media round trip. Core/macOS and real relay
+CI results are recorded in the feature ledger; passing a transcript test is not
+physical-device acceptance. No cache quota/eviction/repair UI or orphan ciphertext
+sweep yet. Camera/microphone/video recording, film editing and large-media parity
+remain outstanding. Losing a device/Keychain can lose unsynced backup-excluded work.

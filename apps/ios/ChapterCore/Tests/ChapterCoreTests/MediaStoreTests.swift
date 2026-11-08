@@ -31,7 +31,13 @@ final class MediaStoreTests: XCTestCase {
             }
             XCTAssertEqual(reopened, plain)
             if size > MediaLimits.chunkBytes, let path = ProcessInfo.processInfo.environment["CHAPTER_NATIVE_OUTPUT"] {
-                let output: [String: JSONValue] = ["id": .string(id), "chunks": .array(chunks.map(JSONValue.string)), "plainBytes": .number(Double(size)), "cipherBytes": .number(Double(upload.cipherBytes))]
+                let body = try JSONDecoder().decode([String: JSONValue].self, from: Data(fixture.body.utf8))
+                let raw = try XCTUnwrap(body["bodyJson"]?.string)
+                var snapshot = VaultSnapshot(); snapshot.records = [VaultRecord(id: fixture.recordId, clock: 1, body: body)]
+                try snapshot.attach(upload, entryID: fixture.recordId, expectedDocument: raw)
+                let recordCipher = try VaultCipher.sealRecord(JSONEncoder().encode(snapshot.records[0].body), key: identity.dataKey, id: fixture.recordId)
+                var output: [String: JSONValue] = ["id": .string(id), "chunks": .array(chunks.map(JSONValue.string)), "plainBytes": .number(Double(size)), "cipherBytes": .number(Double(upload.cipherBytes))]
+                output["recordId"] = .string(fixture.recordId); output["record"] = .string(recordCipher.base64EncodedString())
                 try JSONEncoder().encode(output).write(to: URL(fileURLWithPath: path + ".media-upload"))
             }
         }
@@ -60,6 +66,12 @@ final class MediaStoreTests: XCTestCase {
         // Exact version guard in shipped v1/v2 preview readers: new local format
         // is refused, not decoded/re-saved with an unknown outbox silently lost.
         XCTAssertFalse(restart.version == 1 || restart.version == 2)
+        var independent = restart
+        independent.records.append(VaultRecord(id: "unrelated", clock: 1, body: ["bodyJson": .string("{\"type\":\"doc\",\"content\":[]}")], dirty: true))
+        XCTAssertEqual(independent.uploadableRecords.map(\.id), ["unrelated"], "A failed media upload must not gate unrelated entries")
+        independent.acknowledge(old.records[0])
+        XCTAssertTrue(independent.records[0].dirty, "An in-flight pre-attachment acknowledgment cannot clear the new media-bearing entry")
+        XCTAssertEqual(independent.mediaUploads, [upload])
         next = restart; next.mediaUploaded(upload); try disk.save(next)
         XCTAssertEqual(try disk.load().uploadableRecords.count, 1); XCTAssertEqual(try disk.load().mediaUploads, [])
         XCTAssertEqual(try files.read(id: upload.id, index: 0).count, upload.plainBytes + 41)
