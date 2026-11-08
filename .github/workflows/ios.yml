@@ -37,7 +37,7 @@ jobs:
         env:
           CHAPTER_NATIVE_OUTPUT: ${{ runner.temp }}/chapter-native-output.json
       - name: Build genuine native app for iOS Simulator (no signing credentials)
-        run: xcodebuild -project apps/ios/Chapter.xcodeproj -scheme Chapter -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/ChapterBuild" CODE_SIGNING_ALLOWED=NO build
+        run: xcodebuild -project apps/ios/Chapter.xcodeproj -scheme Chapter -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/ChapterBuild" ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO build
 
       - name: Choose an installed iPhone Simulator
         id: simulator
@@ -51,7 +51,7 @@ jobs:
           print('id=' + phones[0]['udid'])
           PYDEVICE
       - name: Native UI smoke tests and accessibility audits
-        run: xcodebuild -project apps/ios/Chapter.xcodeproj -scheme Chapter -configuration Debug -destination 'platform=iOS Simulator,id=${{ steps.simulator.outputs.id }}' -destination-timeout 120 -parallel-testing-enabled NO -derivedDataPath "$RUNNER_TEMP/ChapterBuild" -resultBundlePath "$RUNNER_TEMP/ChapterUITests.xcresult" CODE_SIGNING_ALLOWED=NO test
+        run: xcodebuild -project apps/ios/Chapter.xcodeproj -scheme Chapter -configuration Debug -destination 'platform=iOS Simulator,id=${{ steps.simulator.outputs.id }}' -destination-timeout 120 -parallel-testing-enabled NO -derivedDataPath "$RUNNER_TEMP/ChapterUITestBuild" -resultBundlePath "$RUNNER_TEMP/ChapterUITests.xcresult" CODE_SIGNING_ALLOWED=NO test
       - name: Save real UI test results and fixture-only screen captures
         if: always()
         uses: actions/upload-artifact@v4
