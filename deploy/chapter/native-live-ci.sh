@@ -13,7 +13,7 @@ cleanup() {
   if [[ -f "$work/root.pem" ]]; then sudo security remove-trusted-cert -d "$work/root.pem" >/dev/null 2>&1 || true; fi
 }
 trap cleanup EXIT
-"$pg/initdb" -D "$work/db" -A trust --no-locale >/dev/null
+"$pg/initdb" -D "$work/db" -A trust --encoding=UTF8 --no-locale >/dev/null
 "$pg/pg_ctl" -D "$work/db" -l "$work/postgres.log" -o "-h 127.0.0.1 -p 55432 -k $work" -w start >/dev/null
 "$pg/createdb" -h 127.0.0.1 -p 55432 chapter_native_test
 export TEST_DATABASE_URL="postgres://$(whoami)@127.0.0.1:55432/chapter_native_test?sslmode=disable"
