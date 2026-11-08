@@ -53,7 +53,7 @@ final class MediaStoreTests: XCTestCase {
         old.records = [VaultRecord(id: "entry", clock: 1, body: ["bodyJson": .string(raw), "privateMetadata": .bool(true)], dirty: true)]
         let draft = RichDraft(entryID: "entry", path: [0], expectedDocument: raw, text: "PRIVATE DRAFT"); old.richDrafts = [draft]
         try disk.save(old); let oldBytes = try Data(contentsOf: dir.appendingPathComponent("queue.vault"))
-        var next = try disk.load(); XCTAssertEqual(next.version, 3); XCTAssertEqual(next.cursor, 9)
+        var next = try disk.load(); XCTAssertEqual(next.version, 4); XCTAssertEqual(next.cursor, 9)
         XCTAssertEqual(try Data(contentsOf: dir.appendingPathComponent("queue.vault")), oldBytes)
         XCTAssertThrowsError(try next.attach(upload, entryID: "entry", expectedDocument: "stale")); XCTAssertEqual(next.records, old.records); XCTAssertNil(next.mediaUploads)
         try next.attach(upload, entryID: "entry", expectedDocument: raw); try disk.save(next)

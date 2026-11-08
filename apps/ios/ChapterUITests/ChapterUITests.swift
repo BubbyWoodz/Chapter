@@ -148,4 +148,30 @@ final class ChapterUITests: XCTestCase {
         XCTAssertTrue(app.navigationBars["Chapter"].exists)
         XCTAssertTrue(app.buttons["connection.unlock"].exists)
     }
+    func testNativeFormattingAndNewHeadingPersistInOriginalDocument() throws {
+        let app = XCUIApplication(); app.launchArguments = ["--chapter-rich-fixture"]; app.launch()
+        let entry = app.staticTexts["Public rich fixture"]; XCTAssertTrue(entry.waitForExistence(timeout: 10)); entry.tap()
+        app.buttons["Edit"].tap(); app.buttons["rich.run.0/0"].tap()
+        app.buttons["rich.formatting"].tap(); app.buttons["rich.format.italic"].tap()
+        XCTAssertTrue(app.staticTexts["Formatting: Bold, Italic"].waitForExistence(timeout: 5)); app.buttons["Save"].tap()
+        app.buttons["rich.run.0/0"].tap()
+        XCTAssertTrue(app.staticTexts["Formatting: Bold, Italic"].waitForExistence(timeout: 5), "Reopening must derive formatting from the saved original document")
+        app.buttons["Save"].tap(); app.buttons["rich.add-block"].tap()
+        let editor = app.textViews["New block text"]; XCTAssertTrue(editor.waitForExistence(timeout: 5)); editor.tap(); editor.typeText("PUBLIC-NATIVE-STRUCTURAL-PROBE")
+        app.buttons["rich.block-style"].tap(); app.buttons["Heading 2"].tap()
+        XCTAssertTrue(app.staticTexts["Draft saved encrypted on this device. Tap Save to update the entry."].waitForExistence(timeout: 5))
+        attach(app, name: "Chapter real encrypted heading draft and native block picker")
+        app.buttons["Save"].tap(); app.buttons["Done"].tap()
+        let heading = app.staticTexts["PUBLIC-NATIVE-STRUCTURAL-PROBE"]; reveal(heading, in: app)
+        XCTAssertTrue(heading.exists); attach(app, name: "Chapter actual persisted native-authored heading")
+    }
+
+    func testLargestDynamicTypeUnmodifiedNativeFormReproduction() throws {
+        let app = XCUIApplication(); app.launchArguments = ["--chapter-native-form-audit-repro"]; app.launch()
+        let heading = app.staticTexts["Native Form reproduction"]
+        XCTAssertTrue(heading.waitForExistence(timeout: 10)); XCTAssertGreaterThan(heading.frame.height, 40, "Diagnostic must actually run at OS accessibility XXXL")
+        attach(app, name: "Unmodified native Form at actual OS accessibility XXXL")
+        try audit(app, for: .dynamicType)
+    }
+
 }

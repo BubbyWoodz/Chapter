@@ -65,14 +65,15 @@ public final class EncryptedSnapshotStore {
         do {
             let plain = try AES.GCM.open(AES.GCM.SealedBox(combined: sealed), using: key, authenticating: aad)
             var value = try JSONDecoder().decode(VaultSnapshot.self, from: plain)
-            guard (1...3).contains(value.version) else { throw ChapterError.unsupported }
-            value.version = 3 // Read v1 without rewriting; upgrade atomically on the next save.
+            guard (1...4).contains(value.version) else { throw ChapterError.unsupported }
+            value.version = 4 // Read v1 without rewriting; upgrade atomically on the next save.
             return value
         } catch { throw ChapterError.corruptData }
     }
     // Internal fault seam; production always protects the dedicated owned folder.
     var prepareWriteForTesting: (() throws -> Void)?
     public func save(_ value: VaultSnapshot) throws {
+        if (value.richDrafts ?? []).contains(where: { $0.marks != nil || $0.newBlockStyle != nil }), value.version < 4 { throw ChapterError.unsupported }
         let plain = try JSONEncoder().encode(value)
         guard let data = try AES.GCM.seal(plain, using: key, authenticating: aad).combined else { throw ChapterError.storage }
         // Backup metadata must be prepared BEFORE atomic content commit. A

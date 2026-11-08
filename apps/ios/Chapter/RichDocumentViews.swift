@@ -75,11 +75,11 @@ struct RichDocumentView: View {
                 children(node)
             })
         case "blockquote": return AnyView(HStack(alignment: .top) { Rectangle().fill(Color.secondary).frame(width: 3); children(node) }.fixedSize(horizontal: false, vertical: true).padding(.leading, 6))
-        case "codeBlock": return AnyView(ScrollView(.horizontal) { Text(node.children.map(\.text).joined()).font(.body.monospaced()).textSelection(.enabled) }.padding().background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 8)))
+        case "codeBlock": return AnyView(ScrollView(.horizontal) { Text(node.children.map(\.text).joined()).font(.body.monospaced()).textSelection(.enabled) }.padding().background(chapterToken("surface",preference:model.snapshot.appearance ?? .standard), in: RoundedRectangle(cornerRadius: 8)))
         case "horizontalRule": return AnyView(Divider().accessibilityLabel("Separator"))
         case "table": return AnyView(ScrollView(.horizontal) { children(node) }.accessibilityLabel("Table; merged cell layout is simplified"))
         case "tableRow": return AnyView(HStack(alignment: .top, spacing: 0) { ForEach(node.children) { render($0).frame(minWidth: 140, alignment: .leading) } })
-        case "tableCell", "tableHeader": return AnyView(children(node).padding(10).background(Color(uiColor: .secondarySystemBackground)).border(Color.secondary.opacity(0.4)))
+        case "tableCell", "tableHeader": return AnyView(children(node).padding(10).background(chapterToken("surface",preference:model.snapshot.appearance ?? .standard)).border(Color.secondary.opacity(0.4)))
         case "blockMath": return AnyView(Text(node.value["attrs"]["latex"].string ?? "").font(.body.monospaced()).textSelection(.enabled).accessibilityLabel("LaTeX formula: " + (node.value["attrs"]["latex"].string ?? "")))
         case "mediaAttachment", "mediaGallery": return AnyView(Label(node.value["attrs"]["name"].string ?? "Encrypted media — use attachment preview below", systemImage: "paperclip").foregroundStyle(.secondary))
         case "locationMap": return AnyView(Label((node.value["attrs"]["from"]["label"].string ?? "Location") + " → " + (node.value["attrs"]["to"]["label"].string ?? ""), systemImage: "map").textSelection(.enabled))
@@ -97,21 +97,27 @@ struct RichDocumentView: View {
 struct RichEntryEditor: View {
     @EnvironmentObject private var model: VaultModel
     let entry: VaultRecord
-    let document: RichDocument
     @Environment(\.dismiss) private var dismiss
+    private var live: VaultRecord? { model.snapshot.records.first { $0.id == entry.id && !$0.deleted && $0.kind == "entry" } }
     var body: some View {
         NavigationStack {
             List {
-                Section { Text("Edit individual formatted text runs. Marks, tables, media and unknown content are retained. Structural changes and a full formatting toolbar are not yet available.") }
-                Section("Formatted text") {
-                    ForEach(document.textLeaves) { leaf in
-                        let draft = model.snapshot.richDrafts?.first { $0.entryID == entry.id && $0.path == leaf.path }
-                            ?? RichDraft(entryID: entry.id, path: leaf.path, expectedDocument: entry.body["bodyJson"]?.string ?? "", text: leaf.text)
-                        NavigationLink { RichDraftEditor(draft: draft) } label: { Text(leaf.text).lineLimit(3) }
-                            .accessibilityIdentifier("rich.run." + leaf.id)
+                if let live, let raw = live.body["bodyJson"]?.string, let document = try? RichDocument(json: raw) {
+                    Section {
+                        Text("Changes preserve original custom nodes and formatting. Text and formatting drafts are saved encrypted; Apply updates the entry. New blocks support headings, lists, quotes and code. Selection-based editing and existing table restructuring are not yet complete.")
+                        let pending = model.snapshot.richDrafts?.first { $0.entryID == live.id && $0.newBlockStyle != nil }
+                        NavigationLink { RichDraftEditor(draft: pending ?? RichDraft.newBlock(entryID: live.id, expectedDocument: raw)) } label: { Label("Add block", systemImage: "plus") }.accessibilityIdentifier("rich.add-block")
                     }
-                }
-            }.navigationTitle("Edit rich entry").toolbar { ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } } }
+                    Section("Text and empty blocks") {
+                        ForEach(document.editableTextNodes) { leaf in
+                            let draft = model.snapshot.richDrafts?.first { $0.entryID == live.id && $0.path == leaf.path && $0.newBlockStyle == nil }
+                                ?? RichDraft(entryID: live.id, path: leaf.path, expectedDocument: raw, text: leaf.text)
+                            NavigationLink { RichDraftEditor(draft: draft) } label: { Text(leaf.text.isEmpty ? "Empty " + leaf.type : leaf.text).lineLimit(3) }
+                                .accessibilityIdentifier("rich.run." + leaf.id)
+                        }
+                    }
+                } else { Text("This entry is no longer available for editing. Saved drafts remain in Settings.") }
+            }.modifier(ChapterScreenSurface()).navigationTitle("Edit rich entry").toolbar { ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } } }
         }
     }
 }
@@ -119,23 +125,40 @@ struct RichEntryEditor: View {
 struct RichDraftEditor: View {
     @EnvironmentObject private var model: VaultModel
     @Environment(\.dismiss) private var dismiss
-    let draft: RichDraft
-    @State private var text: String
+    @State private var current: RichDraft
     @State private var error: String?
-    @State private var savedDraft: Bool
-    init(draft: RichDraft) {
-        self.draft = draft; _text = State(initialValue: draft.text); _savedDraft = State(initialValue: false)
-    }
-    private var current: RichDraft { var value = draft; value.text = text; return value }
+    @State private var savedDraft = false
+    private let formats = [("bold", "Bold"), ("italic", "Italic"), ("underline", "Underline"), ("strike", "Strikethrough"), ("code", "Inline code")]
+    init(draft: RichDraft) { _current = State(initialValue: draft) }
     var body: some View {
         VStack(alignment: .leading) {
-            TextEditor(text: $text).accessibilityLabel("Formatted text run").autocorrectionDisabled().padding()
-            Text(error ?? (savedDraft ? "Draft saved encrypted on this device. Tap Save to update the entry." : "Edit this run without removing its formatting. Any saved draft remains available in Settings after locking.")).font(.footnote).padding()
-        }.navigationTitle("Edit text")
-        .toolbar { Button("Save") {
-            do { try model.applyRichDraft(current); dismiss() } catch { self.error = error.localizedDescription }
-        } }
-        .onChange(of: text) { _, _ in
+            if current.newBlockStyle != nil {
+                Picker("Block style", selection: Binding(get: {current.newBlockStyle ?? .paragraph}, set: {current.newBlockStyle = $0})) {
+                    ForEach(RichBlockStyle.allCases, id: \.self) { Text($0.title).tag($0) }
+                }.pickerStyle(.menu).padding().accessibilityIdentifier("rich.block-style")
+            }
+            TextEditor(text: $current.text).scrollContentBackground(.hidden).background(chapterToken("paper",preference:model.snapshot.appearance ?? .standard)).accessibilityLabel(current.newBlockStyle == nil ? "Formatted text run" : "New block text").autocorrectionDisabled().padding()
+            if current.supportsFormatting {
+                Text("Formatting: " + formats.filter { current.hasMark($0.0) }.map { $0.1 }.joined(separator: ", ")).font(.footnote).padding(.horizontal).accessibilityIdentifier("rich.format-summary")
+            }
+            Text(error ?? (savedDraft ? "Draft saved encrypted on this device. Tap Save to update the entry." : "Edits stay in an encrypted draft until Save. Other formatting and unknown content remain intact.")).font(.footnote).padding()
+        }.modifier(ChapterScreenSurface()).navigationTitle(current.newBlockStyle == nil ? "Edit text" : "Add block")
+        .toolbar {
+            if current.supportsFormatting {
+                Menu("Formatting") {
+                    ForEach(formats, id: \.0) { type, title in
+                        Button { do { current = try current.togglingMark(type) } catch { self.error = error.localizedDescription } } label: {
+                            Label(title, systemImage: current.hasMark(type) ? "checkmark" : "circle")
+                        }.accessibilityIdentifier("rich.format." + type)
+                    }
+                }.accessibilityIdentifier("rich.formatting")
+            }
+            Button("Save") {
+                do { try model.applyRichDraft(current); dismiss() } catch { self.error = error.localizedDescription }
+            }.disabled(current.newBlockStyle != nil && current.text.isEmpty)
+        }
+        .onChange(of: current) { _, _ in
+            savedDraft = false
             do { try model.saveRichDraft(current); savedDraft = true; error = nil } catch { self.error = error.localizedDescription }
         }
         .interactiveDismissDisabled(error != nil)

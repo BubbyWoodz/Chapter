@@ -64,7 +64,8 @@ struct ConnectView: View {
         NavigationStack {
             Form {
                 Section { Text("Your journal. Your server.").font(.title2).accessibilityAddTraits(.isHeader).accessibilityIdentifier("connection.heading")
-                    Text("Connect directly over your local network or Tailscale. No Chapter account is required.") }
+                    Text("Connect directly over your local network or Tailscale. No Chapter account is required.")
+                    Text("Native preview: feature coverage is incomplete. Use the web app for advanced features and recovery-phrase creation/rotation.").font(.footnote).fixedSize(horizontal:false,vertical:true) }
                 Section {
                     TextField("Server URL", text: $server).font(.body).fixedSize(horizontal: false, vertical: true).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityLabel("Server URL").accessibilityIdentifier("connection.server").focused($focusedField,equals:.server).submitLabel(.next).onSubmit {focusedField = .phrase}
                     Text("HTTPS with a trusted certificate is required, including on Tailscale. Include your server’s path prefix.").font(.footnote).fixedSize(horizontal: false, vertical: true)
@@ -75,7 +76,7 @@ struct ConnectView: View {
 
                 } header: { Text("Unlock vault").foregroundStyle(Color.primary) }
                 if let message = model.message { Section { Text(message).accessibilityLabel("Connection status: \(message)").accessibilityIdentifier("connection.status") } }
-                Section { Text("This is an early native client, not full feature parity yet. Rich edits preserve the original document; formatted text-run/task editing and file/photo attachments up to 128 MiB are available. Full structural editing and capture remain in development. Use the web client for recovery-phrase creation/rotation and advanced features.") } header: { Text("Native preview").foregroundStyle(Color.primary) }
+
             }.modifier(ChapterScreenSurface()).navigationTitle("Chapter").scrollDismissesKeyboard(.interactively)
                 .safeAreaInset(edge:.bottom) {
                     Button {
@@ -150,6 +151,7 @@ struct EntryDetail: View {
     @State private var importingMedia = false
     @State private var photoSelection: PhotosPickerItem?
     @State private var editing = false
+    @State private var editRich = false
     @State private var deleting = false
     @State private var previewURL: URL?
     @State private var loadingMedia: String?
@@ -189,16 +191,21 @@ struct EntryDetail: View {
                             if !(model.snapshot.mediaUploads ?? []).isEmpty { Text("Attachments waiting to upload: \(model.snapshot.mediaUploads?.count ?? 0). Their entry references are not sent until upload completes.").font(.footnote) }
                         }
                         if let mediaError { Text(mediaError).font(.footnote).foregroundStyle(.red) }
-                        if !entry.editablePlainText { Text("Rich structure is preserved. Native editing currently changes individual text runs and task state; use the web app for structural or formatting changes.").font(.footnote).foregroundStyle(.secondary) }
+                        if !entry.editablePlainText { Text("Rich structure is preserved. Native editing supports formatted runs and adding text blocks. Selection-based editing, existing block restructuring and custom-node editing remain incomplete.").font(.footnote).foregroundStyle(.secondary) }
                     }.padding().frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .toolbar {
-                    if entry.editablePlainText || (entry.body["bodyJson"]?.string.flatMap { (try? RichDocument(json: $0))?.textLeaves.isEmpty } == false) { Button("Edit") { editing = true } }
+                    if entry.editablePlainText {
+                        Menu("Edit") {
+                            Button("Text and details") { editRich = false; editing = true }
+                            Button("Rich document") { editRich = true; editing = true }
+                        }
+                    } else if entry.body["bodyJson"]?.string.flatMap({ try? RichDocument(json: $0) }) != nil { Button("Edit") { editRich = true; editing = true } }
                     Button(role: .destructive) { deleting = true } label: { Label("Delete entry", systemImage: "trash") }
                 }
                 .sheet(isPresented: $editing) {
-                    if entry.editablePlainText { EntryEditor(existing: entry, journal: entry.journalID) }
-                    else if let raw = entry.body["bodyJson"]?.string, let document = try? RichDocument(json: raw) { RichEntryEditor(entry: entry, document: document) }
+                    if entry.editablePlainText && !editRich { EntryEditor(existing: entry, journal: entry.journalID) }
+                    else if let raw = entry.body["bodyJson"]?.string, (try? RichDocument(json: raw)) != nil { RichEntryEditor(entry: entry) }
                 }
                 .confirmationDialog("Delete this entry on all synced devices?", isPresented: $deleting, titleVisibility: .visible) {
                     Button("Delete entry", role: .destructive) { do { try model.deleteEntry(entry); dismiss() } catch { model.message = error.localizedDescription } }
@@ -535,7 +542,7 @@ private struct NotebookCover: View {
 
 // UIKit navigation/tab hosts and Form/List backgrounds are opaque; tinting only
 // the root does NOT render original web paper (verified in actual a5 screenshots).
-private func chapterToken(_ name:String,preference:SharedAppearance)->Color {
+func chapterToken(_ name:String,preference:SharedAppearance)->Color {
     Color(uiColor:UIColor { traits in
         let dark=preference.mode=="dark" || (preference.mode=="system" && traits.userInterfaceStyle == .dark)
         let hex=AppearanceCatalog.tokens(preference,dark:dark)[name].string ?? (dark ? "#181612":"#F4EEE2")
@@ -543,7 +550,7 @@ private func chapterToken(_ name:String,preference:SharedAppearance)->Color {
         return UIColor(red:CGFloat((value>>16)&255)/255,green:CGFloat((value>>8)&255)/255,blue:CGFloat(value&255)/255,alpha:1)
     })
 }
-private struct ChapterScreenSurface: ViewModifier {
+struct ChapterScreenSurface: ViewModifier {
     @EnvironmentObject private var model:VaultModel
     func body(content:Content)->some View {
         let paper=chapterToken("paper",preference:model.snapshot.appearance ?? .standard)

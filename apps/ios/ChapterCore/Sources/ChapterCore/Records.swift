@@ -136,7 +136,7 @@ public struct VaultRecord: Codable, Identifiable, Equatable {
 }
 
 public struct VaultSnapshot: Codable, Equatable {
-    public var version = 3 // Local-only: older previews must fail closed, not discard rich drafts.
+    public var version = 4 // Local-only: older previews must fail closed, not discard rich drafts.
     public var records: [VaultRecord] = []
     public var cursor: Int64 = 0
     public var conflicts: [VaultRecord] = []

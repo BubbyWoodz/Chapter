@@ -204,3 +204,8 @@ CI results are recorded in the feature ledger; passing a transcript test is not
 physical-device acceptance. No cache quota/eviction/repair UI or orphan ciphertext
 sweep yet. Camera/microphone/video recording, film editing and large-media parity
 remain outstanding. Losing a device/Keychain can lose unsynced backup-excluded work.
+
+
+### Native authoring preview / local format v4
+
+Run formatting and new paragraph/heading/quote/list/task/code blocks now have encrypted resumable drafts. Original opaque nodes/marks/media are retained, and stale drafts refuse Apply. This is not yet a selection-based full ProseMirror editor. Local snapshot v4 preserves new formatting/new-block draft fields; v1–v3 read without rekey/rewrite and upgrade on next save. Old previews reject v4; never downgrade/uninstall with pending data. Original Mneme wire encryption is unchanged. Apple migration/reverse-codec/UI gates must pass for the new increment; see the feature ledger for exact verification state.

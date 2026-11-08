@@ -1,8 +1,8 @@
 // Public lossless native/web document fixtures. No personal journal content.
 import assert from 'node:assert/strict';
-import type { JSONContent } from '@tiptap/core';
+import { getSchema, type JSONContent } from '@tiptap/core';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { docToText, docMediaIds } from '../src/editor/doc';
+import { buildExtensions, docToText, docMediaIds } from '../src/editor/doc';
 import { decryptRecord } from '../src/sync/engine';
 const text = (text: string, marks?: JSONContent["marks"]): JSONContent => ({type:'text', text, ...(marks ? {marks} : {})});
 const p = (s: string): JSONContent => ({type:'paragraph', content:[text(s)]});
@@ -27,7 +27,15 @@ const edited = structuredClone(original);
 (edited.content[0] as any).content[0].text = 'Edited 📝 heading';
 (edited.content[2] as any).content[0].attrs.checked = true;
 const previewCases = ['\uFEFFedge\u0085', '\u0085edge\uFEFF', '\t \n spaced \u2028', '👩🏽‍💻 é', '\u200Bnot whitespace\u200B'].map(s => { const doc = {type:'doc',content:[p(s)]}; return {doc,text:docToText(doc)}; });
-const fixture = {original, edited, previewCases, originalPreview:docToText(original as any), editedPreview:docToText(edited as any), mediaIds:docMediaIds(original as any)};
+const authored = structuredClone(original);
+(authored.content[0] as any).content[0].marks.push({type:'italic'});
+const authoringBlocks: JSONContent[] = [p('Native paragraph'), ...[1,2,3].map(level => ({type:'heading',attrs:{level},content:[text('Native heading'+level)]})), {type:'blockquote',content:[p('Native blockquote')]}, {type:'bulletList',content:[{type:'listItem',content:[p('Native bulletList')]}]}, {type:'orderedList',content:[{type:'listItem',content:[p('Native orderedList')]}]}, {type:'taskList',content:[{type:'taskItem',attrs:{checked:false},content:[p('Native taskList')]}]}, {type:'codeBlock',content:[text('Native codeBlock')]}];
+authored.content.push(...authoringBlocks as any);
+// The ACTUAL upstream schema checks supported authored blocks, not opaque future payloads.
+const schema = getSchema(buildExtensions(''));
+schema.nodeFromJSON({type:'doc',content:authoringBlocks}).check();
+schema.nodeFromJSON({type:'doc',content:[{type:'paragraph',content:[text('formatted',[{type:'bold'},{type:'italic'},{type:'underline'},{type:'strike'}])]}, {type:'paragraph',content:[text('code',[{type:'code'}])]}]}).check();
+const fixture = {original, edited, authored, authoredPreview:docToText(authored as any), previewCases, originalPreview:docToText(original as any), editedPreview:docToText(edited as any), mediaIds:docMediaIds(original as any)};
 export function verifyRichFixture(write: boolean, identity: {dataKey:Uint8Array}, nativePath?: string) {
  const url = new URL('../../ios/ChapterCore/Tests/ChapterCoreTests/Fixtures/rich-document.json',import.meta.url);
  if (write) writeFileSync(url,JSON.stringify(fixture,null,2)+'\n');
@@ -44,5 +52,12 @@ export function verifyRichFixture(write: boolean, identity: {dataKey:Uint8Array}
   assert.deepEqual(body.unknownFuture,{preserve:true});
   assert.deepEqual(docMediaIds(JSON.parse(body.bodyJson)),fixture.mediaIds);
   console.log('Swift → actual web: edited rich document, task state, all opaque fields and media references preserved.');
+  const authoring = JSON.parse(readFileSync(nativePath+'.rich-authoring','utf8')) as {id:string;record:string};
+  const authoredBody = JSON.parse(Buffer.from(decryptRecord(identity.dataKey,authoring.id,Buffer.from(authoring.record,'base64'))).toString());
+  assert.deepEqual(JSON.parse(authoredBody.bodyJson),authored,'Native formatting/structural insertion lost content');
+  assert.equal(authoredBody.bodyText,fixture.authoredPreview);
+  assert.deepEqual(docMediaIds(JSON.parse(authoredBody.bodyJson)),fixture.mediaIds);
+  assert.deepEqual(authoredBody.unknownFuture,{preserve:true});
+  console.log('Swift → actual web: all nine authored block styles + native formatting preserve every original node/attribute/media reference; genuine upstream schema accepts new blocks.');
  }
 }

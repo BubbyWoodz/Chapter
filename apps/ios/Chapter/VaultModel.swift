@@ -184,7 +184,7 @@ import ChapterCore
     func applyRichDraft(_ draft: RichDraft) throws {
         var next = snapshot
         guard let i = next.records.firstIndex(where: { $0.id == draft.entryID }) else { throw ChapterError.conflict }
-        next.records[i] = try next.records[i].editingRichDocument(expected: draft.expectedDocument) { try $0.replaceText(at: draft.path, with: draft.text) }
+        next.records[i] = try draft.applying(to: next.records[i])
         next.richDrafts = (next.richDrafts ?? []).filter { $0.id != draft.id }
         try commit(next); scheduleSync()
     }
