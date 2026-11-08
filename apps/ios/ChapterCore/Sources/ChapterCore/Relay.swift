@@ -21,7 +21,15 @@ private final class NoRedirects: NSObject, URLSessionTaskDelegate {
 }
 public struct PushResult: Decodable { public let entry_id: String; public let applied: Bool }
 public struct PullRecord: Codable { public let entry_id: String; public let lww_clock: Int64; public let ciphertext: String; public let deleted: Bool }
-public struct PullPage: Decodable { public let entries: [PullRecord]; public let cursor: Int64; public let more: Bool }
+public struct PullPage: Decodable {
+    public let entries: [PullRecord]; public let cursor: Int64; public let more: Bool
+    func validate(since: Int64) throws {
+        try ProtocolNumbers.validate(since); try ProtocolNumbers.validate(cursor)
+        guard cursor >= since, entries.count <= 500,
+              entries.isEmpty ? (cursor == since && !more) : cursor > since else { throw ChapterError.corruptData }
+        for record in entries { try ProtocolNumbers.validate(record.lww_clock) }
+    }
+}
 public final class Relay {
     public let address: ServerAddress
     private let session: URLSession
@@ -69,12 +77,13 @@ public final class Relay {
     public func pull(since: Int64, token: String) async throws -> PullPage {
         let data = try await request("v1/sync/pull", body: JSONEncoder().encode(["since": since, "limit": 100]), token: token)
         let page = try JSONDecoder().decode(PullPage.self, from: data)
-        guard page.cursor >= since, page.entries.count <= 500, !page.more || page.cursor > since else { throw ChapterError.corruptData }
+        try page.validate(since: since)
         return page
     }
     public func push(_ records: [VaultRecord], identity: VaultIdentity, token: String) async throws -> [PushResult] {
         guard records.count <= 100 else { throw ChapterError.unsupported }
         let entries = try records.map { record -> PullRecord in
+            try ProtocolNumbers.validate(record.clock)
             let plain = try JSONEncoder().encode(record.body)
             let cipher = try VaultCipher.sealRecord(plain, key: identity.dataKey, id: record.id)
             return PullRecord(entry_id: record.id, lww_clock: record.clock, ciphertext: cipher.base64EncodedString(), deleted: record.deleted)

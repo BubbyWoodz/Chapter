@@ -131,4 +131,57 @@ final class ChapterCoreTests: XCTestCase {
         XCTAssertEqual(record.mediaReferences.count, 7)
     }
 
+    func testCheckedClockRejectsOverflowAndNonJavaScriptIntegers() throws {
+        let now = Date(timeIntervalSince1970: 1_700_000_000)
+        XCTAssertEqual(try ProtocolNumbers.nextClock(after: 0, now: now), 1_700_000_000_000)
+        XCTAssertEqual(try ProtocolNumbers.nextClock(after: 1_700_000_000_010, now: now), 1_700_000_000_011)
+        XCTAssertEqual(try ProtocolNumbers.nextClock(after: ProtocolNumbers.maxWireInteger - 1, now: now), ProtocolNumbers.maxWireInteger)
+        for invalid in [Int64.min, -1, ProtocolNumbers.maxWireInteger, Int64.max] {
+            XCTAssertThrowsError(try ProtocolNumbers.nextClock(after: invalid, now: now))
+        }
+        for seconds in [Double.nan, .infinity, -.infinity, Double.greatestFiniteMagnitude, Double(Int64.max), -1] {
+            XCTAssertThrowsError(try ProtocolNumbers.nextClock(after: 0, now: Date(timeIntervalSince1970: seconds)))
+        }
+    }
+    func testMalformedWireNumbersAndStalledCursorFailClosed() throws {
+        let valid = #"{"entries":[],"cursor":0,"more":false}"#
+        XCTAssertNoThrow(try JSONDecoder().decode(PullPage.self, from: Data(valid.utf8)).validate(since: 0))
+        for json in [
+            #"{"entries":[],"cursor":9223372036854775807,"more":false}"#,
+            #"{"entries":[],"cursor":9223372036854775808,"more":false}"#,
+            #"{"entries":[],"cursor":-1,"more":false}"#,
+            #"{"entries":[],"cursor":1,"more":false}"#,
+            #"{"entries":[],"cursor":0,"more":true}"#,
+            #"{"entries":[{"entry_id":"x","lww_clock":9223372036854775807,"ciphertext":"","deleted":false}],"cursor":1,"more":false}"#,
+            #"{"entries":[{"entry_id":"x","lww_clock":1.5,"ciphertext":"","deleted":false}],"cursor":1,"more":false}"#,
+            #"{"entries":[{"entry_id":"x","lww_clock":1,"ciphertext":"","deleted":false}],"cursor":0,"more":false}"#
+        ] {
+            XCTAssertThrowsError(try JSONDecoder().decode(PullPage.self, from: Data(json.utf8)).validate(since: 0), json)
+        }
+    }
+    func testUntrustedDatesAndMediaSizesNeverTrapOrTruncate() {
+        let epoch = Date(timeIntervalSince1970: 0)
+        for invalid in [Double.nan, .infinity, -.infinity, Double.greatestFiniteMagnitude, Double(Int64.max)] {
+            XCTAssertEqual(ProtocolNumbers.displayDate(milliseconds: invalid), epoch)
+            XCTAssertNil(VaultMedia(.object(["id": .string("x"), "bytes": .number(invalid)])))
+        }
+        XCTAssertEqual(ProtocolNumbers.displayDate(milliseconds: 1_700_000_000_000), Date(timeIntervalSince1970: 1_700_000_000))
+        XCTAssertNil(VaultMedia(.object(["id": .string("x"), "bytes": .number(-1)])))
+        XCTAssertNil(VaultMedia(.object(["id": .string("x"), "bytes": .number(1.5)])))
+        XCTAssertEqual(VaultMedia(.object(["id": .string("x"), "bytes": .number(10)]))?.bytes, 10)
+    }
+    func testLostAcknowledgementAndTombstoneConflictsRetainIntent() {
+        let original = VaultRecord(id: "x", clock: 10, body: ["title": .string("same")], dirty: true)
+        var snapshot = VaultSnapshot(); snapshot.records = [original]
+        var received = original; received.dirty = false
+        snapshot.merge(received); XCTAssertFalse(snapshot.records[0].dirty)
+        var deleted = original; deleted.deleted = true
+        snapshot.records = [deleted]; received.clock = 11
+        snapshot.merge(received); XCTAssertEqual(snapshot.conflicts, [deleted])
+        snapshot = VaultSnapshot(); snapshot.records = [original]
+        received.clock = 10; received.body["title"] = .string("collision")
+        snapshot.merge(received); XCTAssertEqual(snapshot.records, [original]); XCTAssertEqual(snapshot.conflicts, [received])
+        snapshot.acknowledge(received); XCTAssertTrue(snapshot.records[0].dirty)
+    }
+
 }

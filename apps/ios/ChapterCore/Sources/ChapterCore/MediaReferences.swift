@@ -10,11 +10,11 @@ public struct VaultMedia: Identifiable, Equatable {
     init?(_ raw: JSONValue, forceKind: String? = nil) {
         guard let id = raw["id"].string, !id.isEmpty else { return nil }
         let size = raw["bytes"].number ?? 0
-        guard size.isFinite, size >= 0, size <= Double(Int.max / 2) else { return nil }
+        guard size.isFinite, let byteCount = Int(exactly: size), byteCount >= 0 else { return nil }
         self.id = id; self.kind = forceKind ?? raw["kind"].string ?? "video"
         self.mime = raw["mime"].string ?? "application/octet-stream"
         self.name = raw["name"].string ?? (forceKind ?? raw["kind"].string ?? "Recording")
-        self.bytes = Int(size)
+        self.bytes = byteCount
     }
 }
 public extension VaultRecord {

@@ -5,13 +5,14 @@ import CommonCrypto
 import Sodium
 
 public enum ChapterError: Error, LocalizedError {
-    case invalidPhrase, invalidURL, authentication, corruptData, unsupported, storage, http(Int)
+    case invalidPhrase, invalidURL, authentication, corruptData, invalidClock, unsupported, storage, http(Int)
     public var errorDescription: String? {
         switch self {
         case .invalidPhrase: return "Enter a valid 12-word English recovery phrase."
         case .invalidURL: return "Use an HTTPS server URL without credentials, query or fragment. Include any server path prefix."
         case .authentication: return "Authentication failed. Check the recovery phrase and server."
         case .corruptData: return "Data could not be authenticated. Nothing was overwritten."
+        case .invalidClock: return "An invalid or exhausted sync clock was rejected. Nothing was overwritten."
         case .unsupported: return "This content or server version is not supported by this preview."
         case .storage: return "Secure local storage failed. Ensure a device passcode is set. Your changes have not been acknowledged as saved."
         case .http(let code): return "Server returned HTTP \(code). \(code == 403 ? "The vault may need operator approval." : code == 429 ? "Wait before retrying." : "")"
@@ -66,7 +67,8 @@ public enum RecoveryPhrase {
         }
         var entropy = Data()
         for i in stride(from: 0, to: 128, by: 8) { entropy.append(bits[i..<i+8].reduce(0) { ($0 << 1) | $1 }) }
-        let checksum = SHA256.hash(data: entropy).first! >> 4
+        // Digest is a Sequence, not a Collection on every supported Apple SDK.
+        let checksum = Data(SHA256.hash(data: entropy))[0] >> 4
         guard bits[128..<132].reduce(UInt8(0), { ($0 << 1) | $1 }) == checksum else { throw ChapterError.invalidPhrase }
         let password = Data(phrase.decomposedStringWithCompatibilityMapping.utf8)
         let salt = Data("mnemonic".utf8)

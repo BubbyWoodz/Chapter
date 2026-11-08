@@ -30,6 +30,32 @@ public enum JSONValue: Codable, Equatable {
     public subscript(_ key: String) -> JSONValue { if case .object(let v) = self { return v[key] ?? .null }; return .null }
 }
 
+// Wire clocks must also round-trip exactly through the existing JavaScript client.
+// Reject instead of saturating/wrapping: either could falsely acknowledge a newer edit.
+public enum ProtocolNumbers {
+    public static let maxWireInteger: Int64 = 9_007_199_254_740_991
+    public static func validate(_ value: Int64) throws {
+        guard value >= 0, value <= maxWireInteger else { throw ChapterError.invalidClock }
+    }
+    public static func nextClock(after previous: Int64, now: Date = Date()) throws -> Int64 {
+        try validate(previous)
+        let milliseconds = (now.timeIntervalSince1970 * 1000).rounded(.down)
+        guard milliseconds.isFinite, let wall = Int64(exactly: milliseconds) else { throw ChapterError.invalidClock }
+        try validate(wall)
+        let (successor, overflow) = previous.addingReportingOverflow(1)
+        guard !overflow, successor <= maxWireInteger else { throw ChapterError.invalidClock }
+        return max(wall, successor)
+    }
+    // Keep original JSON untouched; only bound presentation before Foundation calendar APIs.
+    public static func displayDate(milliseconds: Double?) -> Date {
+        guard let milliseconds, milliseconds.isFinite,
+              (-62_135_596_800_000...253_402_300_799_999).contains(milliseconds) else {
+            return Date(timeIntervalSince1970: 0)
+        }
+        return Date(timeIntervalSince1970: milliseconds / 1000)
+    }
+}
+
 public struct VaultRecord: Codable, Identifiable, Equatable {
     public var id: String
     public var clock: Int64
@@ -40,7 +66,7 @@ public struct VaultRecord: Codable, Identifiable, Equatable {
     public var title: String { body["title"]?.string ?? body["name"]?.string ?? "Untitled" }
     public var text: String { body["bodyText"]?.string ?? "" }
     public var journalID: String { body["journalId"]?.string ?? "" }
-    public var date: Date { Date(timeIntervalSince1970: (body["createdAt"]?.number ?? Double(clock)) / 1000) }
+    public var date: Date { ProtocolNumbers.displayDate(milliseconds: body["createdAt"]?.number ?? Double(clock)) }
     public init(id: String, clock: Int64, deleted: Bool = false, body: [String: JSONValue], dirty: Bool = false) {
         self.id = id; self.clock = clock; self.deleted = deleted; self.body = body; self.dirty = dirty
     }
@@ -73,13 +99,22 @@ public struct VaultSnapshot: Codable, Equatable {
     public init() {}
     public mutating func acknowledge(_ sent: VaultRecord) {
         // An in-flight response cannot mark a newer local edit clean.
-        if let i = records.firstIndex(where: { $0.id == sent.id && $0.clock == sent.clock }) { records[i].dirty = false }
+        if let i = records.firstIndex(where: { $0.id == sent.id && $0.clock == sent.clock && $0.body == sent.body && $0.deleted == sent.deleted }) { records[i].dirty = false }
     }
     public mutating func merge(_ remote: VaultRecord) {
         if let i = records.firstIndex(where: { $0.id == remote.id }) {
             let local = records[i]
+            if remote.clock == local.clock {
+                if local.body == remote.body && local.deleted == remote.deleted {
+                    // A lost push response is confirmed by the next authenticated pull.
+                    records[i].dirty = false
+                } else if local.dirty && !conflicts.contains(remote) {
+                    conflicts.append(remote) // retain both sides of an equal-clock collision
+                }
+                return
+            }
             guard remote.clock > local.clock else { return }
-            if local.dirty && local.body != remote.body && !conflicts.contains(local) { conflicts.append(local) }
+            if local.dirty && (local.body != remote.body || local.deleted != remote.deleted) && !conflicts.contains(local) { conflicts.append(local) }
             records[i] = remote
         } else { records.append(remote) }
     }

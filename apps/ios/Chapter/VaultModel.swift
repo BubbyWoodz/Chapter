@@ -89,13 +89,13 @@ import ChapterCore
             message = pending == 0 ? "Synced with your server." : "\(pending) changes remain safely on this device. Sync again to retry."
         } catch { if attempt == generation { message = "Offline or unable to sync: \(error.localizedDescription) Local saved changes are retained." } }
     }
-    private func nextClock(after clock: Int64 = 0) -> Int64 {
-        max(Int64(Date().timeIntervalSince1970 * 1000), clock + 1)
+    private func nextClock(after clock: Int64 = 0) throws -> Int64 {
+        try ProtocolNumbers.nextClock(after: clock)
     }
     func saveEntry(existing: VaultRecord?, title: String, text: String, labels: String, date: Date, journal: String) throws -> String {
         guard let identity, existing == nil || existing!.editablePlainText else { throw ChapterError.unsupported }
         _ = identity // refuses editing while locked
-        let clock = nextClock(after: existing?.clock ?? 0)
+        let clock = try nextClock(after: existing?.clock ?? 0)
         let id = existing?.id ?? UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
         var body = existing?.body ?? [:]
         body["title"] = .string(title); body["bodyText"] = .string(text)
@@ -115,7 +115,7 @@ import ChapterCore
         try commit(next); return id
     }
     func createJournal(name: String) throws {
-        let clock = nextClock(); let id = UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
+        let clock = try nextClock(); let id = UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
         let body: [String: JSONValue] = ["kind": .string("journal"), "journalId": .string(id), "name": .string(name), "subtitle": .string(""), "color": .string("#62564a"), "cover": .string("plain"), "createdAt": .number(Double(clock)), "updatedAt": .number(Double(clock))]
         var next = snapshot; next.records.append(VaultRecord(id: UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased(), clock: clock, body: body, dirty: true))
         try commit(next)
@@ -123,13 +123,13 @@ import ChapterCore
     func deleteEntry(_ entry: VaultRecord) throws {
         var next = snapshot
         guard let i = next.records.firstIndex(where: { $0.id == entry.id }) else { return }
-        next.records[i].clock = nextClock(after: entry.clock); next.records[i].deleted = true; next.records[i].dirty = true
+        next.records[i].clock = try nextClock(after: entry.clock); next.records[i].deleted = true; next.records[i].dirty = true
         next.records[i].body["updatedAt"] = .number(Double(next.records[i].clock)); try commit(next)
     }
     func restoreConflict(_ record: VaultRecord) throws {
         var copy = record
         copy.id = UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
-        copy.clock = nextClock(); copy.dirty = true; copy.deleted = false
+        copy.clock = try nextClock(); copy.dirty = true; copy.deleted = false
         copy.body["updatedAt"] = .number(Double(copy.clock))
         var next = snapshot; next.records.append(copy); try commit(next)
     }
