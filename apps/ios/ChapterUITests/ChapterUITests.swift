@@ -166,6 +166,22 @@ final class ChapterUITests: XCTestCase {
         XCTAssertTrue(heading.exists); attach(app, name: "Chapter actual persisted native-authored heading")
     }
 
+    func testDeleteEntryKeepsOriginalAndRestoresNativeRichContent() throws {
+        let app = XCUIApplication(); app.launchArguments = ["--chapter-rich-fixture"]; app.launch()
+        let entry = app.staticTexts["Public rich fixture"]; XCTAssertTrue(entry.waitForExistence(timeout:10)); entry.tap()
+        app.buttons["More"].tap(); app.buttons["Delete entry"].tap()
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","An encrypted recovery copy remains")).firstMatch.waitForExistence(timeout:5))
+        app.buttons["Delete entry"].tap()
+        XCTAssertFalse(app.staticTexts["Public rich fixture"].exists)
+        app.tabBars.buttons["Settings"].tap()
+        let restore = app.buttons["Restore as new entry"].firstMatch; reveal(restore,in:app); restore.tap()
+        app.tabBars.buttons["Journal"].tap()
+        let recovered = app.staticTexts["Public rich fixture"]; XCTAssertTrue(recovered.waitForExistence(timeout:5)); recovered.tap()
+        XCTAssertTrue(app.staticTexts["Public heading"].waitForExistence(timeout:5))
+        XCTAssertTrue(app.buttons["Mark task complete"].exists)
+        attach(app,name:"Chapter real recoverable deletion and restored native rich entry")
+    }
+
     func testFailedPlainWritingKeepsEncryptedRecoveryAndResumes() throws {
         // Public fixture deliberately has NO identity: publishing must fail,
         // while its actual encrypted local store can retain writing safely.

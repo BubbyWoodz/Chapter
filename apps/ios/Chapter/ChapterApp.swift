@@ -156,6 +156,7 @@ struct EntryDetail: View {
     @State private var editRich = false
     @State private var moving = false
     @State private var deleting = false
+    @State private var deletionExpected: VaultRecord?
     @State private var previewURL: URL?
     @State private var loadingMedia: String?
     @State private var mediaError: String?
@@ -207,7 +208,7 @@ struct EntryDetail: View {
                     } else if entry.body["bodyJson"]?.string.flatMap({ try? RichDocument(json: $0) }) != nil { Button("Edit") { editRich = true; editing = true } }
                     Menu("More") {
                         Button("Move to notebook") { moving = true }.disabled(model.journals.isEmpty)
-                        Button(role: .destructive) { deleting = true } label: { Label("Delete entry", systemImage: "trash") }
+                        Button(role: .destructive) { deletionExpected = entry; deleting = true } label: { Label("Delete entry", systemImage: "trash") }
                     }
                 }
                 .sheet(isPresented: $editing) {
@@ -216,7 +217,7 @@ struct EntryDetail: View {
                 }
                 .sheet(isPresented: $moving) { MoveEntryView(entry: entry) }
                 .confirmationDialog("Delete this entry on all synced devices?", isPresented: $deleting, titleVisibility: .visible) {
-                    Button("Delete entry", role: .destructive) { do { try model.deleteEntry(entry); dismiss() } catch { model.message = error.localizedDescription } }
+                    Button("Delete entry", role: .destructive) { do { guard let deletionExpected else { throw ChapterError.conflict }; try model.deleteEntry(deletionExpected); dismiss() } catch { model.message = error.localizedDescription } }
                 } message: { Text("An encrypted recovery copy remains in Settings. Pending writing, rich drafts and attachment uploads are retained. This is not secure erasure; notebook/media purge is not implemented.") }
             } else { Text("This entry is no longer available.") }
         }.modifier(ChapterScreenSurface()).navigationTitle("Entry").navigationBarTitleDisplayMode(.inline).quickLookPreview($previewURL)
@@ -281,7 +282,7 @@ struct EntryEditor: View {
                 DatePicker("Entry date", selection: $draft.date)
                 TextField("Labels, separated by commas", text: $draft.labels)
                 Picker("Notebook", selection: $draft.journal) {
-                    if draft.journal == "default" { Text("Journal").tag("default") }
+                    if draft.journal == "default" || model.journals.isEmpty { Text("Journal").tag("default") }
                     if draft.journal != "default" && !model.journals.contains(where: { $0.journalID == draft.journal }) { Text("Unavailable notebook — choose another").tag(draft.journal) }
                     ForEach(model.journals) { Text($0.title).tag($0.journalID) }
                 }
@@ -299,7 +300,7 @@ struct EntryEditor: View {
                         Button("Retry save") { save() }
                         Button("Save as new entry") { copying = true }.disabled(!recoverySaved)
                     }
-                } else { Text(draft.expected == nil ? "Start writing to save an encrypted draft." : "Saved encrypted on this device.").font(.footnote) }
+                } else { Text(recoverySaved ? "Recovered writing is saved encrypted on this device. Tap Done to apply it." : draft.expected == nil ? "Start writing to save an encrypted draft." : "Saved encrypted on this device.").font(.footnote) }
             }.modifier(ChapterScreenSurface()).navigationTitle(draft.expected == nil ? "New entry" : "Edit entry")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() }.disabled(error != nil && !recoverySaved).accessibilityIdentifier("writing.close") }
