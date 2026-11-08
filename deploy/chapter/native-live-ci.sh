@@ -8,9 +8,34 @@ pg=$(brew --prefix postgresql@17)/bin
 work=$(mktemp -d "$RUNNER_TEMP/chapter-live.XXXXXX")
 relay_pid=
 cleanup() {
-  if [[ -n "$relay_pid" ]]; then kill "$relay_pid" 2>/dev/null || true; wait "$relay_pid" 2>/dev/null || true; fi
-  "$pg/pg_ctl" -D "$work/db" -m fast stop >/dev/null 2>&1 || true
-  if [[ -f "$work/root.pem" ]]; then sudo security remove-trusted-cert -d "$work/root.pem" >/dev/null 2>&1 || true; fi
+  local status=$?
+  trap - EXIT
+  echo "LIVE cleanup: terminate owned fixture relay"
+  if [[ -n "$relay_pid" ]]; then kill "$relay_pid" 2>/dev/null || true; fi
+  # Stop our disposable database BEFORE waiting for relay pool teardown. Never
+  # wait forever for a child that retains a database/keepalive resource. This is
+  # test-harness cleanup, not a claim about production graceful shutdown.
+  echo "LIVE cleanup: stop isolated PostgreSQL"
+  "$pg/pg_ctl" -D "$work/db" -m fast -t 10 -w stop >/dev/null 2>&1 || status=1
+  if [[ -n "$relay_pid" ]]; then
+    kill -KILL "$relay_pid" 2>/dev/null || true
+    wait "$relay_pid" 2>/dev/null || true
+  fi
+  echo "LIVE cleanup: remove disposable public CA trust"
+  if [[ -f "$work/root.pem" ]]; then
+    # A system trust dialog must not strand a hosted runner indefinitely.
+    # Failure remains a job failure; certificate verification is never disabled.
+    python3 - "$work/root.pem" <<'PYCA' || status=1
+import subprocess,sys
+try:
+    subprocess.run(['sudo','-n','security','remove-trusted-cert','-d',sys.argv[1]], check=True, timeout=15, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+except (subprocess.SubprocessError, OSError):
+    print('FAIL: disposable CA trust cleanup failed or exceeded 15 seconds',file=sys.stderr)
+    sys.exit(1)
+PYCA
+  fi
+  echo "LIVE cleanup: complete (status $status)"
+  exit "$status"
 }
 trap cleanup EXIT
 echo "LIVE phase: initializing disposable PostgreSQL"
