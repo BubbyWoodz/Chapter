@@ -18,7 +18,7 @@ the exact revision; a failing strict accessibility audit remains a release block
 | Rich cross-client sync | Same encrypted record protocol after patch, regenerate bodyText with actual web docToText semantics | Native-produced edited ciphertext must open in actual web decoder with entire expected tree/media IDs. Passed at b8ba3d9 in macOS CI; not a live server/browser round trip |
 | Entry links/Markdown/math | Stored link labels and LaTeX source retained; external web/mail links require explicit confirmation | Backlink/navigation UI, Markdown/source editing and exact native math typesetting missing; no silent external fetches |
 | Media download | Explicit authenticated chunk download, encrypted durable ciphertext cache, offline cached/pending previews, Quick Look, protected temporary plaintext | Native/web media crypto checks; 128 MiB cap, OS codec limits; real-stack/device playback and cleanup not certified |
-| Media authoring/offline | Files + selected Photos image import; original 1 MiB chunk crypto; durable encrypted upload queue; retry/lost-finalize-ack recovery; upload-before-reference ordering | New native tests/actual web decoder checks added, Apple results pending this revision. 128 MiB cap. Camera/audio/video capture, large-file/codec parity and actual device/provider interruption acceptance still missing |
+| Media authoring/offline | Files + selected Photos image import; original 1 MiB chunk crypto; durable encrypted upload queue; retry/lost-finalize-ack recovery; upload-before-reference ordering | 34 native tests, actual web chunk/attachment-record decoding and Simulator build passed at b1c0826. 128 MiB cap. Camera/audio/video capture, large-file/codec parity and actual device/provider interruption acceptance still missing |
 | Templates/interview types | Opaque sync/preservation only | Native management/application UI missing |
 | AI/Q&A/guided/freeform interviews | NOT implemented | Native configuration, explicit destination consent and operator-policy behavior missing |
 | Audio/transcription/video/films | Read-only simplified cards/transcripts + existing attachment preview | Recording, per-question capture, STT, film rendering/editor all missing |
@@ -26,9 +26,9 @@ the exact revision; a failing strict accessibility audit remains a release block
 | Import/export/backups | NOT implemented natively | Day One, journal exports/import, recovery/restore and operator backup UI missing |
 | Appearance/language | System-native layout and Dynamic Type | Strict onboarding audits currently fail; exact theme/12 locales/RTL parity, whole-app VoiceOver/device audits missing |
 | Reminders/lifecycle | Background lock only | Reminders, phrase creation/rotation, vault/journal deletion, WebAuthn/PRF and operator administration/update UI missing |
-| Sync reliability | Manual sync, encrypted pending records, first 100 pushes per pass, recoverable entry conflicts | Core adversarial ack/clock/conflict tests passed; automatic retry, pagination/drain, background/lifecycle and real two-client concurrency tests missing |
+| Sync reliability | Debounced local-edit + foreground sync, bounded retry backoff, up to 10,000 attempted records/pass in 100-record batches, durable media ordering, recoverable entry conflicts | Existing core adversarial ack/clock/conflict tests passed; new drain/backoff/strict-ack + real native TLS/Postgres integration tests pending current CI. No guaranteed background schedule or full two-device lifecycle certification |
 | Local storage | Device-only user-presence Keychain + AES-GCM snapshot; protected/excluded from backup | Version 1/2→3 read migration preserves keys and old file until next save; older previews reject v3 instead of dropping rich drafts/media outbox. Actual hardware Keychain/backup extraction not certified |
-| Server distribution | Existing upstream-compatible Go/web source/Dockerfiles only | Chapter-owned artifacts/installer/upgrade/backup-restore/clean-stack integration still required; upstream image/updater defaults must not be used accidentally |
+| Server distribution | Chapter-owned source-build compose/install profile, separate volumes, private setup, optional STT; image/source artifact + real S3/backup-restore CI added | Actual new packaging job pending. Not deployed; amd64 artifact only after job passes; no direct live-volume migration or general historical-upgrade certification |
 | iPhone distribution | Xcode source and unsigned Simulator artifacts only | No signed device IPA, TestFlight or physical-device certification. Apple signing route later, not obtained here |
 
 ## New test files
@@ -75,3 +75,28 @@ an explicitly unresolved release gate.
 - Real native media authoring UI, camera/microphone capture, large media and a live
   phone→relay→web→phone test are not certified by Foundation/core transcript tests.
   Chapter-owned server packaging remains outstanding, not forgotten.
+
+## Resumed stage — November 8, 2026, 1:37 PM EST onward
+
+No worker ran uninterrupted overnight. Baseline b1c0826 has 34 real macOS core tests,
+web reverse decoding, Go signature verification and universal Simulator build passed.
+UI failures: required Dynamic Type audits remain open; rich editing smoke reached
+its modal, but a globally queried label matched both the sheet and underlying
+reader. A stable text-run navigation ID now fixes that ambiguity (not an audit
+suppression); actual corrected UI execution remains the gate.
+
+New test-only real TLS relay uses actual PostgreSQL/router/migrations and memory
+media, with a disposable CA normally trusted only in ephemeral CI. Native production
+URLSession proves auth, 205 records/paginated pulls, media-reference gating and
+ciphertext upload/download, then the actual web decoder checks server-returned
+native data. A distinct complete Docker-stack gate tests real S3 + backup restore
+into a different empty project and exports Chapter-owned images/exact source only
+on success. These gates are newly added, not claimed passed until CI executes.
+
+Local Docker is absent. Attempting to obtain isolated PostgreSQL binaries through
+APT failed because the configured repository returned HTTP 500 / unsigned InRelease;
+no signature check was bypassed and no user database was substituted. Local Go tests,
+fixture-host compile/negative opt-in guard and private packaging-script regressions
+can run; real database/container/native execution is delegated to the explicitly
+configured isolated GitHub runners. See docs/CHAPTER-SERVER.md for installation,
+certificate, source/artifact, volume safety, backup and restore details.

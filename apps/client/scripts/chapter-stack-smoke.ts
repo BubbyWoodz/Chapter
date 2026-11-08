@@ -1,0 +1,24 @@
+// Explicit, disposable loopback integration only. Never prints phrase/token/key.
+import assert from 'node:assert/strict';
+import { identityFromMnemonic, authenticate } from '../src/sync/identity';
+import { RelayClient } from '../src/sync/relay';
+import { pushEntries, pullEntries } from '../src/sync/engine';
+import { uploadMedia, downloadMedia } from '../src/sync/media';
+const base = new URL(process.env.RELAY_URL ?? '');
+assert.equal(process.env.CHAPTER_STACK_SMOKE,'1');
+assert(['localhost','127.0.0.1'].includes(base.hostname));
+assert.equal(base.protocol,'https:');
+const relay = new RelayClient(base.toString().replace(/\/$/,''));
+const id = identityFromMnemonic('legal winner thank year wave sausage worth useful legal winner thank yellow');
+const session = await authenticate(relay,id);
+const mediaId = '0123456789abcdef0123456789abcdef';
+const payload = new Uint8Array((1<<20)+17).fill(77);
+if(process.env.CHAPTER_STACK_RESTORE !== '1') await uploadMedia(relay,session.token,id.mediaKey,mediaId,payload);
+const bytes = await downloadMedia(relay,session.token,id.mediaKey,mediaId);
+assert.deepEqual(bytes,payload,'Actual container S3 upload/download must work, never skip media');
+const entry = {id:'0123456789abcdef0123456789abcdefff',journalId:'default',title:'Public packaging fixture',bodyText:'Public content',bodyJson:JSON.stringify({type:'doc',content:[]}),labels:[],createdAt:1700000000000,updatedAt:1700000000001,attachments:[{id:mediaId,kind:'file' as const,mime:'application/octet-stream',bytes:payload.length}]};
+if(process.env.CHAPTER_STACK_RESTORE !== '1') assert((await pushEntries(relay,session.token,id.dataKey,[entry])).has(entry.id));
+const pulled = await pullEntries(relay,session.token,id.dataKey,0);
+assert.equal(pulled.entries.find(e=>e.id===entry.id)?.title,entry.title);
+assert.equal(pulled.entries.find(e=>e.id===entry.id)?.attachments?.[0]?.id,mediaId);
+console.log('PASS: trusted HTTPS → actual web auth/crypto → Chapter container relay/Postgres/S3 → decrypted record + multi-chunk media. Public fixtures only.');

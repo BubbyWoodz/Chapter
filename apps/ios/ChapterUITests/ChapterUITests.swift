@@ -76,7 +76,10 @@ final class ChapterUITests: XCTestCase {
         let task = app.buttons["Mark task complete"]; reveal(task, in: app); task.tap()
         XCTAssertTrue(app.buttons["Mark task incomplete"].waitForExistence(timeout: 5))
         attach(app, name: "Chapter genuine native rich document and persisted task")
-        app.buttons["Edit"].tap(); app.staticTexts["Public heading"].tap()
+        app.buttons["Edit"].tap()
+        XCTAssertTrue(app.navigationBars["Edit rich entry"].waitForExistence(timeout: 5))
+        let run = app.buttons["rich.run.0/0"]
+        XCTAssertTrue(run.waitForExistence(timeout: 5)); run.tap()
         let editor = app.textViews["Formatted text run"]
         XCTAssertTrue(editor.waitForExistence(timeout: 5)); editor.tap(); editor.typeText(" FIELD-EDIT-PROBE")
         XCTAssertTrue(app.staticTexts["Draft saved encrypted on this device. Tap Save to update the entry."].waitForExistence(timeout: 5))

@@ -12,7 +12,7 @@ import QuickLook
     var body: some Scene {
         WindowGroup {
             ZStack {
-                if model.unlocked { ChapterTabs() } else { ConnectView() }
+                if model.unlocked { ChapterTabs().task { await model.runForegroundSync() } } else { ConnectView() }
                 if phase != .active { Color(uiColor: .systemBackground).ignoresSafeArea().overlay(Text("Chapter").font(.title)) }
             }
             .environmentObject(model)

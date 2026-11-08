@@ -188,4 +188,18 @@ final class RelayTests: XCTestCase {
             client.cancel(); XCTAssertEqual(requests,1)
         }
     }
+    func testPushRejectsMissingDuplicateOrForeignAcknowledgments() async throws {
+        let identity = try VaultIdentity(seed: Data(repeating: 0, count: 64))
+        let records = [VaultRecord(id: "one", clock: 1, body: [:], dirty: true), VaultRecord(id: "two", clock: 1, body: [:], dirty: true)]
+        for json in [
+            #"{"results":[{"entry_id":"one","applied":true}]}"#,
+            #"{"results":[{"entry_id":"one","applied":true},{"entry_id":"one","applied":true}]}"#,
+            #"{"results":[{"entry_id":"one","applied":true},{"entry_id":"foreign","applied":true}]}"#
+        ] {
+            FixtureProtocol.install { _ in (200, Data(json.utf8)) }
+            let client = try relay()
+            do { _ = try await client.push(records, identity:identity, token:String(repeating:"A",count:43)); XCTFail("Accepted malformed acknowledgments") } catch {}
+            client.cancel()
+        }
+    }
 }

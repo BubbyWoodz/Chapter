@@ -14,6 +14,8 @@ import ChapterCore
     private var identity: VaultIdentity?
     private var store: EncryptedSnapshotStore?
     private var relay: Relay?
+    private var scheduledSync: Task<Void, Never>?
+    private var backoff = SyncBackoff()
     private var mediaFiles: EncryptedMediaFiles?
     private var mediaImport: Task<MediaUpload, Error>?
     private var generation = UUID()
@@ -62,13 +64,30 @@ import ChapterCore
         } catch { if attempt == generation { message = error.localizedDescription } }
     }
     func lock() {
-        generation = UUID(); mediaErrors = [:]; mediaImport?.cancel(); mediaImport = nil; mediaFiles = nil; playbackFiles.forEach { try? FileManager.default.removeItem(at: $0) }; playbackFiles = []; relay?.cancel(); relay = nil; identity = nil; store = nil
+        generation = UUID(); scheduledSync?.cancel(); scheduledSync = nil; backoff = SyncBackoff(); mediaErrors = [:]; mediaImport?.cancel(); mediaImport = nil; mediaFiles = nil; playbackFiles.forEach { try? FileManager.default.removeItem(at: $0) }; playbackFiles = []; relay?.cancel(); relay = nil; identity = nil; store = nil
         if let root = try? EncryptedSnapshotStore.applicationDirectory() { try? FileManager.default.removeItem(at: root.appendingPathComponent("ImportStaging", isDirectory: true)) }
         snapshot = VaultSnapshot(); unlocked = false; syncing = false; connecting = false; message = nil
     }
     private func commit(_ next: VaultSnapshot) throws {
         guard let store else { throw ChapterError.storage }
         try store.save(next); snapshot = next
+    }
+    private func scheduleSync() {
+        scheduledSync?.cancel()
+        scheduledSync = Task { [weak self] in
+            do { try await Task.sleep(nanoseconds: 2_000_000_000) } catch { return }
+            guard !Task.isCancelled, let self else { return }
+            self.scheduledSync = nil // A later edit must not cancel an in-flight upload.
+            await self.sync()
+        }
+    }
+    func runForegroundSync() async {
+        while !Task.isCancelled && unlocked {
+            await sync()
+            guard !Task.isCancelled && unlocked else { return }
+            let seconds = backoff.seconds
+            do { try await Task.sleep(nanoseconds: UInt64(seconds) * 1_000_000_000) } catch { return }
+        }
     }
     func sync() async {
         guard !syncing, let relay, let identity else { return }
@@ -108,8 +127,10 @@ import ChapterCore
                     }
                 }
             }
-            let batch = Array(snapshot.uploadableRecords.prefix(100))
-            if !batch.isEmpty {
+            var queue = SyncPushQueue()
+            while true {
+                let batch = try queue.next(from: snapshot)
+                if batch.isEmpty { break }
                 let results = try await relay.push(batch, identity: identity, token: token)
                 guard attempt == generation else { return }
                 var next = snapshot
@@ -120,9 +141,9 @@ import ChapterCore
                 }
                 try commit(next)
             }
-            if !mediaErrors.isEmpty { message = "Some attachments could not upload or be authenticated. Their pending references were not sent. Keep this device and retry; do not delete local work." }
-            else { message = pending == 0 ? "Synced with your server." : "\(pending) changes remain on this device. Sync again to retry." }
-        } catch { if attempt == generation { message = "Offline or unable to sync: \(error.localizedDescription) Local saved changes are retained." } }
+            if !mediaErrors.isEmpty { backoff.failed(); message = "Some attachments could not upload or be authenticated. Their pending references were not sent. Keep this device and retry; do not delete local work." }
+            else { backoff.succeeded(); message = pending == 0 ? "Synced with your server." : "\(pending) changes remain on this device. Sync again to retry." }
+        } catch { if attempt == generation { backoff.failed(); message = "Offline or unable to sync: \(error.localizedDescription) Local saved changes are retained." } }
     }
     private func nextClock(after clock: Int64 = 0) throws -> Int64 {
         try ProtocolNumbers.nextClock(after: clock)
@@ -147,7 +168,7 @@ import ChapterCore
             next.records.append(VaultRecord(id: UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased(), clock: clock, body: notebook, dirty: true))
         }
         if let index = next.records.firstIndex(where: { $0.id == id }) { next.records[index] = record } else { next.records.append(record) }
-        try commit(next); return id
+        try commit(next); scheduleSync(); return id
     }
     func saveRichDraft(_ draft: RichDraft) throws {
         var next = snapshot; var drafts = next.richDrafts ?? []
@@ -159,29 +180,29 @@ import ChapterCore
         guard let i = next.records.firstIndex(where: { $0.id == draft.entryID }) else { throw ChapterError.conflict }
         next.records[i] = try next.records[i].editingRichDocument(expected: draft.expectedDocument) { try $0.replaceText(at: draft.path, with: draft.text) }
         next.richDrafts = (next.richDrafts ?? []).filter { $0.id != draft.id }
-        try commit(next)
+        try commit(next); scheduleSync()
     }
     func toggleRichTask(_ entry: VaultRecord, path: [Int]) throws {
         var next = snapshot
         guard let raw = entry.body["bodyJson"]?.string, let i = next.records.firstIndex(where: { $0.id == entry.id }) else { throw ChapterError.conflict }
         next.records[i] = try next.records[i].editingRichDocument(expected: raw) { try $0.toggleTask(at: path) }
-        try commit(next)
+        try commit(next); scheduleSync()
     }
     func createJournal(name: String) throws {
         let clock = try nextClock(); let id = UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
         let body: [String: JSONValue] = ["kind": .string("journal"), "journalId": .string(id), "name": .string(name), "subtitle": .string(""), "color": .string("#62564a"), "cover": .string("plain"), "createdAt": .number(Double(clock)), "updatedAt": .number(Double(clock))]
         var next = snapshot; next.records.append(VaultRecord(id: UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased(), clock: clock, body: body, dirty: true))
-        try commit(next)
+        try commit(next); scheduleSync()
     }
     func deleteEntry(_ entry: VaultRecord) throws {
         var next = snapshot
         guard let i = next.records.firstIndex(where: { $0.id == entry.id }) else { return }
         next.records[i].clock = try nextClock(after: entry.clock); next.records[i].deleted = true; next.records[i].dirty = true
-        next.records[i].body["updatedAt"] = .number(Double(next.records[i].clock)); try commit(next)
+        next.records[i].body["updatedAt"] = .number(Double(next.records[i].clock)); try commit(next); scheduleSync()
     }
     func restoreConflict(_ record: VaultRecord) throws {
         let copy = try record.restoredEntry(id: UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased())
-        var next = snapshot; next.records.append(copy); try commit(next)
+        var next = snapshot; next.records.append(copy); try commit(next); scheduleSync()
     }
     func importMedia(source: URL, name: String, mime: String, entry: VaultRecord, session: UUID) async throws {
         guard session == generation, let identity, let mediaFiles, mediaImport == nil, let raw = entry.body["bodyJson"]?.string else { throw ChapterError.unsupported }
@@ -196,7 +217,7 @@ import ChapterCore
             guard attempt == generation else { throw CancellationError() }
             var next = snapshot; try next.attach(upload, entryID: entry.id, expectedDocument: raw)
             commitAttempted = true
-            try commit(next) // outbox + lossless body + clock: one atomic encrypted write
+            try commit(next); scheduleSync() // outbox + lossless body + clock: one atomic encrypted write
             message = "Attachment saved encrypted on this device. Sync uploads media before its entry."
         } catch {
             // Once snapshot save has been attempted it MAY have reached disk even

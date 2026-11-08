@@ -108,6 +108,7 @@ struct RichEntryEditor: View {
                         let draft = model.snapshot.richDrafts?.first { $0.entryID == entry.id && $0.path == leaf.path }
                             ?? RichDraft(entryID: entry.id, path: leaf.path, expectedDocument: entry.body["bodyJson"]?.string ?? "", text: leaf.text)
                         NavigationLink { RichDraftEditor(draft: draft) } label: { Text(leaf.text).lineLimit(3) }
+                            .accessibilityIdentifier("rich.run." + leaf.id)
                     }
                 }
             }.navigationTitle("Edit rich entry").toolbar { ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } } }

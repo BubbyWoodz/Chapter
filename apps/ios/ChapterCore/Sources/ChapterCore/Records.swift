@@ -133,3 +133,27 @@ public struct VaultSnapshot: Codable, Equatable {
         } else { records.append(remote) }
     }
 }
+
+/// Each ID is attempted once per pass, so rejected/stale records do not starve
+/// later batches and an actively edited entry cannot create an infinite drain.
+/// A newer edit during an in-flight acknowledgment stays dirty for the next pass.
+public struct SyncPushQueue {
+    private var attempted = Set<String>()
+    private var batches = 0
+    public init() {}
+    public mutating func next(from snapshot: VaultSnapshot) throws -> [VaultRecord] {
+        let seen = attempted
+        let batch = Array(snapshot.uploadableRecords.lazy.filter { !seen.contains($0.id) }.prefix(100))
+        guard !batch.isEmpty else { return [] }
+        guard batches < 100 else { throw ChapterError.unsupported }
+        batches += 1; attempted.formUnion(batch.map(\.id)); return batch
+    }
+}
+
+/// Foreground-only retry policy; bounded arithmetic and no wall-clock dependency.
+public struct SyncBackoff {
+    public private(set) var seconds = 30
+    public init() {}
+    public mutating func succeeded() { seconds = 30 }
+    public mutating func failed() { seconds = seconds >= 150 ? 300 : seconds * 2 }
+}

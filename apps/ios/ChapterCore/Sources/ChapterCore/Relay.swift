@@ -108,7 +108,11 @@ public final class Relay {
         }
         struct Results: Decodable { let results: [PushResult] }
         let data = try await request("v1/sync/push", body: JSONEncoder().encode(["entries": entries]), token: token)
-        return try JSONDecoder().decode(Results.self, from: data).results
+        let results = try JSONDecoder().decode(Results.self, from: data).results
+        guard results.count == records.count,
+              Set(results.map(\.entry_id)).count == results.count,
+              Set(results.map(\.entry_id)) == Set(records.map(\.id)) else { throw ChapterError.corruptData }
+        return results
     }
     public func uploadMedia(_ upload: MediaUpload, files: EncryptedMediaFiles, mediaKey: Data, token: String) async throws {
         try upload.validate()
