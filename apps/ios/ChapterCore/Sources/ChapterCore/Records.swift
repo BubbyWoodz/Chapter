@@ -71,6 +71,21 @@ public struct VaultRecord: Codable, Identifiable, Equatable {
     public init(id: String, clock: Int64, deleted: Bool = false, body: [String: JSONValue], dirty: Bool = false) {
         self.id = id; self.clock = clock; self.deleted = deleted; self.body = body; self.dirty = dirty
     }
+    /// Swift String equality normalizes Unicode; original web JSON does not.
+    /// Compare deterministic encoded payload bytes, ignoring only delivery state.
+    /// Encoding failure is NOT evidence that either version has been delivered.
+    public func hasSamePayload(as other: VaultRecord) -> Bool {
+        guard deleted == other.deleted else { return false }
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
+        guard let left = try? encoder.encode(body), let right = try? encoder.encode(other.body) else { return false }
+        return left == right
+    }
+    public func hasSameVersion(as other: VaultRecord) -> Bool {
+        id.utf8.elementsEqual(other.id.utf8) && clock == other.clock && hasSamePayload(as: other)
+    }
+    public static func == (lhs: VaultRecord, rhs: VaultRecord) -> Bool {
+        lhs.dirty == rhs.dirty && lhs.hasSameVersion(as: rhs)
+    }
     // Only newly-created plain entries may use the plain editor. Other-client content is read-only.
     public var editablePlainText: Bool {
         guard kind == "entry", body["chapterNativePlain"] == .bool(true) else { return false }
@@ -96,10 +111,7 @@ public struct VaultRecord: Codable, Identifiable, Equatable {
     public func requiringUnchanged(expected: VaultRecord) throws {
         // Canonically equivalent Swift Strings can still be distinct original
         // web data. Only delivery acknowledgement may differ from a checkpoint.
-        var current = self, previous = expected
-        current.dirty = false; previous.dirty = false
-        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
-        guard try encoder.encode(current) == encoder.encode(previous) else { throw ChapterError.conflict }
+        guard hasSameVersion(as: expected) else { throw ChapterError.conflict }
     }
     /// Move without flattening rich content, changing dates, or reuploading media.
     public func movingEntry(expected: VaultRecord, to notebook: VaultRecord, now: Date = Date()) throws -> VaultRecord {
@@ -137,7 +149,7 @@ public struct VaultRecord: Codable, Identifiable, Equatable {
             guard ["lines", "dots", "grid", "plain", "photo"].contains(cover) else { throw ChapterError.unsupported }
             copy.body["cover"] = .string(cover)
         }
-        guard copy.body != body else { return self }
+        guard !copy.hasSamePayload(as: self) else { return self }
         copy.clock = try ProtocolNumbers.nextClock(after: clock, now: now)
         copy.body["updatedAt"] = .number(Double(copy.clock)); copy.dirty = true
         return copy
@@ -162,22 +174,22 @@ public struct VaultSnapshot: Codable, Equatable {
     public init() {}
     public mutating func acknowledge(_ sent: VaultRecord) {
         // An in-flight response cannot mark a newer local edit clean.
-        if let i = records.firstIndex(where: { $0.id == sent.id && $0.clock == sent.clock && $0.body == sent.body && $0.deleted == sent.deleted }) { records[i].dirty = false }
+        if let i = records.firstIndex(where: { $0.hasSameVersion(as: sent) }) { records[i].dirty = false }
     }
     public mutating func merge(_ remote: VaultRecord) {
         if let i = records.firstIndex(where: { $0.id == remote.id }) {
             let local = records[i]
             if remote.clock == local.clock {
-                if local.body == remote.body && local.deleted == remote.deleted {
+                if local.hasSamePayload(as: remote) {
                     // A lost push response is confirmed by the next authenticated pull.
                     records[i].dirty = false
-                } else if local.dirty && !conflicts.contains(remote) {
+                } else if !conflicts.contains(where: { $0.hasSameVersion(as: remote) }) {
                     conflicts.append(remote) // retain both sides of an equal-clock collision
                 }
                 return
             }
             guard remote.clock > local.clock else { return }
-            if local.dirty && (local.body != remote.body || local.deleted != remote.deleted) && !conflicts.contains(local) { conflicts.append(local) }
+            if local.dirty && !local.hasSamePayload(as: remote) && !conflicts.contains(where: { $0.hasSameVersion(as: local) }) { conflicts.append(local) }
             records[i] = remote
         } else { records.append(remote) }
     }

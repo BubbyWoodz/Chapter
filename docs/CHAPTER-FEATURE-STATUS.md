@@ -31,6 +31,23 @@ the exact revision; a failing strict accessibility audit remains a release block
 | Server distribution | Chapter-owned source-build compose/install profile, separate volumes, private setup, optional STT; image/source artifact + real S3/backup-restore CI added | Real source-image builds, trusted HTTPS/auth/web crypto, actual PostgreSQL/S3 media and restore into a different empty stack PASS at 551236b (run 42511822303). Downloadable Linux amd64 image/source/checksum bundle exists. Not deployed; no direct live-volume migration or general historical-upgrade certification |
 | iPhone distribution | Xcode source and unsigned Simulator artifacts only | No signed device IPA, TestFlight or physical-device certification. Apple signing route later, not obtained here |
 
+## Byte-exact sync correctness — November8,2026,5:20 PM EST
+
+Actual compiled pre-fix production source reproduced an NFC acknowledgement
+incorrectly clearing an unsynced NFD edit at the same clock. Sync now compares
+stable original JSON bytes (including opaque nested values/object-key spelling),
+not Swift canonical String equality. Recovery deduplication retains both distinct
+versions; equal-clock differing server values are retained even when local was
+already clean. Exact matching lost acknowledgements still clear dirty. Nonfinite/
+non-encodable payloads never acknowledge successfully. Notebook Unicode-only
+renames now advance an actual edit instead of silently no-oping.
+
+SIX actual Linux XCTest cases against production Foundation source PASS. A seventh
+real Apple AES encrypted snapshot/cursor/disk-fault/reopen/retry test is added and
+REQUIRED in native CI, not yet verified. Original server crypto/schema unchanged.
+This does not establish simultaneous duplicate canonical JSON object-key support:
+Swift Dictionary cannot hold both equivalent keys in a single object.
+
 ## Verified increment — November8,2026,5:09 PM EST
 
 - At5b2ac8f, complete actual Apple core suite PASS, including SIX new whole-block

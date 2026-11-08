@@ -11,7 +11,7 @@ public extension VaultSnapshot {
         try original.requiringUnchanged(expected: expected)
         let clock = try ProtocolNumbers.nextClock(after: original.clock, now: now)
         var next = self
-        if !next.conflicts.contains(where: { $0.id == original.id && $0.clock == original.clock && $0.body == original.body && $0.deleted == original.deleted }) {
+        if !next.conflicts.contains(where: { $0.hasSameVersion(as: original) }) {
             next.conflicts.append(original)
         }
         next.records[index].clock = clock; next.records[index].deleted = true; next.records[index].dirty = true
