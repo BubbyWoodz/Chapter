@@ -35,7 +35,10 @@ final class LiveRelayTests: XCTestCase {
         while true {
             let page = try await client.pull(since:cursor, token:token); pages += 1
             received += page.entries; cursor = page.cursor
-            if !page.more { break }; XCTAssertLessThan(pages,10)
+            if !page.more { break }
+            guard pages < 10 else {
+                XCTFail("Live relay exceeded bounded pagination"); return
+            }
         }
         XCTAssertEqual(pages,3); XCTAssertEqual(received.count,204)
         XCTAssertFalse(received.contains { $0.entry_id == mediaEntry },"Pending media references must not appear on the actual server")

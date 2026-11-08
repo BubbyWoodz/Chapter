@@ -18,7 +18,7 @@ trap cleanup EXIT
 "$pg/createdb" -h 127.0.0.1 -p 55432 chapter_native_test
 export TEST_DATABASE_URL="postgres://$(whoami)@127.0.0.1:55432/chapter_native_test?sslmode=disable"
 export CHAPTER_NATIVE_FIXTURE=1 CHAPTER_FIXTURE_DIR=$work
-(cd "$root/server" && go build -tags integrationfixture -o "$work/relay" ./e2e/nativefixture)
+(cd "$root/server" && go test -tags integrationfixture ./e2e/nativefixture && go build -tags integrationfixture -o "$work/relay" ./e2e/nativefixture)
 "$work/relay" > "$work/relay.log" 2>&1 & relay_pid=$!
 # Bounded readiness check; no credentials appear in output.
 for attempt in {1..60}; do

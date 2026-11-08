@@ -28,7 +28,7 @@ the exact revision; a failing strict accessibility audit remains a release block
 | Reminders/lifecycle | Background lock only | Reminders, phrase creation/rotation, vault/journal deletion, WebAuthn/PRF and operator administration/update UI missing |
 | Sync reliability | Debounced local-edit + foreground sync, bounded retry backoff, up to 10,000 attempted records/pass in 100-record batches, durable media ordering, recoverable entry conflicts | Existing core adversarial ack/clock/conflict tests passed; new drain/backoff/strict-ack + real native TLS/Postgres integration tests pending current CI. No guaranteed background schedule or full two-device lifecycle certification |
 | Local storage | Device-only user-presence Keychain + AES-GCM snapshot; protected/excluded from backup | Version 1/2→3 read migration preserves keys and old file until next save; older previews reject v3 instead of dropping rich drafts/media outbox. Actual hardware Keychain/backup extraction not certified |
-| Server distribution | Chapter-owned source-build compose/install profile, separate volumes, private setup, optional STT; image/source artifact + real S3/backup-restore CI added | Actual new packaging job pending. Not deployed; amd64 artifact only after job passes; no direct live-volume migration or general historical-upgrade certification |
+| Server distribution | Chapter-owned source-build compose/install profile, separate volumes, private setup, optional STT; image/source artifact + real S3/backup-restore CI added | Real source-image builds, trusted HTTPS/auth/web crypto, actual PostgreSQL/S3 media and restore into a different empty stack PASS at 551236b (run 42511822303). Downloadable Linux amd64 image/source/checksum bundle exists. Not deployed; no direct live-volume migration or general historical-upgrade certification |
 | iPhone distribution | Xcode source and unsigned Simulator artifacts only | No signed device IPA, TestFlight or physical-device certification. Apple signing route later, not obtained here |
 
 ## New test files
@@ -68,13 +68,14 @@ an explicitly unresolved release gate.
 - Stale rich drafts are retained and rejected after attachment insertion. No old
   client may downgrade/rewrite v3: sync first before returning to an older preview.
   No key regeneration or journal-format conversion occurs on migration.
-- Currently no ciphertext cache quota/eviction UI, orphan-cipher sweep, automatic
+- Currently no ciphertext cache quota/eviction UI, orphan-cipher sweep, guaranteed background
   retry scheduler, or one-button repair for a corrupt regenerable downloaded cache.
   Unsynced data is backup-excluded/device-key-bound: losing the device/key can lose
   unsynced entries/queue; this is NOT a backup/recovery solution.
 - Real native media authoring UI, camera/microphone capture, large media and a live
   phone→relay→web→phone test are not certified by Foundation/core transcript tests.
-  Chapter-owned server packaging remains outstanding, not forgotten.
+  Chapter-owned Linux amd64 packaging now passed the separate real-stack gate;
+  native live relay and phone/device lifecycle certification remain separate.
 
 ## Resumed stage — November 8, 2026, 1:37 PM EST onward
 
@@ -87,11 +88,21 @@ suppression); actual corrected UI execution remains the gate.
 
 New test-only real TLS relay uses actual PostgreSQL/router/migrations and memory
 media, with a disposable CA normally trusted only in ephemeral CI. Native production
-URLSession proves auth, 205 records/paginated pulls, media-reference gating and
+URLSession integration test exercises auth, 205 records/paginated pulls, media-reference gating and
 ciphertext upload/download, then the actual web decoder checks server-returned
 native data. A distinct complete Docker-stack gate tests real S3 + backup restore
 into a different empty project and exports Chapter-owned images/exact source only
-on success. These gates are newly added, not claimed passed until CI executes.
+on success. The Docker/S3/backup-restore gate PASSED at 551236b in run
+42511822303, and exported artifact 13629688308 (`Chapter-server-linux-amd64`).
+The native TLS/Postgres gate is still running; its result is NOT inferred from
+the successful web/S3 test. The updated ordinary native core, actual web/Go
+interoperability and universal Simulator build steps passed at 2547d20 in run
+42511652869; actual UI/accessibility verification remains in progress.
+
+Fixture migration access is restricted to one exact loopback port/database/query;
+adversarial tests reject libpq host/db overrides, credentials and alternate paths.
+The native live pagination test now terminates on excess pages instead of merely
+asserting and continuing indefinitely. Neither changes production server behavior.
 
 Local Docker is absent. Attempting to obtain isolated PostgreSQL binaries through
 APT failed because the configured repository returned HTTP 500 / unsigned InRelease;

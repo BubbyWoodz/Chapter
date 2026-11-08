@@ -21,7 +21,6 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"strings"
 	"syscall"
 	"time"
 
@@ -39,15 +38,14 @@ func main() {
 }
 func run() error {
 	dsn := os.Getenv("TEST_DATABASE_URL")
-	parsed, err := url.Parse(dsn)
-	if err != nil || parsed == nil || (!strings.HasSuffix(parsed.Path, "_test") || (parsed.Hostname() != "127.0.0.1" && parsed.Hostname() != "localhost") || parsed.Port() != "55432") || os.Getenv("CHAPTER_NATIVE_FIXTURE") != "1" {
+	if !safeFixtureDSN(dsn) || os.Getenv("CHAPTER_NATIVE_FIXTURE") != "1" {
 		return fmt.Errorf("explicit fixture opt-in and *_test database required")
 	}
 	root := os.Getenv("CHAPTER_FIXTURE_DIR")
 	if root == "" {
 		return fmt.Errorf("CHAPTER_FIXTURE_DIR required")
 	}
-	if err = os.MkdirAll(root, 0700); err != nil {
+	if err := os.MkdirAll(root, 0700); err != nil {
 		return err
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -96,4 +94,16 @@ func run() error {
 		return nil
 	}
 	return err
+}
+
+// Restrict even test-only migration access to the exact disposable cluster.
+// libpq query parameters can override host/database, so arbitrary queries are
+// deliberately rejected rather than checked only via URL.Hostname.
+func safeFixtureDSN(dsn string) bool {
+	p, err := url.Parse(dsn)
+	if err != nil || p.Scheme != "postgres" || p.Host != "127.0.0.1:55432" || p.Path != "/chapter_native_test" || p.RawPath != "" || p.RawQuery != "sslmode=disable" || p.Fragment != "" || p.Opaque != "" || p.User == nil || p.User.Username() == "" {
+		return false
+	}
+	_, password := p.User.Password()
+	return !password
 }
