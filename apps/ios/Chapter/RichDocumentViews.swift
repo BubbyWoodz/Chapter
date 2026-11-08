@@ -141,7 +141,7 @@ struct RichDraftEditor: View {
                 }.pickerStyle(.menu).padding().accessibilityIdentifier("rich.block-style")
             }
             if current.supportsFormatting {
-                Button("Formatting") { formattingExpanded.toggle() }
+                Button("Formatting") { formattingExpanded.toggle() }.accessibilityValue(formattingExpanded ? "Expanded":"Collapsed")
                     .frame(minWidth:44,minHeight:44).padding(.horizontal).accessibilityIdentifier("rich.formatting")
                 if formattingExpanded {
                     VStack(alignment:.leading) {

@@ -248,3 +248,10 @@ retains Dynamic Type, not fixed UIFont sizes. Native controls/navigation adapt t
 iOS. Onboarding fonts remain untouched while its strict audit blocker is diagnosed.
 A real iOS test must load all six UIFont names AND pass strict Dynamic Type;
 source/hashes alone are not a visual/device accessibility certification.
+
+Untouched imported labels, including literal commas, original case, distinct
+NFC/NFD spellings and unknown future schemas, are preserved during plain writing
+and recovered text-copy saves. Existing plain-entry labels are read-only in the
+writing form; edit them in the real individual metadata form. New/explicit comma
+input is normalized like the original web LabelField. Metadata Cancel/Save are
+explicit; metadata form changes still are not autosaved before locking.

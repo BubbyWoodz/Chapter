@@ -167,7 +167,8 @@ import ChapterCore
         var body = existing?.body ?? [:]
         body["title"] = .string(title); body["bodyText"] = .string(text)
         body["bodyJson"] = .string(try VaultRecord.plainDocument(text))
-        body["labels"] = .array(labels.split(separator: ",").map { .string($0.trimmingCharacters(in: .whitespaces)) })
+        if let labelValue = try EntryLabels.plainFieldValue(labels,original:existing ?? recovery?.expected) { body["labels"] = labelValue }
+        else { body.removeValue(forKey:"labels") }
         body["journalId"] = .string(journal)
         body["createdAt"] = .number(date.timeIntervalSince1970 * 1000); body["updatedAt"] = .number(Double(clock))
         body["chapterNativePlain"] = .bool(true)

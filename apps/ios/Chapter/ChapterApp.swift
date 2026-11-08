@@ -176,7 +176,7 @@ struct EntryDetail: View {
                     VStack(alignment: .leading, spacing: 16) {
                         HStack {
                             Spacer()
-                            Button("More") { showingActions.toggle() }.frame(minWidth:44,minHeight:44).buttonStyle(.bordered)
+                            Button("More") { showingActions.toggle() }.accessibilityValue(showingActions ? "Expanded":"Collapsed").frame(minWidth:44,minHeight:44).buttonStyle(.bordered)
                         }
                         if showingActions {
                             VStack(alignment:.leading) {
@@ -225,7 +225,7 @@ struct EntryDetail: View {
                 }
                 .toolbar {
                     if entry.editablePlainText {
-                        Button("Edit") { showingPlainEdit.toggle() }
+                        Button("Edit") { showingPlainEdit.toggle() }.accessibilityValue(showingPlainEdit ? "Expanded":"Collapsed")
                     } else if entry.body["bodyJson"]?.string.flatMap({ try? RichDocument(json: $0) }) != nil { Button("Edit") { editRich = true; editing = true } }
 
                 }
@@ -299,7 +299,11 @@ struct EntryEditor: View {
             Form {
                 TextField("Title", text: $draft.title).accessibilityLabel("Entry title")
                 DatePicker("Entry date", selection: $draft.date)
-                TextField("Labels, separated by commas", text: $draft.labels)
+                if draft.expected == nil { TextField("Labels, separated by commas", text: $draft.labels) }
+                else {
+                    LabeledContent("Labels",value:draft.labels)
+                    Text("Labels are preserved while writing. Use the entry’s More → Title, date and labels form to edit individual labels, including labels containing commas.").font(.footnote)
+                }
                 Picker("Notebook", selection: $draft.journal) {
                     if draft.journal == "default" || model.journals.isEmpty { Text("Journal").tag("default") }
                     if draft.journal != "default" && !model.journals.contains(where: { $0.journalID == draft.journal }) { Text("Unavailable notebook — choose another").tag(draft.journal) }
@@ -355,16 +359,16 @@ struct EntryMetadataEditor: View {
     }
     private var candidate: String { EntryLabels.normalized(newLabel) }
     private var values: [String] { labels.map(\.text) }
-    private var hasChanges: Bool { title != expected.title || date != expected.date || values != (expected.editableEntryLabels ?? []) || !candidate.isEmpty }
+    private var hasChanges: Bool { !title.utf8.elementsEqual(expected.title.utf8) || date != expected.date || !EntryLabels.sameValues(values,expected.editableEntryLabels ?? []) || !candidate.isEmpty }
     private var suggestions: [String] {
-        Array(Set(model.entries.flatMap(\.labels))).sorted().filter { !values.contains($0) && (candidate.isEmpty || $0.contains(candidate)) }.prefix(8).map { $0 }
+        EntryLabels.unique(model.entries.flatMap(\.labels)).sorted().filter { !EntryLabels.contains(values,$0) && (candidate.isEmpty || $0.contains(candidate)) }.prefix(8).map { $0 }
     }
-    private func add(_ value: String) { if !value.isEmpty && !values.contains(value) { labels.append(MetadataLabel(text:value)) }; newLabel = "" }
+    private func add(_ value: String) { if !value.isEmpty && !EntryLabels.contains(values,value) { labels.append(MetadataLabel(text:value)) }; newLabel = "" }
     private func save() {
         do {
             var finalLabels = values
-            if !candidate.isEmpty && !finalLabels.contains(candidate) { finalLabels.append(candidate) }
-            try model.updateEntryMetadata(expected, title:title == expected.title ? nil:title, date:date == expected.date ? nil:date, labels:expected.editableEntryLabels == nil || finalLabels == expected.editableEntryLabels ? nil:finalLabels)
+            if !candidate.isEmpty && !EntryLabels.contains(finalLabels,candidate) { finalLabels.append(candidate) }
+            try model.updateEntryMetadata(expected, title:title.utf8.elementsEqual(expected.title.utf8) ? nil:title, date:date == expected.date ? nil:date, labels:expected.editableEntryLabels == nil || EntryLabels.sameValues(finalLabels,expected.editableEntryLabels ?? []) ? nil:finalLabels)
             dismiss()
         } catch { self.error = "Not saved. Your original entry was not changed. " + error.localizedDescription }
     }
@@ -377,10 +381,10 @@ struct EntryMetadataEditor: View {
                 Section("Labels") {
                     if expected.editableEntryLabels != nil {
                         ForEach(labels) { label in
-                            HStack { Text(label.text); Spacer(); Button { labels.removeAll { $0.text == label.text } } label: { Image(systemName:"xmark.circle") }.buttonStyle(.borderless).frame(minWidth:44,minHeight:44).accessibilityLabel("Remove label " + label.text) }
+                            HStack { Text(label.text); Spacer(); Button { labels.removeAll { $0.id == label.id } } label: { Image(systemName:"xmark.circle") }.buttonStyle(.borderless).frame(minWidth:44,minHeight:44).accessibilityLabel("Remove label " + label.text) }
                         }
                         TextField("New label",text:$newLabel).textInputAutocapitalization(.never).autocorrectionDisabled().onSubmit { add(candidate) }.accessibilityIdentifier("metadata.new-label")
-                        Button("Add label") { add(candidate) }.disabled(candidate.isEmpty || values.contains(candidate))
+                        Button("Add label") { add(candidate) }.disabled(candidate.isEmpty || EntryLabels.contains(values,candidate))
                         ForEach(suggestions,id:\.self) { value in Button("Use label " + value) { add(value) } }
                     } else { Text("These labels use a newer format. They are preserved unchanged; title/date editing is still available.") }
                 }

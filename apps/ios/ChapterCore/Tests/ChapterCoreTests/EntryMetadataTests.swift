@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import XCTest
+import CryptoKit
 @testable import ChapterCore
 
 final class EntryMetadataTests: XCTestCase {
@@ -43,9 +44,54 @@ final class EntryMetadataTests: XCTestCase {
         for seconds in [Double.infinity,Double.nan,1e100,-1e100] { XCTAssertThrowsError(try original.editingEntryMetadata(expected:original,date:Date(timeIntervalSince1970:seconds))) }
         XCTAssertEqual(original.body["title"],.string("Original title"))
     }
+    func testEncryptedMetadataFailureKeepsPreviousBytesDraftsAndMediaThenRetries() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at:directory,withIntermediateDirectories:true)
+        defer { try? FileManager.default.removeItem(at:directory) }
+        let namespace = "public-rich-metadata-fault", key = SymmetricKey(data:Data(repeating:23,count:32))
+        let store = EncryptedSnapshotStore(directory:directory,namespace:namespace,key:key)
+        var before = VaultSnapshot(); before.records = [try entry()]
+        before.richDrafts = [RichDraft(entryID:before.records[0].id,path:[0,0],expectedDocument:before.records[0].body["bodyJson"]!.string!,text:"Pending original draft")]
+        before.mediaUploads = [MediaUpload(id:String(repeating:"a",count:32),chunks:1,cipherBytes:42,plainBytes:1,name:"Pending original file",mime:"application/octet-stream")]
+        try store.save(before)
+        let path = directory.appendingPathComponent(namespace+".vault"), previousBytes = try Data(contentsOf:directory.appendingPathComponent(namespace+".vault"))
+        var next = before; next.records[0] = try before.records[0].editingEntryMetadata(expected:before.records[0],title:"PRIVATE-METADATA-UPDATE")
+        store.prepareWriteForTesting = { throw NSError(domain:"public-metadata-disk-fault",code:1) }
+        XCTAssertThrowsError(try store.save(next)); XCTAssertEqual(try Data(contentsOf:path),previousBytes)
+        XCTAssertEqual(try store.load(),before)
+        store.prepareWriteForTesting = nil; try store.save(next)
+        let reopened = try EncryptedSnapshotStore(directory:directory,namespace:namespace,key:key).load()
+        XCTAssertEqual(reopened,next); XCTAssertEqual(reopened.richDrafts,before.richDrafts); XCTAssertEqual(reopened.mediaUploads,before.mediaUploads)
+        XCTAssertEqual(reopened.records[0].body["bodyJson"],before.records[0].body["bodyJson"])
+        XCTAssertNil(try Data(contentsOf:path).range(of:Data("PRIVATE-METADATA-UPDATE".utf8)))
+        XCTAssertThrowsError(try EncryptedSnapshotStore(directory:directory,namespace:namespace,key:SymmetricKey(data:Data(repeating:24,count:32))).load())
+    }
+    func testPlainWritingDoesNotSplitUntouchedCommaLabelsOrEraseFutureSchemas() throws {
+        var original = try entry(); original.body["labels"] = .array([.string("travel, friends"),.string("ImportedCase")])
+        XCTAssertEqual(try EntryLabels.plainFieldValue(original.labels.joined(separator:", "),original:original),original.body["labels"])
+        XCTAssertEqual(try EntryLabels.plainFieldValue(" WORK   LIFE, Travel , work life, ",original:original),.array([.string("work life"),.string("travel")]))
+        original.body["labels"] = .object(["future":.bool(true)])
+        XCTAssertEqual(try EntryLabels.plainFieldValue(original.labels.joined(separator:", "),original:original),original.body["labels"])
+        XCTAssertThrowsError(try EntryLabels.plainFieldValue("replace future",original:original))
+        original.body.removeValue(forKey:"labels")
+        XCTAssertNil(try EntryLabels.plainFieldValue("",original:original))
+        XCTAssertEqual(try EntryLabels.plainFieldValue(" ",original:nil),.array([]))
+    }
+    func testImportedUnicodeLabelsRemainDistinctLikeOriginalWeb() throws {
+        let first = "caf\u{00E9}", second = "cafe\u{0301}"
+        XCTAssertEqual(first,second,"This fixture must expose Swift canonical equality")
+        XCTAssertFalse(EntryLabels.contains([first],second)); XCTAssertTrue(EntryLabels.contains([first],first))
+        XCTAssertEqual(EntryLabels.unique([first,second,first]).count,2)
+        var original = try entry(); original.body["labels"] = .array([.string(first)]); original.body["title"] = .string(first)
+        let changed = try original.editingEntryMetadata(expected:original,title:second,labels:[second])
+        XCTAssertGreaterThan(changed.clock,original.clock)
+        XCTAssertEqual(Array(try XCTUnwrap(changed.body["title"]?.string).utf8),Array(second.utf8))
+        XCTAssertEqual(Array(try XCTUnwrap(changed.editableEntryLabels?.first).utf8),Array(second.utf8))
+        XCTAssertEqual(changed.body["bodyJson"],original.body["bodyJson"])
+    }
     func testLabelNormalizationUsesActualOriginalWebGoldenCases() throws {
         let file = try XCTUnwrap(Bundle.module.url(forResource:"entry-labels",withExtension:"json"))
         let cases = try JSONDecoder().decode([[String:String]].self,from:Data(contentsOf:file))
-        for item in cases { XCTAssertEqual(EntryLabels.normalized(try XCTUnwrap(item["input"])),item["expected"]) }
+        for item in cases { XCTAssertEqual(Array(EntryLabels.normalized(try XCTUnwrap(item["input"])).utf8),Array(try XCTUnwrap(item["expected"]).utf8)) }
     }
 }

@@ -10,10 +10,10 @@ the exact revision; a failing strict accessibility audit remains a release block
 | Existing-vault recovery/authentication | English BIP39 validation, real owner-authorized registration/challenge/session; direct HTTPS URL | Native key/auth HTTP transcript and actual web/Go signature checks passed before this slice; real approval/recovery/phone integration still needed |
 | Connectivity/privacy | LAN/Tailscale URL/path; trusted TLS; no redirects/telemetry/cloud requirement | URL/HTTP rejection tests; physical permission, certificates and LAN/VPN matrix not run. HTTP LAN unsupported |
 | Entries | Plain CRUD/date/labels/notebook; encrypted failed-writing recovery, close/resume/retry/separate recovery/save-as-new; atomic deletion recovery checkpoint | Actual Apple encrypted fault/restart/old-byte preservation and actual failed-writing→Settings→resumed-editor UI PASS at4d9e6d3 (42520947366). Original encryption unchanged; this is not physical-device certification. Delete retains drafts/uploads and explicit encrypted original; not secure erasure or media purge. Broad two-device controller CRUD not certified |
-| Notebooks | Browse/create; rename, subtitle, original color and cover metadata editing; real non-destructive move-between-notebooks with optimistic stale-write rejection | Four actual Apple notebook tests, actual Swift→web ciphertext decoding and real native UI Save/persist test PASS at 6c7908c in run 42513126159. Unknown fields/IDs preserved. Move whole-document preservation, stale/deleted/overflow and actual Swift→web reverse decoding PASS at fd3d1ad (42519352453); real new Move UI gate is still pending. Cascade delete/media purge missing. Archive/reorder are not present in the reviewed original notebook API; do not invent a wire format or claim those synced. |
+| Notebooks | Browse/create; rename, subtitle, original color and cover metadata editing; real non-destructive move-between-notebooks with optimistic stale-write rejection | Four actual Apple notebook tests, actual Swift→web ciphertext decoding and real native UI Save/persist test PASS at 6c7908c in run 42513126159. Unknown fields/IDs preserved. Move whole-document preservation, stale/deleted/overflow and actual Swift→web reverse decoding PASS at fd3d1ad (42519352453); real Move UI PASS atc810740 in42521928122. Updated native-Button controls verify separately. Cascade delete/media purge missing. Archive/reorder are not present in the reviewed original notebook API; do not invent a wire format or claim those synced. |
 | Local discovery | Text/label substring search, day calendar, entry/day counts | Full query, heatmap/stats/streak/badge parity missing |
 | Native rich viewing | Styled inline marks, headings, paragraphs, lists/tasks, quotes/code, approximate tables, source math, simplified media/location/interview cards | New web-generated golden document and actual Foundation logic tests. Actual Apple core tests and Simulator compile passed at b8ba3d9; actual rich UI/task/text-run edit passed in run 42511652869; strict onboarding audits still fail; unknown nodes kept opaque |
-| Rich editing | Existing text-run/task editing, five whole-run format toggles, nine-style new block authoring and re-editable empty known blocks; patch original JSON | New tests assert full tree/unknown attrs/marks/media IDs retained, stale writes rejected, Unicode/empty-run behavior. Actual Apple authoring/encrypted draft migration and original schema/reverse-codec PASS at98885d0 (42518974244); universal Simulator app builds. New real authoring UI and all strict audits remain required/pending. New explicit-save rich title/date/individual-label controls preserve exact rich JSON and unknown label schemas; new core/reverse-web/UI gates pending. No full selection-based editor, arbitrary-position existing-block restructuring or full custom-node editor |
+| Rich editing | Existing text-run/task editing, five whole-run format toggles, nine-style new block authoring and re-editable empty known blocks; patch original JSON | New tests assert full tree/unknown attrs/marks/media IDs retained, stale writes rejected, Unicode/empty-run behavior. Actual Apple authoring/encrypted draft migration and original schema/reverse-codec PASS at98885d0 (42518974244); universal Simulator app builds. New real authoring UI and all strict audits remain required/pending. New explicit-save rich title/date/individual-label controls preserve exact rich JSON and unknown label schemas; actual Apple core, new Swift ciphertext→original-web decoder, original Go verifier and universal Simulator app build PASS ata0f2b1d in42522662183; real new metadata UI and subsequent Unicode/fault-injection improvements verify separately. No full selection-based editor, arbitrary-position existing-block restructuring or full custom-node editor |
 | Rich local drafts | Encrypted autosaved text/formatting/new-block drafts; resume in Settings; explicit apply rejects changed/deleted/wrong-ID records | New native migration/encrypted recovery tests and real Debug fixture UI edit test added; device failure/restart/disk-full acceptance not complete |
 | Rich cross-client sync | Same encrypted record protocol after patch, regenerate bodyText with actual web docToText semantics | Native-produced edited ciphertext must open in actual web decoder with entire expected tree/media IDs. Passed at b8ba3d9 in macOS CI; not a live server/browser round trip |
 | Entry links/Markdown/math | Stored link labels and LaTeX source retained; external web/mail links require explicit confirmation | Backlink/navigation UI, Markdown/source editing and exact native math typesetting missing; no silent external fetches |
@@ -31,7 +31,37 @@ the exact revision; a failing strict accessibility audit remains a release block
 | Server distribution | Chapter-owned source-build compose/install profile, separate volumes, private setup, optional STT; image/source artifact + real S3/backup-restore CI added | Real source-image builds, trusted HTTPS/auth/web crypto, actual PostgreSQL/S3 media and restore into a different empty stack PASS at 551236b (run 42511822303). Downloadable Linux amd64 image/source/checksum bundle exists. Not deployed; no direct live-volume migration or general historical-upgrade certification |
 | iPhone distribution | Xcode source and unsigned Simulator artifacts only | No signed device IPA, TestFlight or physical-device certification. Apple signing route later, not obtained here |
 
-## November 8, 2026, 4:04 PM EST typography increment (iOS gate pending)
+## November 8, 2026, 4:09 PM EST verified screen/metadata checkpoint
+
+- Completedc810 native42521928122: actual entry Delete → Settings encrypted
+  original → Restore as new → rich reader/tasks PASS; actual Move → destination
+  notebook with original content retained PASS; failed writing close/resume PASS.
+  Covers/paper RGB, notebook metadata Save, rich/task/text editing, HTTP rejection,
+  native Form controls and actual XXXL geometry also PASS. Overall workflow FAIL:
+  production normal/XXXL strict audits and Formatting content Menu still fail.
+  More's content Menu DID pass in this revision; native Buttons in the new
+  increment still need their own actual tests. No coordinate tap workaround.
+- Actuala0f2b1d Apple full core including FOUR new metadata tests, metadata
+  ciphertext → actual original-web decoder, original Go verifier and genuine
+  universal Simulator app build/package PASS in42522662183. New native metadata,
+  formatting and all strict audits are still running; not overall native GREEN.
+  Entire genuine native/TLS/Go/Postgres/S3/backup-restore42522662189 and ordinary
+  CI42522662238 PASS. Fonts/remaining fixes have independent subsequent gates.
+- Source review caught two genuine label-loss paths and fixed them: Swift's
+  canonical String equality conflated distinct original-web NFC/NFD labels; and
+  unrelated plain-writing saves split existing literal-comma labels. Byte-exact
+  identity, per-row deletion and original metadata retention now preserve them.
+  Existing plain writing shows labels read-only and directs to the real individual
+  metadata form. Explicit new comma input matches original web normalization;
+  unknown future label schemas fail closed, unchanged fields remain opaque.
+  Explicit recovered text copies also retain unchanged original labels.
+- Actual compiled-source Unicode/comma/unknown-schema regressions PASS locally,
+  with byte-exact web goldens (not canonical-equality assertions). New real Apple
+  encrypted metadata fault/old-byte preservation/reopen/retry/media-draft retention
+  tests are added and pending at the newest source. No crypto, snapshot version,
+  keys or wire formats changed; no full lifecycle/device readiness claim.
+
+## November 8, 2026, 4:02 PM EST typography increment (iOS gate pending)
 
 - Added SIX exact original-web Latin normal/italic variable fonts, losslessly
   decompressed to TrueType. All glyph maps/orders/font tables except only the

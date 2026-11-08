@@ -30,5 +30,13 @@
   {
     "input": "Straße",
     "expected": "straße"
+  },
+  {
+    "input": "CAFÉ",
+    "expected": "café"
+  },
+  {
+    "input": "CAFÉ",
+    "expected": "café"
   }
 ]

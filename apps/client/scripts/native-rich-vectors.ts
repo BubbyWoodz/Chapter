@@ -41,7 +41,7 @@ export function verifyRichFixture(write: boolean, identity: {dataKey:Uint8Array}
  const url = new URL('../../ios/ChapterCore/Tests/ChapterCoreTests/Fixtures/rich-document.json',import.meta.url);
  if (write) writeFileSync(url,JSON.stringify(fixture,null,2)+'\n');
  else assert.deepEqual(JSON.parse(readFileSync(url,'utf8')),fixture,'Frozen native rich fixture drifted from actual web preview/media logic');
- const labelCases = ['  TRAVEL, FRIENDS  ', '\uFEFFWork\u00A0 LIFE\uFEFF', '\u0085X\u0085', '\u200BKeep\u200B', 'İ ΟΣ', '  ', 'MUSIC\n\t NOTES', 'Straße'].map(input => ({input,expected:normalizeEntryLabel(input)}));
+ const labelCases = ['  TRAVEL, FRIENDS  ', '\uFEFFWork\u00A0 LIFE\uFEFF', '\u0085X\u0085', '\u200BKeep\u200B', 'İ ΟΣ', '  ', 'MUSIC\n\t NOTES', 'Straße', 'CAFÉ', 'CAFE\u0301'].map(input => ({input,expected:normalizeEntryLabel(input)}));
  const labelURL = new URL('../../ios/ChapterCore/Tests/ChapterCoreTests/Fixtures/entry-labels.json',import.meta.url);
  if (write) writeFileSync(labelURL,JSON.stringify(labelCases,null,2)+'\n');
  else assert.deepEqual(JSON.parse(readFileSync(labelURL,'utf8')),labelCases,'Native label fixtures must match the original LabelField normalization');
