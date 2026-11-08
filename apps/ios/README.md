@@ -1,4 +1,4 @@
-# Chapter native iOS — implementation milestone 1
+# Chapter native iOS — implementation milestones
 
 A genuine SwiftUI iPhone/iPad application and Xcode project, **not a WebView or
 Tauri wrapper**. This is an early, reviewable implementation, **not feature parity,
@@ -121,6 +121,25 @@ TestFlight upload, App Store submission or deployment was performed.
   explicit destination-specific consent on this device and matching server policy.
 - Preserve AGPL notices/source obligations. Resolve distribution/license terms,
   crypto export questions and third-party notices before an App Store release.
+
+## Build/privacy foundation follow-up
+
+- Fixed portable SHA-256 digest-byte extraction. Protocol clocks/cursors are checked
+  as nonnegative JavaScript-safe integers; clock advancement fails closed instead
+  of wrapping/saturating. Invalid/nonfinite dates have a safe display fallback
+  without changing stored JSON. Fractional/overflowing media sizes are rejected.
+- CryptoKit may hedge Ed25519 signatures. Tests verify message/key/signature
+  semantics, not deterministic byte equality; native-produced signatures are also
+  verified independently by the real web library and Go relay domain builders.
+- Native HTTP transcript tests exercise prefix routing, actual signed challenge
+  exchange, future response fields, pending/wrong-owner/malformed inputs and token
+  header safety through an isolated URLProtocol. This is not a live server test.
+- Lost acknowledgment reconciliation, equal-clock collisions and tombstone intent
+  retain recoverable versions. Metadata conflicts cannot masquerade as restored
+  entries or overwrite notebook/settings singleton identities.
+- The actual Simulator UI target tests initial connection/accessibility, largest
+  Dynamic Type and HTTP rejection; CI preserves xcresult and fixture-only captures.
+  See the PR checks for execution results; committed tests are not a pass claim.
 
 ## Test status and next milestone
 

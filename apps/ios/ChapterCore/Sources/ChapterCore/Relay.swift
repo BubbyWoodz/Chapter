@@ -34,20 +34,32 @@ public final class Relay {
     public let address: ServerAddress
     private let session: URLSession
     private let delegate = NoRedirects()
-    public init(address: ServerAddress) {
+    public convenience init(address: ServerAddress) {
+        self.init(address: address, configuration: .ephemeral)
+    }
+    // Internal injection is for deterministic URLProtocol tests, not a public transport bypass.
+    init(address: ServerAddress, configuration config: URLSessionConfiguration) {
         self.address = address
-        let config = URLSessionConfiguration.ephemeral
         config.urlCache = nil; config.httpCookieStorage = nil; config.httpShouldSetCookies = false
         config.urlCredentialStorage = nil; config.requestCachePolicy = .reloadIgnoringLocalCacheData
         config.timeoutIntervalForRequest = 30; config.timeoutIntervalForResource = 120
         session = URLSession(configuration: config, delegate: delegate, delegateQueue: nil)
     }
     public func cancel() { session.invalidateAndCancel() }
+    static func validToken(_ token: String) -> Bool {
+        let bytes = token.utf8
+        return (32...512).contains(bytes.count) && bytes.allSatisfy {
+            (65...90).contains($0) || (97...122).contains($0) || (48...57).contains($0) || $0 == 45 || $0 == 95
+        }
+    }
     private func request(_ path: String, method: String = "POST", body: Data? = nil, token: String? = nil, maxBytes: Int = 32 * 1024 * 1024) async throws -> Data {
         var req = URLRequest(url: address.endpoint(path))
         req.httpMethod = method; req.httpBody = body
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        if let token { req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
+        if let token {
+            guard Self.validToken(token) else { throw ChapterError.authentication }
+            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
         // Streaming bounds an untrusted response before it fills memory.
         let (bytes, response) = try await session.bytes(for: req)
         guard let response = response as? HTTPURLResponse else { throw ChapterError.authentication }
@@ -62,19 +74,25 @@ public final class Relay {
     }
     public func authenticate(_ identity: VaultIdentity) async throws -> String {
         let registration = try await request("v1/register", body: JSONEncoder().encode(identity.registration()))
-        let result = try JSONDecoder().decode([String: String].self, from: registration)
-        guard result["owner_id"] == identity.ownerID, result["device_id"] == identity.deviceID else { throw ChapterError.authentication }
-        guard result["status"] != "pending" else { throw ChapterError.http(403) }
+        struct Registration: Decodable { let owner_id, device_id, status: String }
+        let result = try JSONDecoder().decode(Registration.self, from: registration)
+        guard result.owner_id == identity.ownerID, result.device_id == identity.deviceID else { throw ChapterError.authentication }
+        guard result.status == "approved" else { throw ChapterError.http(403) }
         let challenge = try await request("v1/auth/challenge", body: JSONEncoder().encode(["device_id": identity.deviceID]))
-        let fields = try JSONDecoder().decode([String: String].self, from: challenge)
-        guard let encoded = fields["challenge"], let bytes = Data(base64Encoded: encoded), bytes.count == 32 else { throw ChapterError.authentication }
+        struct Challenge: Decodable { let challenge: String }
+        let fields = try JSONDecoder().decode(Challenge.self, from: challenge)
+        let encoded = fields.challenge
+        guard let bytes = Data(base64Encoded: encoded), bytes.count == 32 else { throw ChapterError.authentication }
         let signature = try identity.deviceSigning.signature(for: bytes).base64EncodedString()
         let verified = try await request("v1/auth/verify", body: JSONEncoder().encode(["device_id": identity.deviceID, "challenge": encoded, "signature": signature]))
-        let auth = try JSONDecoder().decode([String: String].self, from: verified)
-        guard auth["owner_id"] == identity.ownerID, let token = auth["token"], !token.isEmpty else { throw ChapterError.authentication }
-        return token
+        struct Session: Decodable { let owner_id, token: String }
+        let auth = try JSONDecoder().decode(Session.self, from: verified)
+        guard auth.owner_id == identity.ownerID,
+              Self.validToken(auth.token) else { throw ChapterError.authentication }
+        return auth.token
     }
     public func pull(since: Int64, token: String) async throws -> PullPage {
+        try ProtocolNumbers.validate(since)
         let data = try await request("v1/sync/pull", body: JSONEncoder().encode(["since": since, "limit": 100]), token: token)
         let page = try JSONDecoder().decode(PullPage.self, from: data)
         try page.validate(since: since)

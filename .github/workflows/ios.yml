@@ -1,7 +1,7 @@
 name: Native iOS
 on:
   pull_request:
-    paths: ['apps/ios/**', 'apps/client/scripts/native-vectors.ts', '.github/workflows/ios.yml']
+    paths: ['apps/ios/**', 'apps/client/scripts/native-vectors.ts', 'server/internal/api/native_interop_test.go', '.github/workflows/ios.yml']
 permissions:
   contents: read
 concurrency:
@@ -27,5 +27,34 @@ jobs:
         run: pnpm --filter client exec tsx scripts/native-vectors.ts
         env:
           CHAPTER_NATIVE_OUTPUT: ${{ runner.temp }}/chapter-native-output.json
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: server/go.mod
+      - name: Verify Apple signatures with actual Go relay verifier
+        working-directory: server
+        run: go test ./internal/api -run TestNativeAppleAuthenticationInterop -v
+        env:
+          CHAPTER_NATIVE_OUTPUT: ${{ runner.temp }}/chapter-native-output.json
       - name: Build genuine native app for iOS Simulator (no signing credentials)
         run: xcodebuild -project apps/ios/Chapter.xcodeproj -scheme Chapter -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/ChapterBuild" CODE_SIGNING_ALLOWED=NO build
+
+      - name: Choose an installed iPhone Simulator
+        id: simulator
+        run: |
+          xcrun simctl list devices available --json > "$RUNNER_TEMP/devices.json"
+          python3 - "$RUNNER_TEMP/devices.json" >> "$GITHUB_OUTPUT" <<'PYDEVICE'
+          import json, sys
+          devices = json.load(open(sys.argv[1]))['devices']
+          phones = [d for runtime, group in sorted(devices.items(), reverse=True) if 'iOS' in runtime for d in group if 'iPhone' in d['name'] and d.get('isAvailable')]
+          if not phones: raise SystemExit('No installed iPhone Simulator runtime')
+          print('id=' + phones[0]['udid'])
+          PYDEVICE
+      - name: Native UI smoke tests and accessibility audits
+        run: xcodebuild -project apps/ios/Chapter.xcodeproj -scheme Chapter -configuration Debug -destination 'platform=iOS Simulator,id=${{ steps.simulator.outputs.id }}' -destination-timeout 120 -parallel-testing-enabled NO -derivedDataPath "$RUNNER_TEMP/ChapterBuild" -resultBundlePath "$RUNNER_TEMP/ChapterUITests.xcresult" CODE_SIGNING_ALLOWED=NO test
+      - name: Save real UI test results and fixture-only screen captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Chapter-native-ui-results
+          path: ${{ runner.temp }}/ChapterUITests.xcresult
+          retention-days: 7

@@ -29,19 +29,19 @@ struct ConnectView: View {
                 Section { Text("Your journal. Your server.").font(.title2).accessibilityAddTraits(.isHeader)
                     Text("Connect directly over your local network or Tailscale. No Chapter account is required.") }
                 Section("Server") {
-                    TextField("https://server.example/mneme", text: $server).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityLabel("Server URL")
+                    TextField("https://server.example/mneme", text: $server).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityLabel("Server URL").accessibilityIdentifier("connection.server")
                     Text("HTTPS with a trusted certificate is required, including on Tailscale. Include your server’s path prefix.").font(.footnote)
                 }
                 Section("Unlock vault") {
-                    SecureField("12-word recovery phrase", text: $phrase).textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
+                    SecureField("12-word recovery phrase", text: $phrase).accessibilityIdentifier("connection.phrase").textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
                     Text("The phrase stays on this device and is not saved. A device passcode is required to protect offline journals. Face ID or device authentication protects the local storage key.").font(.footnote)
                     Button { let input = phrase; phrase = ""; Task { await model.unlock(server: server, phrase: input) } } label: {
                         if model.connecting { ProgressView("Connecting") } else { Text("Unlock and connect") }
-                    }.disabled(phrase.isEmpty || server.isEmpty || model.connecting)
+                    }.disabled(phrase.isEmpty || server.isEmpty || model.connecting).accessibilityIdentifier("connection.unlock")
                 }
-                if let message = model.message { Section { Text(message).accessibilityLabel("Connection status: \(message)") } }
+                if let message = model.message { Section { Text(message).accessibilityLabel("Connection status: \(message)").accessibilityIdentifier("connection.status") } }
                 Section("Native preview") { Text("This is an early native client, not full feature parity yet. Existing rich entries are read-only so this preview cannot flatten them. Use the web client for recovery-phrase creation/rotation and advanced features.") }
-            }.navigationTitle("Chapter")
+            }.navigationTitle("Chapter").scrollDismissesKeyboard(.interactively)
         }
     }
 }
@@ -221,10 +221,14 @@ struct SettingsView: View {
                 }
                 if !model.snapshot.conflicts.isEmpty {
                     Section("Recovered conflicts") {
-                        Text("When a newer remote edit wins, your unsynced version is kept here. Restore makes a new entry; neither version is silently discarded.").font(.footnote)
+                        Text("Divergent versions and unsynced changes are kept here when sync detects a conflict. Restore makes a new entry; neither version is silently discarded.").font(.footnote)
                         ForEach(Array(model.snapshot.conflicts.enumerated()), id: \.offset) { _, record in
                             VStack(alignment: .leading) { Text(record.title).font(.headline); Text(record.text).lineLimit(4)
-                                Button("Restore as new entry") { do { try model.restoreConflict(record) } catch { model.message = error.localizedDescription } }
+                                if record.kind == "entry" {
+                                    Button("Restore as new entry") { do { try model.restoreConflict(record) } catch { model.message = error.localizedDescription } }
+                                } else {
+                                    Text("This metadata conflict is preserved read-only; restoring it needs kind-specific handling.").font(.footnote)
+                                }
                             }
                         }
                     }

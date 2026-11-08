@@ -4,6 +4,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { wordlist } from '@scure/bip39/wordlists/english.js';
+import { ed25519 } from '@noble/curves/ed25519.js';
 import { xchacha20poly1305 } from '@noble/ciphers/chacha.js';
 import { deriveIdentity, signWithDevice, signWithOwner } from '../src/crypto/keys';
 import { mnemonicToSeed } from '../src/crypto/mnemonic';
@@ -28,10 +29,18 @@ if(process.argv.includes('--write')) {
  assert.deepEqual(JSON.parse(readFileSync(new URL('../../ios/ChapterCore/Sources/ChapterCore/Resources/english.json',import.meta.url),'utf8')),wordlist);
  const path = process.env.CHAPTER_NATIVE_OUTPUT;
  if(path) {
-  const native = JSON.parse(readFileSync(path,'utf8')) as {record:string;media:string};
+  const native = JSON.parse(readFileSync(path,'utf8')) as {record:string;media:string;registration:Record<string,string>;challenge:string;challengeSignature:string};
   assert.equal(Buffer.from(decryptRecord(id.dataKey,recordId,Buffer.from(native.record,'base64'))).toString(),body);
   assert.equal(Buffer.from(decrypt(id.mediaKey,Buffer.from(native.media,'base64'),Buffer.from(`media:${recordId}:0/1`))).toString(),'Public media bytes');
-  console.log('Swift → web record/media compatibility passed.');
+  const r = native.registration;
+  assert.equal(r.owner_pubkey, Buffer.from(id.ownerPub).toString('base64'));
+  assert.equal(r.device_pubkey, Buffer.from(id.devicePub).toString('base64'));
+  assert.equal(r.owner_sign_pubkey, Buffer.from(id.ownerSignPub).toString('base64'));
+  assert(ed25519.verify(Buffer.from(r.signature,'base64'), registrationMessage, id.devicePub));
+  assert(ed25519.verify(Buffer.from(r.owner_signature,'base64'), bindMessage, id.ownerSignPub));
+  assert.equal(Buffer.from(native.challenge,'base64').length,32);
+  assert(ed25519.verify(Buffer.from(native.challengeSignature,'base64'),Buffer.from(native.challenge,'base64'),id.devicePub));
+  console.log('Swift → web record/media and registration/challenge signature compatibility passed.');
  }
  console.log('Frozen native protocol/key/signature/wordlist fixture verified.');
 }

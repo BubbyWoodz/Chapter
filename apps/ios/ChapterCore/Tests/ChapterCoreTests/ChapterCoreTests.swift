@@ -20,7 +20,16 @@ final class ChapterCoreTests: XCTestCase {
         XCTAssertEqual(id.ownerSigning.publicKey.rawRepresentation.hex, f.ownerSigningPublic)
         XCTAssertEqual(id.deviceSigning.publicKey.rawRepresentation.hex, f.devicePublic)
         let register = try id.registration()
-        XCTAssertEqual(register["signature"], f.signature); XCTAssertEqual(register["owner_signature"], f.ownerSignature)
+        let deviceMessage = Data("mneme:register:".utf8) + id.ownerPublic + id.deviceSigning.publicKey.rawRepresentation
+        let ownerMessage = Data("mneme:bind-device:v1:".utf8) + id.ownerPublic + id.ownerSigning.publicKey.rawRepresentation + id.deviceSigning.publicKey.rawRepresentation
+        // Apple CryptoKit can hedge Ed25519 signing: byte equality is not a validity test.
+        for signature in [f.signature, try XCTUnwrap(register["signature"])] {
+            XCTAssertTrue(id.deviceSigning.publicKey.isValidSignature(try XCTUnwrap(Data(base64Encoded: signature)), for: deviceMessage))
+        }
+        for signature in [f.ownerSignature, try XCTUnwrap(register["owner_signature"])] {
+            XCTAssertTrue(id.ownerSigning.publicKey.isValidSignature(try XCTUnwrap(Data(base64Encoded: signature)), for: ownerMessage))
+        }
+        XCTAssertFalse(id.deviceSigning.publicKey.isValidSignature(try XCTUnwrap(Data(base64Encoded: XCTUnwrap(register["signature"]))), for: ownerMessage))
     }
     func testPhraseNormalizationAndInvalidChecksum() throws {
         let f = try fixture()
@@ -57,7 +66,14 @@ final class ChapterCoreTests: XCTestCase {
         XCTAssertEqual(try VaultCipher.openRecord(record, key: id.dataKey, id: f.recordId), Data(f.body.utf8))
         XCTAssertNotEqual(record, try VaultCipher.sealRecord(Data(f.body.utf8), key: id.dataKey, id: f.recordId))
         if let path = ProcessInfo.processInfo.environment["CHAPTER_NATIVE_OUTPUT"] {
-            try JSONEncoder().encode(["record": record.base64EncodedString(), "media": media.base64EncodedString()]).write(to: URL(fileURLWithPath: path))
+            let challenge = Data(repeating: 7, count: 32)
+            let output: [String: JSONValue] = [
+                "record": .string(record.base64EncodedString()), "media": .string(media.base64EncodedString()),
+                "registration": .object(try id.registration().mapValues { .string($0) }),
+                "challenge": .string(challenge.base64EncodedString()),
+                "challengeSignature": .string(try id.deviceSigning.signature(for: challenge).base64EncodedString())
+            ]
+            try JSONEncoder().encode(output).write(to: URL(fileURLWithPath: path))
         }
     }
     func testServerAddressDoesNotSmuggleCredentialsOrLosePrefix() throws {
@@ -182,6 +198,18 @@ final class ChapterCoreTests: XCTestCase {
         received.clock = 10; received.body["title"] = .string("collision")
         snapshot.merge(received); XCTAssertEqual(snapshot.records, [original]); XCTAssertEqual(snapshot.conflicts, [received])
         snapshot.acknowledge(received); XCTAssertTrue(snapshot.records[0].dirty)
+    }
+
+    func testRestoreCreatesNewEntryWithoutOverwritingMetadataSingletons() throws {
+        let body: [String: JSONValue] = ["title": .string("conflict"), "future": .object(["keep": .bool(true)])]
+        let record = VaultRecord(id: "old", clock: 10, deleted: true, body: body)
+        let copy = try record.restoredEntry(id: "new", now: Date(timeIntervalSince1970: 100))
+        XCTAssertEqual(copy.id, "new"); XCTAssertEqual(copy.clock, 100_000)
+        XCTAssertFalse(copy.deleted); XCTAssertTrue(copy.dirty); XCTAssertEqual(copy.body["future"], body["future"])
+        for kind in ["journal", "aiSettings", "template", "interviewType", "unknownFuture"] {
+            var metadata = record; metadata.body["kind"] = .string(kind)
+            XCTAssertThrowsError(try metadata.restoredEntry(id: "new"))
+        }
     }
 
 }

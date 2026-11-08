@@ -71,3 +71,17 @@ The native store is new, separate, encrypted from first write and fail-closed.
    true per-device revocation, independent audit and release/image provenance.
 8. Accessibility, physical LAN/Tailscale/cellular, TLS/permission/backup tests and
    signed beta. A pushed source tree is not an installed app or full parity.
+
+
+## Follow-up: verified native build foundation
+
+Continuation remains on the same draft PR; no default-branch merge. Fixes include
+portable digest extraction; checked JavaScript-safe clocks/cursors, date/media
+numeric bounds; semantic rather than deterministic Ed25519 tests, independently
+cross-verified in web and Go; actual native HTTP auth transcript regressions;
+lost-ack, tombstone/equal-clock conflict retention; safe entry-only restoration.
+The Xcode project now contains a Simulator UI test target with connection-screen
+accessibility and Dynamic Type audits plus HTTPS-only fail-closed behavior. CI
+uploads genuine xcresult/captures of public-fixture screens. These automated tests
+are not physical-device VoiceOver, LAN/Tailscale, backup/key-loss or live-stack
+interoperability certification. Refer to the PR checks for actual pass/fail status.

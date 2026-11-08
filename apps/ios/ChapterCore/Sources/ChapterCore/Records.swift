@@ -82,6 +82,16 @@ public struct VaultRecord: Codable, Identifiable, Equatable {
               let expected = try? JSONDecoder().decode(JSONValue.self, from: Data(canonical.utf8)) else { return false }
         return doc == expected
     }
+    public func restoredEntry(id: String, now: Date = Date()) throws -> VaultRecord {
+        // A notebook/settings conflict cannot be restored by reusing its logical ID:
+        // that would overwrite the current singleton instead of making a new entry.
+        guard kind == "entry" else { throw ChapterError.unsupported }
+        var copy = self
+        copy.id = id; copy.clock = try ProtocolNumbers.nextClock(after: 0, now: now)
+        copy.deleted = false; copy.dirty = true
+        copy.body["updatedAt"] = .number(Double(copy.clock))
+        return copy
+    }
     public static func plainDocument(_ text: String) throws -> String {
         let paragraphs = text.components(separatedBy: "\n").map { line -> JSONValue in
             .object(["type": .string("paragraph"), "content": .array(line.isEmpty ? [] : [.object(["type": .string("text"), "text": .string(line)])])])

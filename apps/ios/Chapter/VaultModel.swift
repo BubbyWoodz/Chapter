@@ -127,10 +127,7 @@ import ChapterCore
         next.records[i].body["updatedAt"] = .number(Double(next.records[i].clock)); try commit(next)
     }
     func restoreConflict(_ record: VaultRecord) throws {
-        var copy = record
-        copy.id = UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
-        copy.clock = try nextClock(); copy.dirty = true; copy.deleted = false
-        copy.body["updatedAt"] = .number(Double(copy.clock))
+        let copy = try record.restoredEntry(id: UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased())
         var next = snapshot; next.records.append(copy); try commit(next)
     }
     func downloadMedia(_ media: VaultMedia) async throws -> URL {
