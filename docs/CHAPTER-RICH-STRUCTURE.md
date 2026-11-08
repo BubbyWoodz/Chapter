@@ -25,9 +25,11 @@ This is a bounded functional increment, not a finished full rich editor.
   output; no missing native vector is treated as success.
 
 Current verification: actual compiled Foundation source golden tree/preview,
-retained draft/stale refusal, adversarial indices and Unicode PASS. New full Apple
-suite, real Swift→web ciphertext, actual Simulator build and native UI gates must
-PASS before calling this screen verified. Existing regression and strict normal/
+retained draft/stale refusal, adversarial indices and Unicode PASS. At5b2ac8f,
+FULL actual Apple suite including all six new tests, mandatory actual Swift→web
+ciphertext decoding, original Go verification and genuine universal Simulator
+application build/package PASS in42528312711. Actual new Arrange screen gates
+must still pass before claiming the screen itself verified. Existing regression and strict normal/
 XXXL audits stay required. Older1acd server/live workflow42527124183 is GREEN;
 94 page-tour PASS does not certify independently failing production audits.
 
@@ -59,3 +61,12 @@ lock/restart/HTTP/disk failure and retry, prevent uploads from resurrecting a
 queued deletion, and explain concurrent unseen-client/server-backup limitations.
 Test genuine isolated relay/S3 lost-response/sweep-failure and shared references
 before exposing it. Do not silently destroy the only copy of unsynced work.
+
+Verified5b actual live relay workflow42528312708 also exercises a separate
+UNREFERENCED media object through real normally trusted TLS/URLSession, original
+Go/Postgres API: upload, DELETE, metadata+all-chunk404, repeated DELETE, unrelated
+shared/recovered original chunk unchanged. Its entire separate real S3/image/
+backup-restore workflow passes too; this is NOT a live S3 outage-failure test.
+Go full tests/vet and actual partial/complete sweep-failure unit tests pass.
+The native low-level strict204/500/503/path/token transport test passes in the
+full Apple suite. No native destructive UI or durable purge outbox claimed.

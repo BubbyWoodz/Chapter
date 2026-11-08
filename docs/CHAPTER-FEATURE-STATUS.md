@@ -13,7 +13,7 @@ the exact revision; a failing strict accessibility audit remains a release block
 | Notebooks | Browse/create; rename, subtitle, original color and cover metadata editing; real non-destructive move-between-notebooks with optimistic stale-write rejection | Four actual Apple notebook tests, actual Swift→web ciphertext decoding and real native UI Save/persist test PASS at 6c7908c in run 42513126159. Unknown fields/IDs preserved. Move whole-document preservation, stale/deleted/overflow and actual Swift→web reverse decoding PASS at fd3d1ad (42519352453); real Move UI PASS atc810740 in42521928122. Updated native-Button controls verify separately. Recoverable downloaded-set notebook cascade + guarded original-ID restore now implemented; EIGHT new Apple core/fault/Unicode/capacity tests, real native TLS/Go/Postgres cascade/restore/shared-media and actual original-web decrypt/router PASS at be6189b (42525592332/42525592525); new native screen flow verifies separately. Permanent/shared-media purge missing. Archive/reorder are not present in the reviewed original notebook API; do not invent a wire format or claim those synced. |
 | Local discovery | Text/label substring search, day calendar, entry/day counts | Full query, heatmap/stats/streak/badge parity missing |
 | Native rich viewing | Styled inline marks, headings, paragraphs, lists/tasks, quotes/code, approximate tables, source math, simplified media/location/interview cards | New web-generated golden document and actual Foundation logic tests. Actual Apple core tests and Simulator compile passed at b8ba3d9; actual rich UI/task/text-run edit passed in run 42511652869; strict onboarding audits still fail; unknown nodes kept opaque |
-| Rich editing | Existing text-run/task editing, five whole-run format toggles, nine-style new block authoring and re-editable empty known blocks; patch original JSON | New tests assert full tree/unknown attrs/marks/media IDs retained, stale writes rejected, Unicode/empty-run behavior. Actual Apple authoring/encrypted draft migration and original schema/reverse-codec PASS at98885d0 (42518974244); universal Simulator app builds. New real authoring UI and all strict audits remain required/pending. New explicit-save rich title/date/individual-label controls preserve exact rich JSON and unknown label schemas; actual Apple core, new Swift ciphertext→original-web decoder, original Go verifier and universal Simulator app build PASS ata0f2b1d in42522662183; real new metadata UI and subsequent Unicode/fault-injection improvements verify separately. Native whole-block Arrange screen/drag/context/VoiceOver operations now implemented with byte-exact checkpoints and retained drafts; new Apple/ciphertext/UI gates pending (see CHAPTER-RICH-STRUCTURE.md). No full selection-based editor, nested restructuring, arbitrary-position insertion or full custom-node editor |
+| Rich editing | Existing text-run/task editing, five whole-run format toggles, nine-style new block authoring and re-editable empty known blocks; patch original JSON | New tests assert full tree/unknown attrs/marks/media IDs retained, stale writes rejected, Unicode/empty-run behavior. Actual Apple authoring/encrypted draft migration and original schema/reverse-codec PASS at98885d0 (42518974244); universal Simulator app builds. New real authoring UI and all strict audits remain required/pending. New explicit-save rich title/date/individual-label controls preserve exact rich JSON and unknown label schemas; actual Apple core, new Swift ciphertext→original-web decoder, original Go verifier and universal Simulator app build PASS ata0f2b1d in42522662183; real new metadata UI and subsequent Unicode/fault-injection improvements verify separately. Native whole-block Arrange screen/drag/context/VoiceOver operations now implemented with byte-exact checkpoints and retained drafts; actual Apple six new tests, original Swift→web decoding and universal Simulator build PASS at5b2ac8f in42528312711; actual Arrange screen gates pending (see CHAPTER-RICH-STRUCTURE.md). No full selection-based editor, nested restructuring, arbitrary-position insertion or full custom-node editor |
 | Rich local drafts | Encrypted autosaved text/formatting/new-block drafts; resume in Settings; explicit apply rejects changed/deleted/wrong-ID records | New native migration/encrypted recovery tests and real Debug fixture UI edit test added; device failure/restart/disk-full acceptance not complete |
 | Rich cross-client sync | Same encrypted record protocol after patch, regenerate bodyText with actual web docToText semantics | Native-produced edited ciphertext must open in actual web decoder with entire expected tree/media IDs. Passed at b8ba3d9 in macOS CI; not a live server/browser round trip |
 | Entry links/Markdown/math | Stored link labels and LaTeX source retained; external web/mail links require explicit confirmation | Backlink/navigation UI, Markdown/source editing and exact native math typesetting missing; no silent external fetches |
@@ -30,6 +30,31 @@ the exact revision; a failing strict accessibility audit remains a release block
 | Local storage | Device-only user-presence Keychain + AES-GCM snapshot; protected/excluded from backup | Version 1/2/3→4 read migration preserves keys and old file until next save; older previews reject v4 instead of dropping formatting/new-block drafts/media outbox. Actual Apple v3→v4 encrypted migration/restart/old-version write refusal PASS at98885d0; earlier backup-preparation fault/reopen/retry PASS. Actual hardware Keychain/backup extraction not certified |
 | Server distribution | Chapter-owned source-build compose/install profile, separate volumes, private setup, optional STT; image/source artifact + real S3/backup-restore CI added | Real source-image builds, trusted HTTPS/auth/web crypto, actual PostgreSQL/S3 media and restore into a different empty stack PASS at 551236b (run 42511822303). Downloadable Linux amd64 image/source/checksum bundle exists. Not deployed; no direct live-volume migration or general historical-upgrade certification |
 | iPhone distribution | Xcode source and unsigned Simulator artifacts only | No signed device IPA, TestFlight or physical-device certification. Apple signing route later, not obtained here |
+
+## Verified increment — November8,2026,5:09 PM EST
+
+- At5b2ac8f, complete actual Apple core suite PASS, including SIX new whole-block
+  structure/Unicode/adversarial/draft-media preservation/encrypted disk-fault and
+  reopen tests plus strict original DELETE status/ID/token tests. Mandatory real
+  Swift-authored reordered ciphertext→original web decoder, original Go verifier,
+  genuine universal Simulator app build and package PASS in42528312711.
+  Actual new Arrange screen interaction/capture still verifies independently.
+- ENTIRE genuine native trusted TLS/Go/Postgres plus Chapter source-image/S3/
+  backup-restore42528312708 SUCCESS at5b2ac8f. New actual native orphan media
+  delete verifies both index and every encrypted chunk return404, idempotent
+  retry and unchanged unrelated shared/recovery media. Storage-failure injection
+  is separately actual Go memory-store unit coverage, NOT a live S3 outage test.
+- Strengthened1acd4dd real media/page tour42527124109 PASS: official Xcode JSON
+  reports5 tests,0 failures,0 skipped. Genuine decrypted text actually rendered
+  in Quick Look and true Done dismissal completed before navigation. Actual
+  preview screenshot visually inspected at5:00 PM EST. Photos39 still a loading
+  frame, not certified imported-photo/picker playback.
+- Latest097e45c source adds genuine original-style cards/native notebook back
+  navigation plus strict isolated CTA diagnosis. Its new app/build/RGB/back-stack
+  screen gates are pending; passing earlier5b does NOT certify these later edits.
+- Production normal/XXXL Dynamic Type and intermittent XXXL reachability remain
+  open release blockers. Full visual/usability inventory and device signing remain
+  acceptance gates, not replaced by passing core or screenshot assertions.
 
 ## Original-card fidelity and native notebook navigation increment
 
