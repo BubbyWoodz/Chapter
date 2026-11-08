@@ -70,7 +70,7 @@ struct RichDocumentView: View {
             return AnyView(HStack(alignment: .top) {
                 Button {
                     do { try model.toggleRichTask(entry, path: node.path) } catch { self.error = error.localizedDescription }
-                } label: { Image(systemName: checked ? "checkmark.square.fill" : "square").padding(10) }
+                } label: { Image(systemName: checked ? "checkmark.square.fill" : "square").frame(minWidth: 44, minHeight: 44) }
                     .accessibilityLabel(checked ? "Mark task incomplete" : "Mark task complete")
                 children(node)
             })

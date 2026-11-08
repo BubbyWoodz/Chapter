@@ -1,10 +1,11 @@
 // Public lossless native/web document fixtures. No personal journal content.
 import assert from 'node:assert/strict';
+import type { JSONContent } from '@tiptap/core';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { docToText, docMediaIds } from '../src/editor/doc';
 import { decryptRecord } from '../src/sync/engine';
-const text = (text: string, marks?: unknown[]) => ({type:'text', text, ...(marks ? {marks} : {})});
-const p = (s: string) => ({type:'paragraph', content:[text(s)]});
+const text = (text: string, marks?: JSONContent["marks"]): JSONContent => ({type:'text', text, ...(marks ? {marks} : {})});
+const p = (s: string): JSONContent => ({type:'paragraph', content:[text(s)]});
 const media = (id: string) => ({id, mime:'image/png', bytes:10, name:'Public photo'});
 const original = {type:'doc', futureRoot:{keep:['all',1,true]}, content:[
  {type:'heading',attrs:{level:2,future:'keep'},content:[text('Public heading',[{type:'bold',attrs:{future:7}}])]},
@@ -25,11 +26,16 @@ const original = {type:'doc', futureRoot:{keep:['all',1,true]}, content:[
 const edited = structuredClone(original);
 (edited.content[0] as any).content[0].text = 'Edited 📝 heading';
 (edited.content[2] as any).content[0].attrs.checked = true;
-const fixture = {original, edited, originalPreview:docToText(original as any), editedPreview:docToText(edited as any), mediaIds:docMediaIds(original as any)};
+const previewCases = ['\uFEFFedge\u0085', '\u0085edge\uFEFF', '\t \n spaced \u2028', '👩🏽‍💻 é', '\u200Bnot whitespace\u200B'].map(s => { const doc = {type:'doc',content:[p(s)]}; return {doc,text:docToText(doc)}; });
+const fixture = {original, edited, previewCases, originalPreview:docToText(original as any), editedPreview:docToText(edited as any), mediaIds:docMediaIds(original as any)};
 export function verifyRichFixture(write: boolean, identity: {dataKey:Uint8Array}, nativePath?: string) {
  const url = new URL('../../ios/ChapterCore/Tests/ChapterCoreTests/Fixtures/rich-document.json',import.meta.url);
  if (write) writeFileSync(url,JSON.stringify(fixture,null,2)+'\n');
  else assert.deepEqual(JSON.parse(readFileSync(url,'utf8')),fixture,'Frozen native rich fixture drifted from actual web preview/media logic');
+ const viewSource = readFileSync(new URL('../../ios/Chapter/RichDocumentViews.swift',import.meta.url),'utf8');
+ const publicFixture = /enum PublicRichFixture \{ static let json = #"(.+)"# \}/.exec(viewSource);
+ assert(publicFixture, 'Debug public rich fixture missing');
+ assert.deepEqual(JSON.parse(publicFixture[1]),original,'UI fixture must equal the golden web document');
  if (nativePath && !write) {
   const output = JSON.parse(readFileSync(nativePath+'.rich','utf8')) as {id:string; record:string};
   const body = JSON.parse(Buffer.from(decryptRecord(identity.dataKey,output.id,Buffer.from(output.record,'base64'))).toString());

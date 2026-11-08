@@ -83,4 +83,11 @@ final class RichDocumentTests: XCTestCase {
         old.version = 99; try disk.save(old); XCTAssertThrowsError(try disk.load())
     }
 
+    func testActualWebUnicodeWhitespacePreviewCases() throws {
+        let f = try fixture()
+        for item in f["previewCases"]?.array ?? [] {
+            XCTAssertEqual(try RichDocument(json: json(item["doc"])).plainText, item["text"].string)
+        }
+    }
+
 }

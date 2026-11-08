@@ -182,9 +182,31 @@ rewriting/rekeying and upgrades only on the next atomic save. Unsupported versio
 fail closed. This local migration does not touch upstream browser/relay formats.
 
 Local actual Foundation-source harness, web build and all 25 regressions pass.
-Seven new native tests, Apple→web encrypted rich golden checks and a genuine app
+Eight new native tests, Apple→web encrypted rich golden checks and a genuine app
 UI edit/task smoke test are added; their actual Apple CI result must be checked
 before calling this slice verified on iOS. The Debug public encrypted fixture is
 isolated and has no real identity/relay; it is not production authentication proof.
 Encrypted media upload/capture and a full structural editor remain next, not done.
 See [the exact per-feature remaining matrix](CHAPTER-FEATURE-STATUS.md).
+
+Actual first rich-slice Apple run 42450050069 has passed 28 native tests, the
+independent web rich-ciphertext/tree/media-reference checks, Go signatures and
+the real universal Simulator app build; its UI tests are still being evaluated.
+A follow-up adds exact ECMAScript Unicode-whitespace cases (BOM versus NEL),
+checks Debug fixture drift and gives task controls a minimum 44-point hit target.
+Those follow-up changes still require their own Apple CI; local actual-source
+Foundation tests pass. Do not infer a whole-workflow pass from successful steps.
+
+Retained audit diagnostic run 42449468564 still failed strict Dynamic Type despite
+its independent actual-XXXL geometry test passing (input 87 points, action about
+163 points). Apple detailedDescription supplies no unsupported-category list.
+This remains an unresolved release gate, not a reason to remove the audit or stop
+independent functional work. New rich UI fixture captures are not device-auth proof.
+
+The first rich UI smoke test failed before opening the fixture, not during an
+edit: its exported hierarchy remained the connection form. The handcrafted
+Debug configuration omitted SWIFT_ACTIVE_COMPILATION_CONDITIONS=DEBUG, so the
+Debug-only public fixture code was compiled out. The follow-up explicitly defines
+DEBUG for Debug only; Release retains no fixture path. This fix is being verified
+in the next Apple run. No successful rich edit screenshot or device test is
+claimed from that failed smoke run. The production renderer/core did compile.

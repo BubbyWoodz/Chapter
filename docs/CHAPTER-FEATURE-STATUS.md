@@ -34,7 +34,7 @@ the exact revision; a failing strict accessibility audit remains a release block
 ## New test files
 
 - `apps/ios/ChapterCore/Tests/ChapterCoreTests/RichDocumentTests.swift`:
-  seven native tests for web-preview parity, tree preservation, task/text patching,
+  eight native tests for web-preview parity, tree preservation, task/text patching,
   opaque nodes, deletion, stale/malformed inputs, Unicode/overflow, independent
   encrypted web output, and old-local-snapshot/draft recovery.
 - `apps/client/scripts/native-rich-vectors.ts`: actual web preview/media-ID fixture

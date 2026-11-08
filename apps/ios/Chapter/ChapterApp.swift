@@ -145,7 +145,7 @@ struct EntryDetail: View {
                     }.padding().frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .toolbar {
-                    if entry.editablePlainText || (entry.body["bodyJson"]?.string.flatMap { try? RichDocument(json: $0) } != nil) { Button("Edit") { editing = true } }
+                    if entry.editablePlainText || (entry.body["bodyJson"]?.string.flatMap { (try? RichDocument(json: $0))?.textLeaves.isEmpty } == false) { Button("Edit") { editing = true } }
                     Button(role: .destructive) { deleting = true } label: { Label("Delete entry", systemImage: "trash") }
                 }
                 .sheet(isPresented: $editing) {

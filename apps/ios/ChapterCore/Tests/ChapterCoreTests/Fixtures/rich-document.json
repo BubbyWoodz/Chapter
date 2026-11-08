@@ -679,6 +679,93 @@
       }
     ]
   },
+  "previewCases": [
+    {
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "﻿edge"
+              }
+            ]
+          }
+        ]
+      },
+      "text": "edge"
+    },
+    {
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "edge﻿"
+              }
+            ]
+          }
+        ]
+      },
+      "text": "edge"
+    },
+    {
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "\t \n spaced  "
+              }
+            ]
+          }
+        ]
+      },
+      "text": "spaced"
+    },
+    {
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "👩🏽‍💻 é"
+              }
+            ]
+          }
+        ]
+      },
+      "text": "👩🏽‍💻 é"
+    },
+    {
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "​not whitespace​"
+              }
+            ]
+          }
+        ]
+      },
+      "text": "​not whitespace​"
+    }
+  ],
   "originalPreview": "Public heading\nHello world 👩🏽‍💻x^2🔗 Related\nTask\nHeader\nCell\n🖼 image Public photo\nPublic transcript\n🖼 1 photo\n\\frac{a}{b}\nQuotation\nlet answer = 42\nBullet\nNumbered\n📍 Home → Park\n🎬 Public interview\nQuestion?\nAnswer\nOpaque future text",
   "editedPreview": "Edited 📝 heading\nHello world 👩🏽‍💻x^2🔗 Related\nTask\nHeader\nCell\n🖼 image Public photo\nPublic transcript\n🖼 1 photo\n\\frac{a}{b}\nQuotation\nlet answer = 42\nBullet\nNumbered\n📍 Home → Park\n🎬 Public interview\nQuestion?\nAnswer\nOpaque future text",
   "mediaIds": [
