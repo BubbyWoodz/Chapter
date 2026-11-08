@@ -137,13 +137,6 @@ struct RichDraftEditor: View {
                     ForEach(RichBlockStyle.allCases, id: \.self) { Text($0.title).tag($0) }
                 }.pickerStyle(.menu).padding().accessibilityIdentifier("rich.block-style")
             }
-            TextEditor(text: $current.text).scrollContentBackground(.hidden).background(chapterToken("paper",preference:model.snapshot.appearance ?? .standard)).accessibilityLabel(current.newBlockStyle == nil ? "Formatted text run" : "New block text").autocorrectionDisabled().padding()
-            if current.supportsFormatting {
-                Text("Formatting: " + (formats.contains(where: { current.hasMark($0.0) }) ? formats.filter { current.hasMark($0.0) }.map { $0.1 }.joined(separator: ", ") : "Plain text")).font(.footnote).padding(.horizontal).accessibilityIdentifier("rich.format-summary")
-            }
-            Text(error ?? (savedDraft ? "Draft saved encrypted on this device. Tap Save to update the entry." : "Edits stay in an encrypted draft until Save. Other formatting and unknown content remain intact.")).font(.footnote).padding()
-        }.modifier(ChapterScreenSurface()).navigationTitle(current.newBlockStyle == nil ? "Edit text" : "Add block")
-        .toolbar {
             if current.supportsFormatting {
                 Menu("Formatting") {
                     ForEach(formats, id: \.0) { type, title in
@@ -151,8 +144,15 @@ struct RichDraftEditor: View {
                             Label(title, systemImage: current.hasMark(type) ? "checkmark" : "circle")
                         }.accessibilityIdentifier("rich.format." + type)
                     }
-                }.accessibilityIdentifier("rich.formatting")
+                }.frame(minHeight:44).padding(.horizontal).accessibilityIdentifier("rich.formatting")
             }
+            TextEditor(text: $current.text).scrollContentBackground(.hidden).background(chapterToken("paper",preference:model.snapshot.appearance ?? .standard)).accessibilityLabel(current.newBlockStyle == nil ? "Formatted text run" : "New block text").autocorrectionDisabled().padding()
+            if current.supportsFormatting {
+                Text("Formatting: " + (formats.contains(where: { current.hasMark($0.0) }) ? formats.filter { current.hasMark($0.0) }.map { $0.1 }.joined(separator: ", ") : "Plain text")).font(.footnote).padding(.horizontal).accessibilityIdentifier("rich.format-summary")
+            }
+            Text(error ?? (savedDraft ? "Draft saved encrypted on this device. Tap Save to update the entry." : "Edits stay in an encrypted draft until Save. Other formatting and unknown content remain intact.")).font(.footnote).padding()
+        }.modifier(ChapterScreenSurface()).navigationTitle(current.newBlockStyle == nil ? "Edit text" : "Add block")
+        .toolbar {
             Button("Save") {
                 do { try model.applyRichDraft(current); dismiss() } catch { self.error = error.localizedDescription }
             }.disabled(current.newBlockStyle != nil && current.text.isEmpty)
