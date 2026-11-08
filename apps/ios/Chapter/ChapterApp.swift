@@ -225,7 +225,7 @@ struct EntryDetail: View {
                             if importingMedia { ProgressView("Encrypting attachment") }
                             if !(model.snapshot.mediaUploads ?? []).isEmpty { Text("Attachments waiting to upload: \(model.snapshot.mediaUploads?.count ?? 0). Their entry references are not sent until upload completes.").font(.footnote) }
                         }
-                        if let mediaError { Text(mediaError).font(.footnote).foregroundStyle(.red) }
+                        if let mediaError { Text(mediaError).font(.footnote).foregroundStyle(.red).accessibilityIdentifier("media.error") }
                         if !entry.editablePlainText { Text("Rich structure is preserved. Native editing supports formatted runs and adding text blocks. Selection-based editing, existing block restructuring and custom-node editing remain incomplete.").font(.footnote).foregroundStyle(.secondary) }
                     }.padding().frame(maxWidth: .infinity, alignment: .leading)
                 }
