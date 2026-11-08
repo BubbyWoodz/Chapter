@@ -67,8 +67,8 @@ The native store is new, separate, encrypted from first write and fail-closed.
    no telemetry or mandatory cloud. Preserve operator policy.
 6. Complete lifecycle (rotation/deletion/unlock), local reminders, appearance/12
    locales/RTL, search/calendar/stats/badges and separate operator tools.
-7. Reviewed browser at-rest migration, integrity/freshness protocol hardening,
-   true per-device revocation, independent audit and release/image provenance.
+7. Review original-protocol limitations honestly; do not redesign encryption or
+   migrate browser storage under the current scope. Verify release/image provenance.
 8. Accessibility, physical LAN/Tailscale/cellular, TLS/permission/backup tests and
    signed beta. A pushed source tree is not an installed app or full parity.
 
@@ -135,3 +135,13 @@ viewing/editing and encrypted media capture/upload/download; retain unsupported
 nodes/attrs/marks without flattening. Server packaging and live integration must
 progress as real milestones alongside the remaining parity matrix, not be deferred
 until calling a source-only client finished.
+
+### Strict UI findings and corrections
+
+Real Simulator captures identified a compact prominent button whose default layout
+could not accommodate every Dynamic Type size. The connection action now wraps
+its semantic headline in a full-width, minimum-44-point, vertically expanding
+button; explanatory text and input rows are allowed their full natural height.
+No maximum Dynamic Type cap, shrinking font, ignored audit issue or test exclusion
+was introduced. The first strict UI run already passes HTTPS rejection; remaining
+audit status is recorded in actual CI, not inferred from the source changes.
