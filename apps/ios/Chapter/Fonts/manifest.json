@@ -1,0 +1,68 @@
+[
+  {
+    "package": "hanken-grotesk",
+    "version": "5.3.0",
+    "source": "hanken-grotesk-latin-wght-normal.woff2",
+    "sourceSHA256": "e9201eddf1d41d0b62253295d869ce3cf65768f7102b797f02c7f8c876b4a9d5",
+    "file": "HankenGrotesk-Regular.ttf",
+    "postscript": "HankenGrotesk-Regular",
+    "sha256": "8cbb4b7d1a9a0aa7daf3d62ca827a8315867f8bef7891fa1d31850d698939de2",
+    "license": "hanken-grotesk-OFL.txt",
+    "licenseSHA256": "f45f60ca871850c58d8dc9c973bd6fcad40c137e9d037172b961e8ca68c87ef7"
+  },
+  {
+    "package": "hanken-grotesk",
+    "version": "5.3.0",
+    "source": "hanken-grotesk-latin-wght-italic.woff2",
+    "sourceSHA256": "bb432642d7e97d11bd8f7adbcb79dc69b772211c9b6eae5251a969496674d299",
+    "file": "HankenGrotesk-Italic.ttf",
+    "postscript": "HankenGrotesk-Italic",
+    "sha256": "7cc812b868ab1549832fb784af276d7587516a74168024cb831e5ae7d768b1f3",
+    "license": "hanken-grotesk-OFL.txt",
+    "licenseSHA256": "f45f60ca871850c58d8dc9c973bd6fcad40c137e9d037172b961e8ca68c87ef7"
+  },
+  {
+    "package": "newsreader",
+    "version": "5.3.0",
+    "source": "newsreader-latin-standard-normal.woff2",
+    "sourceSHA256": "6e4f2958c3a7c4a80acde4e5a679abe7e01bc1e30b92be3c7a8b696ef401d101",
+    "file": "Newsreader16pt-Regular.ttf",
+    "postscript": "Newsreader16pt-Regular",
+    "sha256": "bb9847ef8fcef3facca6edd5b5cb3db89f7f29aff18514fb47a4b4485866320c",
+    "license": "newsreader-OFL.txt",
+    "licenseSHA256": "26028ec4e13b650065fa525a09532176f8a668b76ff849ea01c564a7480f91e7"
+  },
+  {
+    "package": "newsreader",
+    "version": "5.3.0",
+    "source": "newsreader-latin-standard-italic.woff2",
+    "sourceSHA256": "5dfcd10d24af8c82927ba57f7983dd997f7b200594c09c35a1b1ed9fc4597506",
+    "file": "Newsreader16pt-Italic.ttf",
+    "postscript": "Newsreader16pt-Italic",
+    "sha256": "357f680a40680758ce002b71e04ac0d72ed4e987aa20d204013dfa7c2b48fcbb",
+    "license": "newsreader-OFL.txt",
+    "licenseSHA256": "26028ec4e13b650065fa525a09532176f8a668b76ff849ea01c564a7480f91e7"
+  },
+  {
+    "package": "spline-sans-mono",
+    "version": "5.3.0",
+    "source": "spline-sans-mono-latin-wght-normal.woff2",
+    "sourceSHA256": "46b7dcafe3e51dbe87be1bafaac3fed7646db1fe0a146647a6ffce3699f2752d",
+    "file": "SplineSansMono-Regular.ttf",
+    "postscript": "SplineSansMono-Regular",
+    "sha256": "1f63d03f497b974d78e2676e7247e1e8e8c083ce6ffb53a30e39f2432f5be38d",
+    "license": "spline-sans-mono-OFL.txt",
+    "licenseSHA256": "3127290ccd196ec0c4ffa60296845224a034b92c81de8231b0916278ed7607e1"
+  },
+  {
+    "package": "spline-sans-mono",
+    "version": "5.3.0",
+    "source": "spline-sans-mono-latin-wght-italic.woff2",
+    "sourceSHA256": "ae4c102d0de8e76b83b599e2d9d787c79185df14535c3d273642e5c22522bd17",
+    "file": "SplineSansMono-Italic.ttf",
+    "postscript": "SplineSansMono-Italic",
+    "sha256": "aa980035610595d96a1f2f0fd442f00f2d2dfec1dc09f5aec67159530f859b63",
+    "license": "spline-sans-mono-OFL.txt",
+    "licenseSHA256": "3127290ccd196ec0c4ffa60296845224a034b92c81de8231b0916278ed7607e1"
+  }
+]

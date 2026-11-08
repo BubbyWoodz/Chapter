@@ -228,3 +228,23 @@ Concurrent source changes fail closed. Unlike writing drafts, unsubmitted metada
 form values are not autosaved: save before leaving or locking. Dirty Cancel asks
 before discarding and interactive swipe dismissal is blocked. Apple core,
 reverse-web decoder and actual UI verification for this increment remain required.
+
+### Original web typography (Latin subset, actual iOS verification required)
+
+Six bundled variable TrueType faces are lossless decompressions of the lockfile-
+pinned original web Hanken Grotesk, Newsreader and Spline Sans Mono normal/italic
+assets. Complete original SIL OFL1.1 notices, source/package/output SHA256s and
+conversion script live in `Chapter/Fonts` and `scripts/bundle-original-fonts.py`.
+No runtime font download or external request. Reproduce after frozen pnpm install:
+`pip install fonttools==4.65.0 Brotli==1.1.0`, then run that Python script.
+All non-checksum font tables/glyph maps/orders are asserted unchanged; provenance
+checks run in the browser regression suite. Fonts keep their original OFL license,
+not the app's AGPL. Latin subsets use native fallback for unavailable glyphs.
+
+Journal/notebook headings, rich prose, inline/code blocks and editor runs use
+original roles: Modern sans headings/serif prose; Terminal sans headings/prose;
+other skins serif headings/prose; mono uses Spline. `Font.custom(relativeTo:)`
+retains Dynamic Type, not fixed UIFont sizes. Native controls/navigation adapt to
+iOS. Onboarding fonts remain untouched while its strict audit blocker is diagnosed.
+A real iOS test must load all six UIFont names AND pass strict Dynamic Type;
+source/hashes alone are not a visual/device accessibility certification.

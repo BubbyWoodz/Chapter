@@ -4,6 +4,8 @@
  classes = {};
  objectVersion = 56;
  objects = {
+ D00000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = folder; path = Fonts; sourceTree = "<group>";};
+ D00000000000000000000002 = {isa = PBXBuildFile; fileRef = D00000000000000000000001;};
  C00000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RichDocumentViews.swift; sourceTree = "<group>";};
  C00000000000000000000002 = {isa = PBXBuildFile; fileRef = C00000000000000000000001;};
  A00000000000000000000001 = {isa = PBXProject; attributes = {LastUpgradeCheck = 1600; TargetAttributes = {B00000000000000000000001 = {TestTargetID = A00000000000000000000005;};};}; buildConfigurationList = A00000000000000000000002; compatibilityVersion = "Xcode 14.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = (en, Base); mainGroup = A00000000000000000000003; productRefGroup = A00000000000000000000004; projectDirPath = ""; projectRoot = ""; targets = (A00000000000000000000005, B00000000000000000000001); packageReferences = (A00000000000000000000020);};
@@ -13,12 +15,12 @@
  A00000000000000000000005 = {isa = PBXNativeTarget; buildConfigurationList = A00000000000000000000010; buildPhases = (A00000000000000000000011, A00000000000000000000012, A00000000000000000000013); buildRules = (); dependencies = (); name = Chapter; packageProductDependencies = (A00000000000000000000021); productName = Chapter; productReference = A00000000000000000000009; productType = "com.apple.product-type.application";};
  A00000000000000000000006 = {isa = XCBuildConfiguration; buildSettings = {CLANG_ENABLE_MODULES = YES; SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 17.0; SWIFT_VERSION = 5.0; SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG; ONLY_ACTIVE_ARCH = YES; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; ENABLE_TESTABILITY = YES;}; name = Debug;};
  A00000000000000000000007 = {isa = XCBuildConfiguration; buildSettings = {CLANG_ENABLE_MODULES = YES; SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 17.0; SWIFT_VERSION = 5.0;}; name = Release;};
- A00000000000000000000008 = {isa = PBXGroup; path = Chapter; children = (C00000000000000000000001, A00000000000000000000014, A00000000000000000000015, A00000000000000000000016, A00000000000000000000017); sourceTree = "<group>";};
+ A00000000000000000000008 = {isa = PBXGroup; path = Chapter; children = (D00000000000000000000001, C00000000000000000000001, A00000000000000000000014, A00000000000000000000015, A00000000000000000000016, A00000000000000000000017); sourceTree = "<group>";};
  A00000000000000000000009 = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Chapter.app; sourceTree = BUILT_PRODUCTS_DIR;};
  A00000000000000000000010 = {isa = XCConfigurationList; buildConfigurations = (A00000000000000000000018, A00000000000000000000019); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release;};
  A00000000000000000000011 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (C00000000000000000000002, A00000000000000000000022, A00000000000000000000023); runOnlyForDeploymentPostprocessing = 0;};
  A00000000000000000000012 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000024); runOnlyForDeploymentPostprocessing = 0;};
- A00000000000000000000013 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000025); runOnlyForDeploymentPostprocessing = 0;};
+ A00000000000000000000013 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (D00000000000000000000002, A00000000000000000000025); runOnlyForDeploymentPostprocessing = 0;};
  A00000000000000000000014 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChapterApp.swift; sourceTree = "<group>";};
  A00000000000000000000015 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VaultModel.swift; sourceTree = "<group>";};
  A00000000000000000000016 = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>";};

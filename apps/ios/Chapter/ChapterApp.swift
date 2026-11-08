@@ -16,6 +16,10 @@ import QuickLook
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("--chapter-native-form-audit-repro") {
             NativeFormAuditReproduction()
+        } else if ProcessInfo.processInfo.arguments.contains("--chapter-font-diagnostic") {
+            ChapterFontDiagnostic()
+        } else if ProcessInfo.processInfo.arguments.contains("--chapter-native-secure-field-audit-repro") {
+            NativeSecureFieldAuditReproduction()
         } else { normalContent }
         #else
         normalContent
@@ -109,7 +113,7 @@ struct ChapterTabs: View {
             CalendarView().tabItem { Label("Calendar", systemImage: "calendar") }
             NotebookList().tabItem { Label("Notebooks", systemImage: "books.vertical") }
             SettingsView().tabItem { Label("Settings", systemImage: "gearshape") }
-        }
+        }.font(chapterFont(.ui,skin:model.snapshot.appearance?.skin ?? "paper"))
     }
 }
 struct EntryList: View {
@@ -132,7 +136,7 @@ struct EntryList: View {
                 if filtered.isEmpty { Text(query.isEmpty ? "No downloaded entries. Sync or create your first entry." : "No matching entries.") }
                 ForEach(filtered) { entry in NavigationLink { EntryDetail(entryID: entry.id) } label: {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(entry.title).font(.headline)
+                        Text(entry.title).font(chapterFont(.heading,skin:model.snapshot.appearance?.skin ?? "paper",size:20,relativeTo:.headline))
                         Text(entry.text).font(.subheadline).foregroundStyle(.secondary).lineLimit(2)
                         Text(entry.date, format: .dateTime.month().day().year()).font(.caption).foregroundStyle(.secondary)
                     }
@@ -187,12 +191,12 @@ struct EntryDetail: View {
                                 Button("Rich document") { showingPlainEdit = false; editRich = true; editing = true }.frame(minHeight:44)
                             }
                         }
-                        Text(entry.title).font(.largeTitle).accessibilityAddTraits(.isHeader)
+                        Text(entry.title).font(chapterFont(.heading,skin:model.snapshot.appearance?.skin ?? "paper",size:34,relativeTo:.largeTitle)).accessibilityAddTraits(.isHeader).accessibilityIdentifier("entry.title")
                         Text(entry.date, style: .date).foregroundStyle(.secondary)
                         if let notebook = model.journals.first(where: { $0.journalID == entry.journalID }) { Text("Notebook: " + notebook.title).font(.footnote).accessibilityIdentifier("entry.notebook") }
                         if let raw = entry.body["bodyJson"]?.string, let document = try? RichDocument(json: raw) {
                             RichDocumentView(entry: entry, document: document)
-                        } else { Text(entry.text).textSelection(.enabled) }
+                        } else { Text(entry.text).font(chapterFont(.prose,skin:model.snapshot.appearance?.skin ?? "paper",size:18)).textSelection(.enabled) }
                         let labels = entry.labels
                         if !labels.isEmpty { Text(labels.joined(separator: " · ")).font(.caption).accessibilityIdentifier("entry.labels") }
                         ForEach(entry.mediaReferences) { media in
@@ -301,7 +305,7 @@ struct EntryEditor: View {
                     if draft.journal != "default" && !model.journals.contains(where: { $0.journalID == draft.journal }) { Text("Unavailable notebook — choose another").tag(draft.journal) }
                     ForEach(model.journals) { Text($0.title).tag($0.journalID) }
                 }
-                Section("Writing") { TextEditor(text: $draft.text).frame(minHeight: 260).accessibilityLabel("Journal text") }
+                Section("Writing") { TextEditor(text: $draft.text).font(chapterFont(.prose,skin:model.snapshot.appearance?.skin ?? "paper",size:18)).frame(minHeight: 260).accessibilityLabel("Journal text") }
                 if let error {
                     Section("Unsaved changes") {
                         Text(error).foregroundStyle(.red)
@@ -404,7 +408,7 @@ struct NotebookList: View {
                     NavigationLink { EntryList(journal: journal.journalID) } label: {
                         HStack(spacing: 14) {
                             NotebookCover(color:journal.body["color"]?.string ?? "#B0563A",pattern:journal.body["cover"]?.string ?? "plain")
-                            VStack(alignment: .leading, spacing:4) { Text(journal.title).font(.headline)
+                            VStack(alignment: .leading, spacing:4) { Text(journal.title).font(chapterFont(.heading,skin:model.snapshot.appearance?.skin ?? "paper",size:22,relativeTo:.title2))
                                 if let subtitle = journal.body["subtitle"]?.string, !subtitle.isEmpty { Text(subtitle).font(.caption).foregroundStyle(.secondary) }
                                 Text("\(model.entries.filter { $0.journalID == journal.journalID }.count) entries").font(.caption).foregroundStyle(.secondary)
                             }
@@ -541,7 +545,7 @@ struct SettingsView: View {
                 Section("Not yet implemented") {
                     Text("Full rich formatting/structural editing and exact custom-node/math/table rendering, camera/audio/video capture, large media and unsupported playback codecs, templates UI, interviews/AI/transcription, import/export, maps, localization, badges, reminders, vault deletion/rotation and operator tools. The web app remains available for these. This preview is not full parity or an independently audited secure product.")
                 }
-                Section("Open source") { Link("Source and AGPL-3.0 license", destination: URL(string: "https://github.com/BubbyWoodz/Chapter")!) }
+                Section("Open source") { NavigationLink("Original font licenses") { ChapterFontLicenses() }; Link("Source and AGPL-3.0 license", destination: URL(string: "https://github.com/BubbyWoodz/Chapter")!) }
             }.modifier(ChapterScreenSurface()).navigationTitle("Settings")
         }
     }
@@ -696,3 +700,47 @@ struct MoveEntryView: View {
         }
     }
 }
+
+private struct ChapterFontLicenses: View {
+    var body: some View {
+        ScrollView {
+            VStack(alignment:.leading,spacing:24) {
+                ForEach(["hanken-grotesk","newsreader","spline-sans-mono"],id:\.self) { family in
+                    if let url = Bundle.main.url(forResource:family+"-OFL",withExtension:"txt",subdirectory:"Fonts"), let license = try? String(contentsOf:url,encoding:.utf8) {
+                        Text(license).font(.footnote).textSelection(.enabled).accessibilityIdentifier("license."+family)
+                    } else { Text("Bundled font license unavailable: "+family).accessibilityIdentifier("license.missing."+family) }
+                }
+            }.padding()
+        }.navigationTitle("Font licenses")
+    }
+}
+
+// Dynamic Type relative styles are intentional; no fixed-size custom UIFont is
+// installed globally. Onboarding stays on original native fonts while its strict
+// audit diagnosis remains open. Unavailable/non-Latin glyphs use native fallback.
+func chapterFont(_ role:ChapterFontRole,skin:String,size:CGFloat = 17,relativeTo style:Font.TextStyle = .body)->Font {
+    .custom(ChapterTypeface.postscript(role,skin:skin),size:size,relativeTo:style)
+}
+#if DEBUG
+private struct ChapterFontDiagnostic: View {
+    var body: some View {
+        NavigationStack { ScrollView {
+            VStack(alignment:.leading,spacing:20) {
+                ForEach(["HankenGrotesk-Regular","HankenGrotesk-Italic","Newsreader16pt-Regular","Newsreader16pt-Italic","SplineSansMono-Regular","SplineSansMono-Italic"],id:\.self) { name in
+                    if let actual = UIFont(name:name,size:18) {
+                        Text(actual.fontName).font(.custom(name,size:18,relativeTo:.body)).accessibilityIdentifier("font."+name)
+                    } else { Text("Unavailable: "+name).accessibilityIdentifier("font.missing."+name) }
+                }
+                Text("Original fonts: PUBLIC synthetic typography only.").font(.footnote)
+                NavigationLink("Original font licenses") { ChapterFontLicenses() }
+            }.padding()
+        } }
+    }
+}
+/// A separate unchanged SecureField comparison; does not replace production tests
+/// or the existing unmodified Form control, and never handles a real phrase.
+private struct NativeSecureFieldAuditReproduction: View {
+    @State private var text = ""
+    var body: some View { NavigationStack { Form { SecureField("Public secure field",text:$text) }.navigationTitle("Secure field comparison") } }
+}
+#endif

@@ -28,12 +28,12 @@ struct RichDocumentView: View {
     }
     private func inline(_ node: RichNode, font: Font = .body) -> AttributedString {
         if node.type == "text" {
-            var value = AttributedString(node.text), face = font
+            var value = AttributedString(node.text), face = node.value["marks"].array.contains(where:{$0["type"].string == "code"}) ? chapterFont(.mono,skin:model.snapshot.appearance?.skin ?? "paper",size:16):font
             for mark in node.value["marks"].array {
                 switch mark["type"].string {
                 case "bold": face = face.bold()
                 case "italic": face = face.italic()
-                case "code": face = face.monospaced()
+                case "code": break // Spline Sans Mono selected before applying bold/italic.
                 case "underline": value.underlineStyle = .single
                 case "strike": value.strikethroughStyle = .single
                 case "link":
@@ -54,7 +54,9 @@ struct RichDocumentView: View {
         case "doc", "listItem", "taskList": return AnyView(children(node))
         case "paragraph", "heading":
             let level = node.value["attrs"]["level"].number ?? 2
-            let font: Font = node.type == "heading" ? (level == 1 ? .title : level == 2 ? .title2 : .title3) : .body
+            let font: Font = node.type == "heading"
+                ? chapterFont(.heading,skin:model.snapshot.appearance?.skin ?? "paper",size:level == 1 ? 28:level == 2 ? 22:20,relativeTo:level == 1 ? .title:level == 2 ? .title2:.title3)
+                : chapterFont(.prose,skin:model.snapshot.appearance?.skin ?? "paper",size:18)
             let content = inline(node, font: font)
             return AnyView(Text(content.characters.isEmpty ? AttributedString(" ") : content).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading).accessibilityAddTraits(node.type == "heading" ? .isHeader : []))
         case "bulletList", "orderedList":
@@ -75,12 +77,12 @@ struct RichDocumentView: View {
                 children(node)
             })
         case "blockquote": return AnyView(HStack(alignment: .top) { Rectangle().fill(Color.secondary).frame(width: 3); children(node) }.fixedSize(horizontal: false, vertical: true).padding(.leading, 6))
-        case "codeBlock": return AnyView(ScrollView(.horizontal) { Text(node.children.map(\.text).joined()).font(.body.monospaced()).textSelection(.enabled) }.padding().background(chapterToken("surface",preference:model.snapshot.appearance ?? .standard), in: RoundedRectangle(cornerRadius: 8)))
+        case "codeBlock": return AnyView(ScrollView(.horizontal) { Text(node.children.map(\.text).joined()).font(chapterFont(.mono,skin:model.snapshot.appearance?.skin ?? "paper",size:16)).textSelection(.enabled) }.padding().background(chapterToken("surface",preference:model.snapshot.appearance ?? .standard), in: RoundedRectangle(cornerRadius: 8)))
         case "horizontalRule": return AnyView(Divider().accessibilityLabel("Separator"))
         case "table": return AnyView(ScrollView(.horizontal) { children(node) }.accessibilityLabel("Table; merged cell layout is simplified"))
         case "tableRow": return AnyView(HStack(alignment: .top, spacing: 0) { ForEach(node.children) { render($0).frame(minWidth: 140, alignment: .leading) } })
         case "tableCell", "tableHeader": return AnyView(children(node).padding(10).background(chapterToken("surface",preference:model.snapshot.appearance ?? .standard)).border(Color.secondary.opacity(0.4)))
-        case "blockMath": return AnyView(Text(node.value["attrs"]["latex"].string ?? "").font(.body.monospaced()).textSelection(.enabled).accessibilityLabel("LaTeX formula: " + (node.value["attrs"]["latex"].string ?? "")))
+        case "blockMath": return AnyView(Text(node.value["attrs"]["latex"].string ?? "").font(chapterFont(.mono,skin:model.snapshot.appearance?.skin ?? "paper",size:16)).textSelection(.enabled).accessibilityLabel("LaTeX formula: " + (node.value["attrs"]["latex"].string ?? "")))
         case "mediaAttachment", "mediaGallery": return AnyView(Label(node.value["attrs"]["name"].string ?? "Encrypted media — use attachment preview below", systemImage: "paperclip").foregroundStyle(.secondary))
         case "locationMap": return AnyView(Label((node.value["attrs"]["from"]["label"].string ?? "Location") + " → " + (node.value["attrs"]["to"]["label"].string ?? ""), systemImage: "map").textSelection(.enabled))
         case "videoInterview": return AnyView(VStack(alignment: .leading) {
@@ -153,7 +155,7 @@ struct RichDraftEditor: View {
                     }.padding(.horizontal)
                 }
             }
-            TextEditor(text: $current.text).scrollContentBackground(.hidden).background(chapterToken("paper",preference:model.snapshot.appearance ?? .standard)).accessibilityLabel(current.newBlockStyle == nil ? "Formatted text run" : "New block text").autocorrectionDisabled().padding()
+            TextEditor(text: $current.text).font(chapterFont(.prose,skin:model.snapshot.appearance?.skin ?? "paper",size:18)).scrollContentBackground(.hidden).background(chapterToken("paper",preference:model.snapshot.appearance ?? .standard)).accessibilityLabel(current.newBlockStyle == nil ? "Formatted text run" : "New block text").autocorrectionDisabled().padding()
             if current.supportsFormatting {
                 Text("Formatting: " + (formats.contains(where: { current.hasMark($0.0) }) ? formats.filter { current.hasMark($0.0) }.map { $0.1 }.joined(separator: ", ") : "Plain text")).font(.footnote).padding(.horizontal).accessibilityIdentifier("rich.format-summary")
             }

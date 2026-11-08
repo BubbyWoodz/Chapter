@@ -50,6 +50,24 @@ final class ChapterUITests: XCTestCase {
         attach(app, name: "Chapter actual OS XXXL action")
         // This supplements, never replaces, the separate strict audit tests.
     }
+    func testOriginalBundledFontsActuallyLoadInIOS() throws {
+        let app = XCUIApplication(); app.launchArguments = ["--chapter-font-diagnostic"]; app.launch()
+        for name in ["HankenGrotesk-Regular","HankenGrotesk-Italic","Newsreader16pt-Regular","Newsreader16pt-Italic","SplineSansMono-Regular","SplineSansMono-Italic"] {
+            let face = app.staticTexts["font."+name]; XCTAssertTrue(face.waitForExistence(timeout:10),"UIFont must load the original bundled face, not silently fall back"); XCTAssertEqual(face.label,name)
+        }
+        attach(app,name:"Chapter actual original web fonts loaded by native UIFont")
+        try audit(app,for:.dynamicType)
+        app.buttons["Original font licenses"].tap()
+        for family in ["hanken-grotesk","newsreader","spline-sans-mono"] {
+            let license = app.staticTexts["license."+family]; XCTAssertTrue(license.waitForExistence(timeout:5)); XCTAssertTrue(license.label.contains("SIL OPEN FONT LICENSE Version 1.1"))
+        }
+    }
+    func testUnmodifiedNativeSecureFieldDynamicTypeReproduction() throws {
+        let app = XCUIApplication(); app.launchArguments = ["--chapter-native-secure-field-audit-repro"]; app.launch()
+        XCTAssertTrue(app.secureTextFields["Public secure field"].waitForExistence(timeout:10))
+        attach(app,name:"Unmodified native SecureField strict Dynamic Type comparison")
+        try audit(app,for:.dynamicType)
+    }
     private func attach(_ app: XCUIApplication, name: String) {
         let shot = XCTAttachment(screenshot: app.screenshot()); shot.name = name; shot.lifetime = .keepAlways; add(shot)
     }
@@ -176,6 +194,7 @@ final class ChapterUITests: XCTestCase {
         attach(app,name:"Chapter real rich-entry metadata form and single comma label")
         app.buttons["Save"].tap()
         XCTAssertTrue(app.staticTexts["Public heading"].waitForExistence(timeout:5)); XCTAssertFalse(app.staticTexts["metadata.error"].exists)
+        XCTAssertTrue(app.staticTexts["entry.title"].label.contains("-METADATA"),"Native title must actually save without flattening the rich body")
         let labels = app.staticTexts["entry.labels"]; reveal(labels,in:app); XCTAssertEqual(labels.label,"travel, friends")
         attach(app,name:"Chapter original rich document retained after native metadata edit")
     }

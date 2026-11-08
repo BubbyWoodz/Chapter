@@ -24,12 +24,33 @@ the exact revision; a failing strict accessibility audit remains a release block
 | Audio/transcription/video/films | Read-only simplified cards/transcripts + existing attachment preview | Recording, per-question capture, STT, film rendering/editor all missing |
 | Locations/maps | Read-only place names and explicit encrypted attachment previews | Native insertion/editing/snapshot flows and explicit network consent missing |
 | Import/export/backups | NOT implemented natively | Day One, journal exports/import, recovery/restore and operator backup UI missing |
-| Appearance/language | Actual encrypted web↔native theme round trip, native restart/offline editing, six skins/palettes and real native theme/cover UI test passed; browser transaction/recovery increment under verification | Updated Chapter web required (original upstream stores themes only locally). Native Forest paper screenshot RGB assertion and actual cover/theme picker PASS at929e8ea run42517557894. Strict onboarding audits still fail. Original Hanken Grotesk/Newsreader/Spline Sans Mono/skin typography is not yet faithfully applied natively; 12 locales/RTL and whole-app/device audits missing |
+| Appearance/language | Actual encrypted web↔native theme round trip, native restart/offline editing, six skins/palettes and real native theme/cover UI test passed; browser transaction/recovery increment under verification | Updated Chapter web required (original upstream stores themes only locally). Native Forest paper screenshot RGB assertion and actual cover/theme picker PASS at929e8ea run42517557894. Strict onboarding audits still fail. Original licensed Hanken Grotesk/Newsreader/Spline Sans Mono normal/italic Latin faces are now bundled and applied to journal/notebook headings, prose/editor/code and unlocked UI default using original skin roles. Font tables/glyphs, byte-reproducibility/provenance/license checks and native role-selection tests PASS locally; actual iOS UIFont loading/Dynamic Type test pending. Onboarding/native navigation and unavailable glyphs retain native fallback. Live web visual comparison,12 locales/RTL and whole-app/device audits missing |
 | Reminders/lifecycle | Background lock only | Reminders, phrase creation/rotation, vault/journal deletion, WebAuthn/PRF and operator administration/update UI missing |
 | Sync reliability | Debounced local-edit + foreground sync, bounded retry backoff, up to 10,000 attempted records/pass in 100-record batches, durable media ordering, recoverable entry conflicts | Actual core adversarial ack/clock/conflict/drain/retry and genuine trusted TLS/Go/Postgres native relay/pagination/media/theme round trips PASS; latest whole native/S3/backup-restore42519352385 PASS atfd3d1ad. No guaranteed background schedule or full two-device lifecycle certification |
 | Local storage | Device-only user-presence Keychain + AES-GCM snapshot; protected/excluded from backup | Version 1/2/3→4 read migration preserves keys and old file until next save; older previews reject v4 instead of dropping formatting/new-block drafts/media outbox. Actual Apple v3→v4 encrypted migration/restart/old-version write refusal PASS at98885d0; earlier backup-preparation fault/reopen/retry PASS. Actual hardware Keychain/backup extraction not certified |
 | Server distribution | Chapter-owned source-build compose/install profile, separate volumes, private setup, optional STT; image/source artifact + real S3/backup-restore CI added | Real source-image builds, trusted HTTPS/auth/web crypto, actual PostgreSQL/S3 media and restore into a different empty stack PASS at 551236b (run 42511822303). Downloadable Linux amd64 image/source/checksum bundle exists. Not deployed; no direct live-volume migration or general historical-upgrade certification |
 | iPhone distribution | Xcode source and unsigned Simulator artifacts only | No signed device IPA, TestFlight or physical-device certification. Apple signing route later, not obtained here |
+
+## November 8, 2026, 4:04 PM EST typography increment (iOS gate pending)
+
+- Added SIX exact original-web Latin normal/italic variable fonts, losslessly
+  decompressed to TrueType. All glyph maps/orders/font tables except only the
+  checksum adjustment are asserted unchanged, and conversion is byte-reproducible.
+  Complete original SIL OFL1.1 notices ship in the app and a local offline license
+  viewer. Source/package/output/license SHA256s are enforced in browser CI.
+- Actual unlocked journal/notebook titles, prose, plain/rich editor and code runs
+  now select the original fonts: Modern sans headings/serif writing, Terminal
+  sans headings/writing, other skins serif headings/writing, Spline mono code.
+  Dynamic Type uses `Font.custom(relativeTo:)`; no global fixed UIFont override,
+  no runtime font download or telemetry. Native navigation/controls adapt to iOS;
+  missing/non-Latin glyphs use native fallback. This is NOT exact visual parity.
+- Actual compiled Swift role selection and ALL29 browser checks + production
+  typecheck/build PASS locally. Added actual six-face UIFont-load, bundled-license
+  and strict Dynamic Type UI assertions. Real iOS results remain pending; source
+  names and hashes alone do not prove UIKit loading/accessibility.
+- Existing production strict audits remain blocking. Added a SEPARATE unmodified
+  native SecureField strict comparison to isolate the remaining opaque finding;
+  existing unmodified Form comparison and ALL production audits stay unchanged.
 
 ## November 8, 2026, 3:57 PM EST increment (new metadata Apple gates pending)
 
@@ -55,8 +76,9 @@ the exact revision; a failing strict accessibility audit remains a release block
   formatting selection still runs the same durable-draft operations. Plain Edit
   now also uses real action buttons. All strict tests/assertions remain. New UI
   verification is pending; Dynamic Type release blocker remains independently.
-- Notebook cascade/shared-media purge and licensed original font integration are
-  still outstanding. Deletion recovery is intentionally NOT secure erasure.
+- Notebook cascade/shared-media purge remain outstanding. Deletion recovery is
+  intentionally NOT secure erasure. Original font bundling is added below; actual
+  iOS font-load/scaling gate remains required.
 
 ## November 8, 2026, 3:36 PM EST increment (verification pending)
 
