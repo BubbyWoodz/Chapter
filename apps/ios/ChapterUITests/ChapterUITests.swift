@@ -15,9 +15,22 @@ final class ChapterUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
         app.launch()
-        XCTAssertTrue(app.textFields["connection.server"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["Chapter"].waitForExistence(timeout: 10))
+        try app.performAccessibilityAudit(for: .dynamicType)
+        // At XXXL the form correctly scrolls; off-screen lazy rows need revealing.
+        // Assert reachability rather than treating off-screen virtualization as failure.
+        reveal(app.textFields["connection.server"], in: app)
+        try app.performAccessibilityAudit(for: .dynamicType)
+        reveal(app.secureTextFields["connection.phrase"], in: app)
         try app.performAccessibilityAudit(for: .dynamicType)
         let shot = XCTAttachment(screenshot: app.screenshot()); shot.name = "Chapter connection — accessibility XXXL"; shot.lifetime = .keepAlways; add(shot)
+    }
+    private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
+        for _ in 0..<8 {
+            if element.exists && element.isHittable { return }
+            app.swipeUp()
+        }
+        XCTAssertTrue(element.exists && element.isHittable, "Required control must be reachable by scrolling")
     }
     func testHTTPIsRejectedBeforeAnyAuthenticationOrVaultCreation() throws {
         let app = XCUIApplication(); app.launch()

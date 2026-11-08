@@ -85,3 +85,53 @@ accessibility and Dynamic Type audits plus HTTPS-only fail-closed behavior. CI
 uploads genuine xcresult/captures of public-fixture screens. These automated tests
 are not physical-device VoiceOver, LAN/Tailscale, backup/key-loss or live-stack
 interoperability certification. Refer to the PR checks for actual pass/fail status.
+
+
+## Current scope and final deliverables (November 8, 2026 AST)
+
+The latest direction is functional native parity with the original Mneme encryption
+and behavior. Do not redesign encryption, change HKDF/AAD/signature domains, or
+silently migrate keys/wire records. Earlier security-design possibilities are not
+an instruction to implement them now. Preserve compatible, additive encrypted
+mobile storage and already committed safe correctness fixes. Existing metadata,
+freshness, revocation and plaintext-web-storage limitations remain disclosed;
+passing functional tests is not a claim that those limitations disappeared.
+
+The project is not finished at a source PR or Simulator build. Required deliverables:
+
+1. Reproducible Chapter server/web Docker artifacts and a compose/install/upgrade
+   runbook, with Chapter-owned local tags/artifacts rather than accidentally pulling
+   or publishing `ghcr.io/mneme-blog/*`. Keep original database/media formats,
+   volume ownership/names and `/mneme` compatibility deliberate; renaming a compose
+   project can silently select empty volumes and must not be called migration.
+2. Clean-stack startup/health/migration/backup-restore tests plus real native-client
+   registration, sync, offline edits/conflicts and media integration. Existing
+   crypto fixtures and URLProtocol tests alone do not establish that integration.
+3. Full native feature parity with preserved rich document schema/media, followed
+   by an actually installable signed iPhone build and documented server connection.
+   Unsigned Simulator `.app`/Xcode source are not iPhone-installable distribution.
+4. No deployment on anyone's devices/services, registry/release publication, signing
+   credential acquisition, TestFlight upload or App Store submission is implied by
+   preparing/testing artifacts. Those externally visible steps need the appropriate
+   explicit authorization and signing route when the app is ready.
+
+### Sanctioned eventual signing routes
+
+Apple documents free Personal Team installation from Xcode on your own device;
+provisioning expires after seven days and requires rebuilding/reinstalling. A
+registered-device Development/Ad Hoc export or TestFlight distribution uses the
+appropriate Apple Developer Program team/certificates/profiles. No Apple account,
+certificate, private key, profile or App Store Connect access was obtained here.
+An authorized Apple team/device distribution route is a future user-only dependency,
+not an excuse to stop building/testing the app now. Do not upload private signing
+material into this repository or CI artifacts.
+
+Official sources read for this plan:
+- https://developer.apple.com/help/account/basics/about-your-developer-account/
+- https://developer.apple.com/documentation/xcode/distributing-your-app-for-beta-testing-and-releases
+
+Next implementation priority after a green native foundation: lossless native rich
+viewing/editing and encrypted media capture/upload/download; retain unsupported
+nodes/attrs/marks without flattening. Server packaging and live integration must
+progress as real milestones alongside the remaining parity matrix, not be deferred
+until calling a source-only client finished.

@@ -13,6 +13,23 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+      - name: Choose an installed iPhone Simulator
+        id: simulator
+        run: |
+          xcrun simctl list devices available --json > "$RUNNER_TEMP/devices.json"
+          python3 - "$RUNNER_TEMP/devices.json" "$(xcrun --sdk iphonesimulator --show-sdk-version)" >> "$GITHUB_OUTPUT" <<'PYDEVICE'
+          import json, sys
+          devices = json.load(open(sys.argv[1]))['devices']
+          runtime = 'com.apple.CoreSimulator.SimRuntime.iOS-' + sys.argv[2].replace('.', '-')
+          phones = [d for d in devices.get(runtime, []) if 'iPhone' in d['name'] and d.get('isAvailable')]
+          if not phones: raise SystemExit('No iPhone Simulator runtime matching selected Xcode SDK: ' + runtime)
+          print('id=' + phones[0]['udid'])
+          print('boot=' + str(phones[0].get('state') != 'Booted').lower())
+          print('Selected ' + phones[0]['name'] + ' / ' + runtime, file=sys.stderr)
+          PYDEVICE
+      - name: Start Simulator while dependencies and app build run
+        if: steps.simulator.outputs.boot == 'true'
+        run: xcrun simctl boot '${{ steps.simulator.outputs.id }}'
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -39,17 +56,13 @@ jobs:
       - name: Build genuine native app for iOS Simulator (no signing credentials)
         run: xcodebuild -project apps/ios/Chapter.xcodeproj -scheme Chapter -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/ChapterBuild" ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO build
 
-      - name: Choose an installed iPhone Simulator
-        id: simulator
-        run: |
-          xcrun simctl list devices available --json > "$RUNNER_TEMP/devices.json"
-          python3 - "$RUNNER_TEMP/devices.json" >> "$GITHUB_OUTPUT" <<'PYDEVICE'
-          import json, sys
-          devices = json.load(open(sys.argv[1]))['devices']
-          phones = [d for runtime, group in sorted(devices.items(), reverse=True) if 'iOS' in runtime for d in group if 'iPhone' in d['name'] and d.get('isAvailable')]
-          if not phones: raise SystemExit('No installed iPhone Simulator runtime')
-          print('id=' + phones[0]['udid'])
-          PYDEVICE
+      - name: Package unsigned Simulator app (not an iPhone IPA)
+        run: ditto -c -k --sequesterRsrc --keepParent "$RUNNER_TEMP/ChapterBuild/Build/Products/Debug-iphonesimulator/Chapter.app" "$RUNNER_TEMP/Chapter-Simulator.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Chapter-unsigned-Simulator
+          path: ${{ runner.temp }}/Chapter-Simulator.zip
+          retention-days: 7
       - name: Native UI smoke tests and accessibility audits
         run: xcodebuild -project apps/ios/Chapter.xcodeproj -scheme Chapter -configuration Debug -destination 'platform=iOS Simulator,id=${{ steps.simulator.outputs.id }}' -destination-timeout 120 -parallel-testing-enabled NO -derivedDataPath "$RUNNER_TEMP/ChapterUITestBuild" -resultBundlePath "$RUNNER_TEMP/ChapterUITests.xcresult" CODE_SIGNING_ALLOWED=NO test
       - name: Save real UI test results and fixture-only screen captures
