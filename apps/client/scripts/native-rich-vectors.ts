@@ -58,6 +58,12 @@ export function verifyRichFixture(write: boolean, identity: {dataKey:Uint8Array}
   assert.equal(authoredBody.bodyText,fixture.authoredPreview);
   assert.deepEqual(docMediaIds(JSON.parse(authoredBody.bodyJson)),fixture.mediaIds);
   assert.deepEqual(authoredBody.unknownFuture,{preserve:true});
+  const moved = JSON.parse(readFileSync(nativePath+'.entry-move','utf8')) as {id:string;record:string};
+  const movedBody = JSON.parse(Buffer.from(decryptRecord(identity.dataKey,moved.id,Buffer.from(moved.record,'base64'))).toString());
+  assert.equal(movedBody.journalId,'public-destination');assert.equal(movedBody.createdAt,1);
+  assert.deepEqual(JSON.parse(movedBody.bodyJson),original);assert.deepEqual(movedBody.unknownFuture,{preserve:true});
+  assert.deepEqual(docMediaIds(JSON.parse(movedBody.bodyJson)),fixture.mediaIds);
+  console.log('Swift → actual web: moved rich entry retains original content, dates, opaque fields and every media reference.');
   console.log('Swift → actual web: all nine authored block styles + native formatting preserve every original node/attribute/media reference; genuine upstream schema accepts new blocks.');
  }
 }

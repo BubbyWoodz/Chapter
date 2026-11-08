@@ -93,13 +93,24 @@ public struct VaultRecord: Codable, Identifiable, Equatable {
         copy.body["updatedAt"] = .number(Double(copy.clock))
         return copy
     }
+    public func requiringUnchanged(expected: VaultRecord) throws {
+        guard id == expected.id, clock == expected.clock, body == expected.body, deleted == expected.deleted else { throw ChapterError.conflict }
+    }
+    /// Move without flattening rich content, changing dates, or reuploading media.
+    public func movingEntry(expected: VaultRecord, to notebook: VaultRecord, now: Date = Date()) throws -> VaultRecord {
+        guard kind == "entry", !deleted, notebook.kind == "journal", !notebook.deleted, !notebook.journalID.isEmpty else { throw ChapterError.unsupported }
+        try requiringUnchanged(expected: expected)
+        guard journalID != notebook.journalID else { return self }
+        var next = self; next.clock = try ProtocolNumbers.nextClock(after: clock, now: now)
+        next.body["journalId"] = .string(notebook.journalID); next.body["updatedAt"] = .number(Double(next.clock)); next.dirty = true
+        return next
+    }
     /// Patch only the original browser notebook fields, preserving opaque future data.
     /// Compare against the editor's opening value; an ack may change dirty, not body.
     public func editingJournal(expected: VaultRecord, name: String? = nil, subtitle: String? = nil,
                                color: String? = nil, cover: String? = nil, now: Date = Date()) throws -> VaultRecord {
         guard kind == "journal", !deleted, !journalID.isEmpty else { throw ChapterError.unsupported }
-        guard id == expected.id, clock == expected.clock, body == expected.body,
-              deleted == expected.deleted else { throw ChapterError.conflict }
+        try requiringUnchanged(expected: expected)
         var copy = self
         if let name {
             let value = name.trimmingCharacters(in: .whitespacesAndNewlines)

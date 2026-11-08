@@ -139,6 +139,8 @@ final class RichDocumentTests: XCTestCase {
         XCTAssertEqual(doc.node.children[0].children[0].text, "Reopened")
         let record = VaultRecord(id: "append", clock: 1, body: ["bodyJson": .string(raw)])
         var draft = RichDraft.newBlock(entryID: record.id, expectedDocument: raw); draft.text = "A task"; draft.newBlockStyle = .taskList
+        var otherEntry = record; otherEntry.id = "another-entry"
+        XCTAssertThrowsError(try draft.applying(to: otherEntry))
         let next = try draft.applying(to: record)
         XCTAssertEqual(try RichDocument(json: XCTUnwrap(next.body["bodyJson"]?.string)).node.children.last?.type, "taskList")
         XCTAssertThrowsError(try draft.applying(to: next), "Stale append must not duplicate or overwrite content")

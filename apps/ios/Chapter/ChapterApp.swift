@@ -152,6 +152,7 @@ struct EntryDetail: View {
     @State private var photoSelection: PhotosPickerItem?
     @State private var editing = false
     @State private var editRich = false
+    @State private var moving = false
     @State private var deleting = false
     @State private var previewURL: URL?
     @State private var loadingMedia: String?
@@ -165,6 +166,7 @@ struct EntryDetail: View {
                     VStack(alignment: .leading, spacing: 16) {
                         Text(entry.title).font(.largeTitle).accessibilityAddTraits(.isHeader)
                         Text(entry.date, style: .date).foregroundStyle(.secondary)
+                        if let notebook = model.journals.first(where: { $0.journalID == entry.journalID }) { Text("Notebook: " + notebook.title).font(.footnote).accessibilityIdentifier("entry.notebook") }
                         if let raw = entry.body["bodyJson"]?.string, let document = try? RichDocument(json: raw) {
                             RichDocumentView(entry: entry, document: document)
                         } else { Text(entry.text).textSelection(.enabled) }
@@ -201,12 +203,16 @@ struct EntryDetail: View {
                             Button("Rich document") { editRich = true; editing = true }
                         }
                     } else if entry.body["bodyJson"]?.string.flatMap({ try? RichDocument(json: $0) }) != nil { Button("Edit") { editRich = true; editing = true } }
-                    Button(role: .destructive) { deleting = true } label: { Label("Delete entry", systemImage: "trash") }
+                    Menu("More") {
+                        Button("Move to notebook") { moving = true }.disabled(model.journals.isEmpty)
+                        Button(role: .destructive) { deleting = true } label: { Label("Delete entry", systemImage: "trash") }
+                    }
                 }
                 .sheet(isPresented: $editing) {
                     if entry.editablePlainText && !editRich { EntryEditor(existing: entry, journal: entry.journalID) }
                     else if let raw = entry.body["bodyJson"]?.string, (try? RichDocument(json: raw)) != nil { RichEntryEditor(entry: entry) }
                 }
+                .sheet(isPresented: $moving) { MoveEntryView(entry: entry) }
                 .confirmationDialog("Delete this entry on all synced devices?", isPresented: $deleting, titleVisibility: .visible) {
                     Button("Delete entry", role: .destructive) { do { try model.deleteEntry(entry); dismiss() } catch { model.message = error.localizedDescription } }
                 }
@@ -557,5 +563,33 @@ struct ChapterScreenSurface: ViewModifier {
         content.scrollContentBackground(.hidden).background(paper)
             .toolbarBackground(paper,for:.navigationBar,.tabBar)
             .toolbarBackground(.visible,for:.navigationBar,.tabBar)
+    }
+}
+
+struct MoveEntryView: View {
+    @EnvironmentObject private var model: VaultModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var expected: VaultRecord
+    @State private var notebookID: String
+    @State private var error: String?
+    init(entry: VaultRecord) { _expected = State(initialValue: entry); _notebookID = State(initialValue: entry.journalID) }
+    var body: some View {
+        NavigationStack {
+            Form {
+                Picker("Notebook", selection: $notebookID) {
+                    Text("Choose a notebook").tag("")
+                    ForEach(model.journals) { notebook in Text(notebook.title).tag(notebook.journalID) }
+                }.accessibilityIdentifier("move.notebook")
+                Text("Moves this entry without changing its original rich content, attachments, labels or creation date. Saved changes sync when your server is reachable.").font(.footnote)
+                if let error { Text(error).foregroundStyle(.red).accessibilityIdentifier("move.error") }
+            }.modifier(ChapterScreenSurface()).navigationTitle("Move entry")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Move") { do { try model.moveEntry(expected, notebookID: notebookID); dismiss() } catch { self.error = error.localizedDescription } }
+                        .disabled(!model.journals.contains { $0.journalID == notebookID })
+                }
+            }
+        }
     }
 }

@@ -257,7 +257,8 @@ extension RichDraft {
         return (marks ?? original?.value["marks"].array ?? []).contains { $0["type"].string == type }
     }
     public func applying(to record: VaultRecord, now: Date = Date()) throws -> VaultRecord {
-        try record.editingRichDocument(expected: expectedDocument, now: now) { document in
+        guard record.id == entryID else { throw ChapterError.conflict }
+        return try record.editingRichDocument(expected: expectedDocument, now: now) { document in
             if let style = newBlockStyle {
                 guard path.isEmpty, marks == nil else { throw ChapterError.unsupported }
                 try document.appendTextBlock(text: text, style: style)

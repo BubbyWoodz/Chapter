@@ -174,4 +174,15 @@ final class ChapterUITests: XCTestCase {
         try audit(app, for: .dynamicType)
     }
 
+    func testRichEntryMovesToNotebookWithoutLosingContent() throws {
+        let app = XCUIApplication(); app.launchArguments = ["--chapter-rich-fixture"]; app.launch()
+        let entry = app.staticTexts["Public rich fixture"]; XCTAssertTrue(entry.waitForExistence(timeout: 10)); entry.tap()
+        XCTAssertEqual(app.staticTexts["entry.notebook"].label, "Notebook: Public notebook")
+        app.buttons["More"].tap(); app.buttons["Move to notebook"].tap()
+        app.buttons["move.notebook"].tap(); app.buttons["Public destination"].tap(); app.buttons["Move"].tap()
+        XCTAssertTrue(app.staticTexts["entry.notebook"].waitForExistence(timeout: 5)); XCTAssertEqual(app.staticTexts["entry.notebook"].label, "Notebook: Public destination")
+        XCTAssertTrue(app.staticTexts["Public heading"].exists)
+        attach(app, name: "Chapter real native rich entry moved between notebooks")
+    }
+
 }

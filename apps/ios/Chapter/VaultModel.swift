@@ -34,7 +34,8 @@ import ChapterCore
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let disk = EncryptedSnapshotStore(directory: directory, namespace: "public-fixture-only", key: SymmetricKey(data: Data(repeating: 7, count: 32)))
         var value = VaultSnapshot()
-        value.records = [VaultRecord(id: "public-notebook-record", clock: 1, body: ["kind": .string("journal"), "journalId": .string("public-notebook"), "name": .string("Public notebook"), "subtitle": .string("Public subtitle"), "color": .string("#4E8B85"), "cover": .string("lines"), "opaqueFuture": .object(["preserve": .bool(true)])]), VaultRecord(id: "public-rich-fixture", clock: 1, body: ["title": .string("Public rich fixture"), "bodyJson": .string(PublicRichFixture.json), "bodyText": .string(try RichDocument(json: PublicRichFixture.json).plainText)])]
+        value.records = [VaultRecord(id: "public-notebook-record", clock: 1, body: ["kind": .string("journal"), "journalId": .string("public-notebook"), "name": .string("Public notebook"), "subtitle": .string("Public subtitle"), "color": .string("#4E8B85"), "cover": .string("lines"), "opaqueFuture": .object(["preserve": .bool(true)])]), VaultRecord(id: "public-rich-fixture", clock: 1, body: ["journalId": .string("public-notebook"), "title": .string("Public rich fixture"), "bodyJson": .string(PublicRichFixture.json), "bodyText": .string(try RichDocument(json: PublicRichFixture.json).plainText)])]
+        value.records.append(VaultRecord(id: "public-destination-record", clock: 1, body: ["kind": .string("journal"), "journalId": .string("public-destination"), "name": .string("Public destination"), "color": .string("#B0563A"), "cover": .string("dots")]))
         try disk.save(value); store = disk; snapshot = value; unlocked = true; appearanceInitialized = true
         // Deliberately no identity, relay or fake sync/auth result. Tests exercise
         // real encrypted local editing, never production Keychain/server auth.
@@ -156,6 +157,10 @@ import ChapterCore
     }
     func saveEntry(existing: VaultRecord?, title: String, text: String, labels: String, date: Date, journal: String) throws -> String {
         guard let identity, existing == nil || existing!.editablePlainText else { throw ChapterError.unsupported }
+        if let existing {
+            guard let live = snapshot.records.first(where: { $0.id == existing.id }), !live.deleted else { throw ChapterError.conflict }
+            try live.requiringUnchanged(expected: existing)
+        }
         _ = identity // refuses editing while locked
         let clock = try nextClock(after: existing?.clock ?? 0)
         let id = existing?.id ?? UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
@@ -210,10 +215,18 @@ import ChapterCore
             cover: cover == (expected.body["cover"]?.string ?? "plain") ? nil : cover)
         try commit(next); scheduleSync()
     }
+    func moveEntry(_ expected: VaultRecord, notebookID: String) throws {
+        var next = snapshot
+        guard let i = next.records.firstIndex(where: { $0.id == expected.id }),
+              let target = next.records.first(where: { $0.kind == "journal" && !$0.deleted && $0.journalID == notebookID }) else { throw ChapterError.conflict }
+        next.records[i] = try next.records[i].movingEntry(expected: expected, to: target)
+        try commit(next); scheduleSync()
+    }
     func deleteEntry(_ entry: VaultRecord) throws {
         var next = snapshot
-        guard let i = next.records.firstIndex(where: { $0.id == entry.id }) else { return }
-        next.records[i].clock = try nextClock(after: entry.clock); next.records[i].deleted = true; next.records[i].dirty = true
+        guard let i = next.records.firstIndex(where: { $0.id == entry.id }), next.records[i].kind == "entry", !next.records[i].deleted else { throw ChapterError.conflict }
+        try next.records[i].requiringUnchanged(expected: entry)
+        next.records[i].clock = try nextClock(after: next.records[i].clock); next.records[i].deleted = true; next.records[i].dirty = true
         next.records[i].body["updatedAt"] = .number(Double(next.records[i].clock)); try commit(next); scheduleSync()
     }
     func restoreConflict(_ record: VaultRecord) throws {

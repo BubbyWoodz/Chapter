@@ -139,7 +139,7 @@ struct RichDraftEditor: View {
             }
             TextEditor(text: $current.text).scrollContentBackground(.hidden).background(chapterToken("paper",preference:model.snapshot.appearance ?? .standard)).accessibilityLabel(current.newBlockStyle == nil ? "Formatted text run" : "New block text").autocorrectionDisabled().padding()
             if current.supportsFormatting {
-                Text("Formatting: " + formats.filter { current.hasMark($0.0) }.map { $0.1 }.joined(separator: ", ")).font(.footnote).padding(.horizontal).accessibilityIdentifier("rich.format-summary")
+                Text("Formatting: " + (formats.contains(where: { current.hasMark($0.0) }) ? formats.filter { current.hasMark($0.0) }.map { $0.1 }.joined(separator: ", ") : "Plain text")).font(.footnote).padding(.horizontal).accessibilityIdentifier("rich.format-summary")
             }
             Text(error ?? (savedDraft ? "Draft saved encrypted on this device. Tap Save to update the entry." : "Edits stay in an encrypted draft until Save. Other formatting and unknown content remain intact.")).font(.footnote).padding()
         }.modifier(ChapterScreenSurface()).navigationTitle(current.newBlockStyle == nil ? "Edit text" : "Add block")
