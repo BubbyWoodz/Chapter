@@ -83,4 +83,11 @@ const futureLegacy=sealAiSettings(identity.aiKey,{...initial,v:2} as unknown as 
 await storeAiSettingsRecord(futureLegacy);await assert.rejects(setup('future-legacy').journal.load(),/unsupported ai-settings version/);assert.deepEqual(await loadAiSettingsRecord(),futureLegacy);
 const badMeta=sealAiSettings(identity.aiKey,initial,{recordId:'bad-clock',updatedAt:Number.MAX_SAFE_INTEGER+1,dirty:true});
 await storeAiSettingsRecord(badMeta);await assert.rejects(setup('bad-legacy-meta').journal.load(),/Invalid settings clock/);assert.deepEqual(await loadAiSettingsRecord(),badMeta);await clearAiSettingsRecord();
+// A failed reload of an existing journal must block BOTH old edits and old acknowledgements.
+const reloadGuard=setup('reload-guard');await reloadGuard.journal.load();await reloadGuard.journal.edit(()=>initial,800);const oldQueued=reloadGuard.state.current!;
+await storeAiSettingsRecord(futureLegacy,'reload-guard');await assert.rejects(reloadGuard.journal.load(),/unsupported ai-settings version/);
+await assert.rejects(reloadGuard.journal.edit(()=>initial,801),/not finished loading/);await assert.rejects(reloadGuard.journal.acknowledge(oldQueued),/not finished loading/);assert.deepEqual(await loadAiSettingsRecord('reload-guard'),futureLegacy);
+const cap=setup('recovery-cap');await cap.journal.load();await cap.journal.edit(()=>initial,900);
+const full=sealAiSettings(identity.aiKey,initial,{recordId:cap.state.current!.recordId,updatedAt:901,dirty:false});full.recovered=Array.from({length:256},(_,i)=>sealAiSettings(identity.aiKey,initial,{recordId:`recovered-${i}`,updatedAt:i,dirty:false}));
+await storeAiSettingsRecord(full,'recovery-cap');await assert.rejects(cap.journal.load(),/recovery is full/);await assert.rejects(cap.journal.edit(()=>initial,902),/not finished loading/);assert.deepEqual(await loadAiSettingsRecord('recovery-cap'),full);
 console.log('PASS actual settings journal + original crypto + IDB adapter: transaction abort, serial save/pull/ack, equal-clock encrypted recovery/restart, offline tombstone, cross-tab CAS/reload, lock and rekeyed recovery preservation.');

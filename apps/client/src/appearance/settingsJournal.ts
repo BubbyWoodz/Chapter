@@ -36,12 +36,14 @@ export class SettingsJournal {
    this.check();this.state=next;this.publish(next);
  }
  load():Promise<void> {return this.enqueue(async()=>{
+   // A failed explicit reload must not leave an old state writable over new bytes.
+   this.ready=false;
    const seal=await this.disk.load();this.check();this.saved=seal;
    if(!seal){this.ready=true;this.publish(this.state);return}
    let current:AiSettingsRecord;
    try {current=this.open(seal)}catch(error){if(seal.legacy&&error instanceof AiSettingsDecryptionError){this.saved=null;this.ready=true;this.publish(this.state);return}throw error}
    const recovered=(seal.recovered??[]).map(s=>this.open(s));
-   if(this.state.dirty&&this.state.current&&!same(this.state.current,current)&&!recovered.some(r=>same(r,this.state.current!)))recovered.push(this.state.current);
+   if(this.state.dirty&&this.state.current&&!same(this.state.current,current)&&!recovered.some(r=>same(r,this.state.current!))){if(recovered.length>=256)throw new Error('Settings recovery is full');recovered.push(this.state.current);}
    const next={current,recovered,dirty:seal.sync?.dirty??true};
    // Successful legacy migration copies to the dedicated slot, never erases it.
    const changed=this.state.dirty&&this.state.current&&!same(this.state.current,current);
@@ -83,6 +85,7 @@ export class SettingsJournal {
    await this.commit(next);
  })}
  acknowledge(sent:AiSettingsRecord):Promise<void> {return this.enqueue(async()=>{
+   if(!this.ready)throw new Error('Saved settings have not finished loading');
    if(this.state.current&&same(this.state.current,sent)&&this.state.dirty)await this.commit({...this.state,dirty:false});
  })}
 }
