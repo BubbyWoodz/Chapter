@@ -29,15 +29,24 @@ struct ConnectView: View {
                 Section { Text("Your journal. Your server.").font(.title2).accessibilityAddTraits(.isHeader)
                     Text("Connect directly over your local network or Tailscale. No Chapter account is required.") }
                 Section {
-                    TextField("https://server.example/mneme", text: $server).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityLabel("Server URL").accessibilityIdentifier("connection.server")
+                    TextField("Server URL", text: $server).font(.body).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityLabel("Server URL").accessibilityIdentifier("connection.server")
                     Text("HTTPS with a trusted certificate is required, including on Tailscale. Include your server’s path prefix.").font(.footnote)
                 } header: { Text("Server").foregroundStyle(Color.primary) }
                 Section {
-                    SecureField("12-word recovery phrase", text: $phrase).accessibilityIdentifier("connection.phrase").textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
+                    SecureField("12 words", text: $phrase).font(.body).accessibilityLabel("12-word recovery phrase").accessibilityIdentifier("connection.phrase").textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
                     Text("The phrase stays on this device and is not saved. A device passcode is required to protect offline journals. Face ID or device authentication protects the local storage key.").font(.footnote)
-                    Button { let input = phrase; phrase = ""; Task { await model.unlock(server: server, phrase: input) } } label: {
+                    Button {
+                        guard !model.connecting else { return }
+                        guard !server.isEmpty, !phrase.isEmpty else {
+                            model.message = "Enter your server URL and recovery phrase."; return
+                        }
+                        let input = phrase; phrase = ""
+                        Task { await model.unlock(server: server, phrase: input) }
+                    } label: {
                         if model.connecting { ProgressView("Connecting") } else { Text("Unlock and connect") }
-                    }.disabled(phrase.isEmpty || server.isEmpty || model.connecting).accessibilityIdentifier("connection.unlock")
+                    }.font(.headline).buttonStyle(.borderedProminent).tint(Color.primary)
+                        .foregroundStyle(Color(uiColor: .systemBackground))
+                        .disabled(model.connecting).accessibilityIdentifier("connection.unlock")
                 } header: { Text("Unlock vault").foregroundStyle(Color.primary) }
                 if let message = model.message { Section { Text(message).accessibilityLabel("Connection status: \(message)").accessibilityIdentifier("connection.status") } }
                 Section { Text("This is an early native client, not full feature parity yet. Existing rich entries are read-only so this preview cannot flatten them. Use the web client for recovery-phrase creation/rotation and advanced features.") } header: { Text("Native preview").foregroundStyle(Color.primary) }

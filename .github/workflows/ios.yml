@@ -65,10 +65,18 @@ jobs:
           retention-days: 7
       - name: Native UI smoke tests and accessibility audits
         run: xcodebuild -project apps/ios/Chapter.xcodeproj -scheme Chapter -configuration Debug -destination 'platform=iOS Simulator,id=${{ steps.simulator.outputs.id }}' -destination-timeout 120 -parallel-testing-enabled NO -derivedDataPath "$RUNNER_TEMP/ChapterUITestBuild" -resultBundlePath "$RUNNER_TEMP/ChapterUITests.xcresult" CODE_SIGNING_ALLOWED=NO test
+      - name: Export genuine test screenshots for review
+        if: always()
+        run: |
+          if [[ -d "$RUNNER_TEMP/ChapterUITests.xcresult" ]]; then
+            xcrun xcresulttool export attachments --path "$RUNNER_TEMP/ChapterUITests.xcresult" --output-path "$RUNNER_TEMP/ChapterUIAttachments"
+          fi
       - name: Save real UI test results and fixture-only screen captures
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: Chapter-native-ui-results
-          path: ${{ runner.temp }}/ChapterUITests.xcresult
+          path: |
+            ${{ runner.temp }}/ChapterUITests.xcresult
+            ${{ runner.temp }}/ChapterUIAttachments
           retention-days: 7
