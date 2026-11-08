@@ -58,36 +58,40 @@ struct ConnectView: View {
     @EnvironmentObject private var model: VaultModel
     @State private var server = UserDefaults.standard.string(forKey: "chapter.server") ?? ""
     @State private var phrase = ""
+    private enum Field:Hashable {case server,phrase}
+    @FocusState private var focusedField:Field?
     var body: some View {
         NavigationStack {
             Form {
                 Section { Text("Your journal. Your server.").font(.title2).accessibilityAddTraits(.isHeader).accessibilityIdentifier("connection.heading")
                     Text("Connect directly over your local network or Tailscale. No Chapter account is required.") }
                 Section {
-                    TextField("Server URL", text: $server).font(.body).fixedSize(horizontal: false, vertical: true).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityLabel("Server URL").accessibilityIdentifier("connection.server")
+                    TextField("Server URL", text: $server).font(.body).fixedSize(horizontal: false, vertical: true).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityLabel("Server URL").accessibilityIdentifier("connection.server").focused($focusedField,equals:.server).submitLabel(.next).onSubmit {focusedField = .phrase}
                     Text("HTTPS with a trusted certificate is required, including on Tailscale. Include your server’s path prefix.").font(.footnote).fixedSize(horizontal: false, vertical: true)
                 } header: { Text("Server").foregroundStyle(Color.primary) }
                 Section {
-                    SecureField("12 words", text: $phrase).font(.body).fixedSize(horizontal: false, vertical: true).accessibilityLabel("12-word recovery phrase").accessibilityIdentifier("connection.phrase").textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
+                    SecureField("12 words", text: $phrase).font(.body).fixedSize(horizontal: false, vertical: true).accessibilityLabel("12-word recovery phrase").accessibilityIdentifier("connection.phrase").focused($focusedField,equals:.phrase).submitLabel(.done).onSubmit {focusedField=nil}.textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
                     Text("The phrase stays on this device and is not saved. A device passcode is required to protect offline journals. Face ID or device authentication protects the local storage key.").font(.footnote).fixedSize(horizontal: false, vertical: true)
 
                 } header: { Text("Unlock vault").foregroundStyle(Color.primary) }
                 if let message = model.message { Section { Text(message).accessibilityLabel("Connection status: \(message)").accessibilityIdentifier("connection.status") } }
                 Section { Text("This is an early native client, not full feature parity yet. Rich edits preserve the original document; formatted text-run/task editing and file/photo attachments up to 128 MiB are available. Full structural editing and capture remain in development. Use the web client for recovery-phrase creation/rotation and advanced features.") } header: { Text("Native preview").foregroundStyle(Color.primary) }
-            }.navigationTitle("Chapter").scrollDismissesKeyboard(.interactively)
+            }.modifier(ChapterScreenSurface()).navigationTitle("Chapter").scrollDismissesKeyboard(.interactively)
                 .safeAreaInset(edge:.bottom) {
                     Button {
                         guard !model.connecting else { return }
                         guard !server.isEmpty, !phrase.isEmpty else {
                             model.message="Enter your server URL and recovery phrase.";return
                         }
+                        focusedField=nil
                         let input=phrase;phrase=""
                         Task { await model.unlock(server:server,phrase:input) }
                     } label: {
                         Text(model.connecting ? "Connecting…":"Unlock and connect")
                             .font(.body).multilineTextAlignment(.center).fixedSize(horizontal:false,vertical:true)
+                            .foregroundStyle(chapterToken("paper",preference:model.snapshot.appearance ?? .standard))
                             .frame(maxWidth:.infinity,minHeight:44)
-                    }.buttonStyle(.borderedProminent).disabled(model.connecting)
+                    }.buttonStyle(.borderedProminent).tint(chapterToken("ink",preference:model.snapshot.appearance ?? .standard)).disabled(model.connecting)
                         .accessibilityIdentifier("connection.unlock").padding().background(.regularMaterial)
                 }
         }
@@ -131,7 +135,7 @@ struct EntryList: View {
                     }
                 }}
             }
-            .navigationTitle("Journal").searchable(text: $query, prompt: "Search this device")
+            .modifier(ChapterScreenSurface()).navigationTitle("Journal").searchable(text: $query, prompt: "Search this device")
             .refreshable { await model.sync() }
             .toolbar { ToolbarItem(placement: .topBarTrailing) { Button { compose = true } label: { Label("New entry", systemImage: "square.and.pencil") } } }
             .sheet(isPresented: $compose) { EntryEditor(journal: journal ?? model.journals.first?.journalID ?? "default") }
@@ -200,7 +204,7 @@ struct EntryDetail: View {
                     Button("Delete entry", role: .destructive) { do { try model.deleteEntry(entry); dismiss() } catch { model.message = error.localizedDescription } }
                 }
             } else { Text("This entry is no longer available.") }
-        }.navigationTitle("Entry").navigationBarTitleDisplayMode(.inline).quickLookPreview($previewURL)
+        }.modifier(ChapterScreenSurface()).navigationTitle("Entry").navigationBarTitleDisplayMode(.inline).quickLookPreview($previewURL)
         .onChange(of: previewURL) { old, new in if new == nil, let old { model.discardPlayback(old) } }
         .fileImporter(isPresented: $importingFile, allowedContentTypes: [.data]) { result in
             guard let entry, let session = importSession else { return }
@@ -266,7 +270,7 @@ struct EntryEditor: View {
                 TextField("Labels, separated by commas", text: $labels)
                 Section("Writing") { TextEditor(text: $text).frame(minHeight: 260).accessibilityLabel("Journal text") }
                 if let error { Text(error).foregroundStyle(.red) } else { Text(savedID == nil ? "Start writing to save an encrypted draft." : "Saved encrypted on this device.").font(.footnote) }
-            }.navigationTitle(existing == nil ? "New entry" : "Edit entry")
+            }.modifier(ChapterScreenSurface()).navigationTitle(existing == nil ? "New entry" : "Edit entry")
             .toolbar { Button("Done") { save(); if error == nil { dismiss() } } }
             .onChange(of: title) { _, _ in save() }.onChange(of: text) { _, _ in save() }
             .onChange(of: labels) { _, _ in save() }.onChange(of: date) { _, _ in save() }
@@ -294,10 +298,10 @@ struct NotebookList: View {
                     }
                     Button { editing = journal } label: { Image(systemName: "pencil").frame(minWidth: 44, minHeight: 44) }
                         .buttonStyle(.borderless).accessibilityLabel("Edit notebook " + journal.title)
-                }
+                }.listRowBackground(chapterToken("surface",preference:model.snapshot.appearance ?? .standard))
             } }
                 .sheet(item: $editing) { NotebookEditor(journal: $0) }
-                .navigationTitle("Notebooks").toolbar { Button { adding = true } label: { Label("New notebook", systemImage: "plus") } }
+                .modifier(ChapterScreenSurface()).navigationTitle("Notebooks").toolbar { Button { adding = true } label: { Label("New notebook", systemImage: "plus") } }
                 .alert("New notebook", isPresented: $adding) {
                     TextField("Name", text: $name)
                     Button("Create") { do { try model.createJournal(name: name); name = "" } catch { model.message = error.localizedDescription } }.disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
@@ -339,7 +343,7 @@ struct NotebookEditor: View {
                     Text("These settings sync to the original web client. The notebook cover retains its original web pattern. Photo preserves the original cover style; this does not upload a cover image.").font(.footnote)
                 }
                 if let error { Section { Text(error).accessibilityIdentifier("notebook.error") } }
-            }.navigationTitle("Edit notebook")
+            }.modifier(ChapterScreenSurface()).navigationTitle("Edit notebook")
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                     ToolbarItem(placement: .confirmationAction) {
@@ -362,7 +366,7 @@ struct CalendarView: View {
                 } }
                 Section("On this device") { LabeledContent("Entries", value: "\(model.entries.count)")
                     LabeledContent("Writing days", value: "\(Set(model.entries.map { Calendar.current.startOfDay(for: $0.date) }).count)") }
-            }.navigationTitle("Calendar")
+            }.modifier(ChapterScreenSurface()).navigationTitle("Calendar")
         }
     }
 }
@@ -422,7 +426,7 @@ struct SettingsView: View {
                     Text("Full rich formatting/structural editing and exact custom-node/math/table rendering, camera/audio/video capture, large media and unsupported playback codecs, templates UI, interviews/AI/transcription, import/export, maps, localization, badges, reminders, vault deletion/rotation and operator tools. The web app remains available for these. This preview is not full parity or an independently audited secure product.")
                 }
                 Section("Open source") { Link("Source and AGPL-3.0 license", destination: URL(string: "https://github.com/BubbyWoodz/Chapter")!) }
-            }.navigationTitle("Settings")
+            }.modifier(ChapterScreenSurface()).navigationTitle("Settings")
         }
     }
 }
@@ -526,5 +530,25 @@ private struct NotebookCover: View {
             }
             context.fill(Path(CGRect(x:direction == .rightToLeft ? size.width-4:0,y:0,width:4,height:size.height)),with:.color(Color(chapterHex:color).opacity(0.85)))
         }.frame(width:46,height:58).clipShape(RoundedRectangle(cornerRadius:8)).overlay(RoundedRectangle(cornerRadius:8).stroke(Color(chapterHex:color).opacity(0.3),lineWidth:1)).accessibilityHidden(true)
+    }
+}
+
+// UIKit navigation/tab hosts and Form/List backgrounds are opaque; tinting only
+// the root does NOT render original web paper (verified in actual a5 screenshots).
+private func chapterToken(_ name:String,preference:SharedAppearance)->Color {
+    Color(uiColor:UIColor { traits in
+        let dark=preference.mode=="dark" || (preference.mode=="system" && traits.userInterfaceStyle == .dark)
+        let hex=AppearanceCatalog.tokens(preference,dark:dark)[name].string ?? (dark ? "#181612":"#F4EEE2")
+        let value=UInt64(hex.trimmingCharacters(in:CharacterSet(charactersIn:"#")),radix:16) ?? 0
+        return UIColor(red:CGFloat((value>>16)&255)/255,green:CGFloat((value>>8)&255)/255,blue:CGFloat(value&255)/255,alpha:1)
+    })
+}
+private struct ChapterScreenSurface: ViewModifier {
+    @EnvironmentObject private var model:VaultModel
+    func body(content:Content)->some View {
+        let paper=chapterToken("paper",preference:model.snapshot.appearance ?? .standard)
+        content.scrollContentBackground(.hidden).background(paper)
+            .toolbarBackground(paper,for:.navigationBar,.tabBar)
+            .toolbarBackground(.visible,for:.navigationBar,.tabBar)
     }
 }

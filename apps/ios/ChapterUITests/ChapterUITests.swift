@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import XCTest
+import UIKit
 
 final class ChapterUITests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
@@ -122,12 +123,21 @@ final class ChapterUITests: XCTestCase {
         app.tabBars.buttons["Notebooks"].tap()
         XCTAssertTrue(app.staticTexts["Public notebook"].waitForExistence(timeout:5))
         attach(app,name:"Chapter actual Forest-themed native notebook")
+        // Independent source value: original forest --paper is #eef0e2.
+        // Prior root-only tint produced WHITE here; this must catch that regression.
+        let image=try XCTUnwrap(app.screenshot().image.cgImage)
+        let crop=try XCTUnwrap(image.cropping(to:CGRect(x:CGFloat(image.width)/40,y:CGFloat(image.height)/2,width:1,height:1)))
+        var pixel=[UInt8](repeating:0,count:4)
+        let context=try XCTUnwrap(CGContext(data:&pixel,width:1,height:1,bitsPerComponent:8,bytesPerRow:4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue))
+        context.draw(crop,in:CGRect(x:0,y:0,width:1,height:1))
+        for (actual,expected) in zip(pixel.prefix(3),[238,240,226]) { XCTAssertLessThanOrEqual(abs(Int(actual)-expected),2,"Forest paper must actually render, not merely save a preference") }
     }
     func testHTTPIsRejectedBeforeAnyAuthenticationOrVaultCreation() throws {
         let app = XCUIApplication(); app.launch()
         let server = app.textFields["connection.server"]
-        XCTAssertTrue(server.waitForExistence(timeout: 10)); server.tap(); server.typeText("http://fixture.invalid")
-        let phrase = app.secureTextFields["connection.phrase"]; phrase.tap()
+        XCTAssertTrue(server.waitForExistence(timeout: 10)); server.tap(); server.typeText("http://fixture.invalid\n")
+        let phrase = app.secureTextFields["connection.phrase"]; XCTAssertTrue(phrase.exists)
+        // Real native Next action must focus the secure field, including while the bottom CTA resizes.
         // PUBLIC BIP39 fixture only. No network request should be made for invalid HTTP.
         phrase.typeText("legal winner thank year wave sausage worth useful legal winner thank yellow")
         app.swipeUp()

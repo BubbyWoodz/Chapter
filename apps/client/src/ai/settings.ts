@@ -22,6 +22,8 @@ export interface AiSyncMeta {
   updatedAt: number;
   /** True while the current version still waits in the sync outbox. */
   dirty: boolean;
+  /** Durable local tombstone; wire shape remains the original settings record. */
+  deleted?: boolean;
 }
 
 export interface SealedAiSettings {
@@ -30,6 +32,10 @@ export interface SealedAiSettings {
   blob: Uint8Array;
   /** Absent on records sealed before AI-settings sync existed. */
   sync?: AiSyncMeta;
+  /** Independent original-format seals, never plaintext recovery API keys. */
+  recovered?: SealedAiSettings[];
+  /** Read-only legacy fallback marker from the storage adapter, not persisted. */
+  legacy?: boolean;
 }
 
 export function sealAiSettings(aiKey: Uint8Array, settings: AiSettings, sync?: AiSyncMeta): SealedAiSettings {
@@ -42,3 +48,5 @@ export function openAiSettings(aiKey: Uint8Array, record: SealedAiSettings): AiS
   if (parsed.v !== 1) throw new Error(`unsupported ai-settings version ${parsed.v}`);
   return parsed;
 }
+
+export class SettingsWriteConflict extends Error { constructor(){super('Saved settings changed in another tab. Reload settings before retrying.');this.name='SettingsWriteConflict';} }

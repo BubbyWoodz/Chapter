@@ -11,9 +11,9 @@ export interface KeyStore {
   loadSealedSeed(): Promise<SealedSeed | null>;
   storeSealedSeed(record: SealedSeed): Promise<void>;
   clearSealedSeed(): Promise<void>;
-  loadAiSettingsRecord(): Promise<SealedAiSettings | null>;
-  storeAiSettingsRecord(record: SealedAiSettings): Promise<void>;
-  clearAiSettingsRecord(): Promise<void>;
+  loadAiSettingsRecord(namespace?: string): Promise<SealedAiSettings | null>;
+  storeAiSettingsRecord(record: SealedAiSettings, namespace?: string, expected?: SealedAiSettings|null): Promise<void>;
+  clearAiSettingsRecord(namespace?: string,legacyExpected?:SealedAiSettings): Promise<void>;
 }
 
 // Lazy dynamic import so only the reachable backend ships per platform: once
@@ -30,6 +30,6 @@ function load(): Promise<KeyStore> {
 export const loadSealedSeed = async (): Promise<SealedSeed | null> => (await load()).loadSealedSeed();
 export const storeSealedSeed = async (record: SealedSeed): Promise<void> => (await load()).storeSealedSeed(record);
 export const clearSealedSeed = async (): Promise<void> => (await load()).clearSealedSeed();
-export const loadAiSettingsRecord = async (): Promise<SealedAiSettings | null> => (await load()).loadAiSettingsRecord();
-export const storeAiSettingsRecord = async (record: SealedAiSettings): Promise<void> => (await load()).storeAiSettingsRecord(record);
-export const clearAiSettingsRecord = async (): Promise<void> => (await load()).clearAiSettingsRecord();
+export const loadAiSettingsRecord = async (namespace?: string): Promise<SealedAiSettings | null> => (await load()).loadAiSettingsRecord(namespace);
+export const storeAiSettingsRecord = async (record: SealedAiSettings, namespace?: string, expected?:SealedAiSettings|null): Promise<void> => (await load()).storeAiSettingsRecord(record, namespace, expected);
+export const clearAiSettingsRecord = async (namespace?: string,legacyExpected?:SealedAiSettings): Promise<void> => (await load()).clearAiSettingsRecord(namespace,legacyExpected);
