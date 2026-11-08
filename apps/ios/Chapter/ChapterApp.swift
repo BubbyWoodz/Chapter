@@ -63,9 +63,14 @@ struct EntryList: View {
     @State private var compose = false
     let journal: String?
     init(journal: String? = nil) { self.journal = journal }
-    var filtered: [VaultRecord] { model.entries.filter { e in
-        (journal == nil || e.journalID == journal) && (query.isEmpty || (e.title + " " + e.text + " " + (e.body["labels"]?.array.compactMap(\.string).joined(separator: " ") ?? "")).localizedCaseInsensitiveContains(query))
-    } }
+    var filtered: [VaultRecord] { model.entries.filter(matches) }
+    private func matches(_ entry: VaultRecord) -> Bool {
+        if let journal, entry.journalID != journal { return false }
+        guard !query.isEmpty else { return true }
+        let labelText = entry.labels.joined(separator: " ")
+        let searchable = [entry.title, entry.text, labelText].joined(separator: " ")
+        return searchable.localizedCaseInsensitiveContains(query)
+    }
     var body: some View {
         NavigationStack {
             List {
@@ -103,7 +108,7 @@ struct EntryDetail: View {
                         Text(entry.title).font(.largeTitle).accessibilityAddTraits(.isHeader)
                         Text(entry.date, style: .date).foregroundStyle(.secondary)
                         Text(entry.text).textSelection(.enabled)
-                        let labels = entry.body["labels"]?.array.compactMap(\.string) ?? []
+                        let labels = entry.labels
                         if !labels.isEmpty { Text(labels.joined(separator: " · ")).font(.caption) }
                         ForEach(entry.mediaReferences) { media in
                             Button {
@@ -149,7 +154,7 @@ struct EntryEditor: View {
         self.existing = existing; self.journal = journal
         _title = State(initialValue: existing?.title ?? "")
         _text = State(initialValue: existing?.text ?? "")
-        _labels = State(initialValue: existing?.body["labels"]?.array.compactMap(\.string).joined(separator: ", ") ?? "")
+        _labels = State(initialValue: existing?.labels.joined(separator: ", ") ?? "")
         _date = State(initialValue: existing?.date ?? Date())
         _savedID = State(initialValue: existing?.id)
     }

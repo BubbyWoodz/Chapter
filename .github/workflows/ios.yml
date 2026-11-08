@@ -30,6 +30,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: server/go.mod
+          cache-dependency-path: server/go.sum
       - name: Verify Apple signatures with actual Go relay verifier
         working-directory: server
         run: go test ./internal/api -run TestNativeAppleAuthenticationInterop -v

@@ -65,6 +65,7 @@ public struct VaultRecord: Codable, Identifiable, Equatable {
     public var kind: String { body["kind"]?.string ?? "entry" }
     public var title: String { body["title"]?.string ?? body["name"]?.string ?? "Untitled" }
     public var text: String { body["bodyText"]?.string ?? "" }
+    public var labels: [String] { (body["labels"]?.array ?? []).compactMap { $0.string } }
     public var journalID: String { body["journalId"]?.string ?? "" }
     public var date: Date { ProtocolNumbers.displayDate(milliseconds: body["createdAt"]?.number ?? Double(clock)) }
     public init(id: String, clock: Int64, deleted: Bool = false, body: [String: JSONValue], dirty: Bool = false) {
