@@ -93,6 +93,39 @@ public struct VaultRecord: Codable, Identifiable, Equatable {
         copy.body["updatedAt"] = .number(Double(copy.clock))
         return copy
     }
+    /// Patch only the original browser notebook fields, preserving opaque future data.
+    /// Compare against the editor's opening value; an ack may change dirty, not body.
+    public func editingJournal(expected: VaultRecord, name: String? = nil, subtitle: String? = nil,
+                               color: String? = nil, cover: String? = nil, now: Date = Date()) throws -> VaultRecord {
+        guard kind == "journal", !deleted, !journalID.isEmpty else { throw ChapterError.unsupported }
+        guard id == expected.id, clock == expected.clock, body == expected.body,
+              deleted == expected.deleted else { throw ChapterError.conflict }
+        var copy = self
+        if let name {
+            let value = name.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !value.isEmpty, value.count <= 200 else { throw ChapterError.unsupported }
+            copy.body["name"] = .string(value)
+        }
+        if let subtitle {
+            guard subtitle.count <= 2000 else { throw ChapterError.unsupported }
+            copy.body["subtitle"] = .string(subtitle)
+        }
+        if let color {
+            let bytes = Array(color.utf8)
+            guard bytes.count == 7, bytes[0] == 35, bytes.dropFirst().allSatisfy({
+                (48...57).contains($0) || (65...70).contains($0) || (97...102).contains($0)
+            }) else { throw ChapterError.unsupported }
+            copy.body["color"] = .string(color)
+        }
+        if let cover {
+            guard ["lines", "dots", "grid", "plain", "photo"].contains(cover) else { throw ChapterError.unsupported }
+            copy.body["cover"] = .string(cover)
+        }
+        guard copy.body != body else { return self }
+        copy.clock = try ProtocolNumbers.nextClock(after: clock, now: now)
+        copy.body["updatedAt"] = .number(Double(copy.clock)); copy.dirty = true
+        return copy
+    }
     public static func plainDocument(_ text: String) throws -> String {
         let paragraphs = text.components(separatedBy: "\n").map { line -> JSONValue in
             .object(["type": .string("paragraph"), "content": .array(line.isEmpty ? [] : [.object(["type": .string("text"), "text": .string(line)])])])

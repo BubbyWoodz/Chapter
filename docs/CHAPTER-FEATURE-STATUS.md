@@ -10,9 +10,9 @@ the exact revision; a failing strict accessibility audit remains a release block
 | Existing-vault recovery/authentication | English BIP39 validation, real owner-authorized registration/challenge/session; direct HTTPS URL | Native key/auth HTTP transcript and actual web/Go signature checks passed before this slice; real approval/recovery/phone integration still needed |
 | Connectivity/privacy | LAN/Tailscale URL/path; trusted TLS; no redirects/telemetry/cloud requirement | URL/HTTP rejection tests; physical permission, certificates and LAN/VPN matrix not run. HTTP LAN unsupported |
 | Entries | Plain entry CRUD, dates/labels, notebook association | Existing core safeguards; broad app/controller/live-stack CRUD not certified |
-| Notebooks | Browse/create | Rename/reorder/delete/archive and remaining controls missing |
+| Notebooks | Browse/create; rename, subtitle, original color and cover metadata editing with optimistic stale-write rejection | New Foundation mutation checks passed locally; four actual native tests, native UI save and Swift→web decoder checks added, Apple execution pending. Unknown fields/IDs preserved. Cascade delete/media purge missing. Archive/reorder are not present in the reviewed original notebook API; do not invent a wire format or claim those synced. |
 | Local discovery | Text/label substring search, day calendar, entry/day counts | Full query, heatmap/stats/streak/badge parity missing |
-| Native rich viewing | Styled inline marks, headings, paragraphs, lists/tasks, quotes/code, approximate tables, source math, simplified media/location/interview cards | New web-generated golden document and actual Foundation logic tests. Actual Apple core tests and Simulator compile passed at b8ba3d9; corrected real rich UI test still being checked; unknown nodes kept opaque |
+| Native rich viewing | Styled inline marks, headings, paragraphs, lists/tasks, quotes/code, approximate tables, source math, simplified media/location/interview cards | New web-generated golden document and actual Foundation logic tests. Actual Apple core tests and Simulator compile passed at b8ba3d9; actual rich UI/task/text-run edit passed in run 42511652869; strict onboarding audits still fail; unknown nodes kept opaque |
 | Rich editing | Existing text-run editing and task checked state only; patch original JSON | New tests assert full tree/unknown attrs/marks/media IDs retained, stale writes rejected, Unicode/empty-run behavior. No full selection-based rich editor, structural/formatting toolbar, title/date/label controls for rich records or full custom-node editor |
 | Rich local drafts | Encrypted autosaved run drafts; resume in Settings; explicit apply rejects changed/deleted record | New native migration/encrypted recovery tests and real Debug fixture UI edit test added; device failure/restart/disk-full acceptance not complete |
 | Rich cross-client sync | Same encrypted record protocol after patch, regenerate bodyText with actual web docToText semantics | Native-produced edited ciphertext must open in actual web decoder with entire expected tree/media IDs. Passed at b8ba3d9 in macOS CI; not a live server/browser round trip |
@@ -24,7 +24,7 @@ the exact revision; a failing strict accessibility audit remains a release block
 | Audio/transcription/video/films | Read-only simplified cards/transcripts + existing attachment preview | Recording, per-question capture, STT, film rendering/editor all missing |
 | Locations/maps | Read-only place names and explicit encrypted attachment previews | Native insertion/editing/snapshot flows and explicit network consent missing |
 | Import/export/backups | NOT implemented natively | Day One, journal exports/import, recovery/restore and operator backup UI missing |
-| Appearance/language | System-native layout and Dynamic Type | Strict onboarding audits currently fail; exact theme/12 locales/RTL parity, whole-app VoiceOver/device audits missing |
+| Appearance/language | System-native layout and Dynamic Type only; shared matching themes explicitly REQUIRED, not implemented | Original web useTheme.ts stores light/dark/system + six palettes + six skins in browser localStorage and explicitly never syncs. Need compatible encrypted shared preferences and native matching light/dark surfaces/tints, bidirectional web/iPhone propagation, restart/offline/conflict tests. Strict onboarding audits still fail; 12 locales/RTL and whole-app/device audits missing |
 | Reminders/lifecycle | Background lock only | Reminders, phrase creation/rotation, vault/journal deletion, WebAuthn/PRF and operator administration/update UI missing |
 | Sync reliability | Debounced local-edit + foreground sync, bounded retry backoff, up to 10,000 attempted records/pass in 100-record batches, durable media ordering, recoverable entry conflicts | Existing core adversarial ack/clock/conflict tests passed; new drain/backoff/strict-ack + real native TLS/Postgres integration tests pending current CI. No guaranteed background schedule or full two-device lifecycle certification |
 | Local storage | Device-only user-presence Keychain + AES-GCM snapshot; protected/excluded from backup | Version 1/2→3 read migration preserves keys and old file until next save; older previews reject v3 instead of dropping rich drafts/media outbox. Actual hardware Keychain/backup extraction not certified |
@@ -111,3 +111,23 @@ fixture-host compile/negative opt-in guard and private packaging-script regressi
 can run; real database/container/native execution is delegated to the explicitly
 configured isolated GitHub runners. See docs/CHAPTER-SERVER.md for installation,
 certificate, source/artifact, volume safety, backup and restore details.
+
+## Explicit matching-theme requirement (November 8, 2026, 2:01 PM EST)
+
+Theme matching AND bidirectional web/server/iPhone preference sync is now a required
+feature, not optional native tint polish. Source `apps/client/src/hooks/useTheme.ts`
+currently persists only `mneme.theme.mode`, `.palette`, `.skin` in localStorage;
+there is no existing server theme sync. All six palettes/six skins and three modes
+must be covered, including system-mode semantics (each device resolves its own OS).
+Keep genuine native controls, matching surface/ink/accent colors and accessibility.
+A new encrypted preference schema needs old-client behavior tests: original
+`pullEntries` routes unknown record kinds as entries, so blindly adding a new kind
+would create phantom entries in older clients. Do not claim compatibility before
+that is resolved. No theme/schema change has been implemented in this stage.
+
+The original `updateJournal` supports name/subtitle/color/cover; original
+`deleteJournal` also tombstones entries and purges media. This stage implements the
+non-destructive original edit operation, not a partial delete pretending parity.
+Required audits remain unchanged. An additional minimal unmodified SwiftUI Form
+Dynamic Type reproduction is added to distinguish framework behavior from the
+production screen; it does NOT replace or suppress the production audits.

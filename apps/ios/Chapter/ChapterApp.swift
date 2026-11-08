@@ -9,10 +9,22 @@ import QuickLook
 @main struct ChapterApp: App {
     @StateObject private var model = VaultModel()
     @Environment(\.scenePhase) private var phase
+    @ViewBuilder private var normalContent: some View {
+        if model.unlocked { ChapterTabs().task { await model.runForegroundSync() } } else { ConnectView() }
+    }
+    @ViewBuilder private var rootContent: some View {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--chapter-native-form-audit-repro") {
+            NativeFormAuditReproduction()
+        } else { normalContent }
+        #else
+        normalContent
+        #endif
+    }
     var body: some Scene {
         WindowGroup {
             ZStack {
-                if model.unlocked { ChapterTabs().task { await model.runForegroundSync() } } else { ConnectView() }
+                rootContent
                 if phase != .active { Color(uiColor: .systemBackground).ignoresSafeArea().overlay(Text("Chapter").font(.title)) }
             }
             .environmentObject(model)
@@ -27,6 +39,20 @@ import QuickLook
     }
 }
 
+/// Public minimal diagnostic, not an alternate production onboarding/audit path.
+private struct NativeFormAuditReproduction: View {
+    @State private var text = ""
+    var body: some View {
+        NavigationStack {
+            Form {
+                Text("Native Form reproduction").font(.headline)
+                TextField("Public text", text: $text)
+                Button("Public native action") { text = "Tapped" }
+                    .accessibilityIdentifier("repro.native-button")
+            }.navigationTitle("Audit reproduction")
+        }
+    }
+}
 struct ConnectView: View {
     @EnvironmentObject private var model: VaultModel
     @State private var server = UserDefaults.standard.string(forKey: "chapter.server") ?? ""
@@ -58,7 +84,7 @@ struct ConnectView: View {
                         .disabled(model.connecting).accessibilityIdentifier("connection.unlock")
                 } header: { Text("Unlock vault").foregroundStyle(Color.primary) }
                 if let message = model.message { Section { Text(message).accessibilityLabel("Connection status: \(message)").accessibilityIdentifier("connection.status") } }
-                Section { Text("This is an early native client, not full feature parity yet. Rich edits preserve the original document; the complete editor and file/photo attachments are available up to 128 MiB; capture remains in development. Use the web client for recovery-phrase creation/rotation and advanced features.") } header: { Text("Native preview").foregroundStyle(Color.primary) }
+                Section { Text("This is an early native client, not full feature parity yet. Rich edits preserve the original document; formatted text-run/task editing and file/photo attachments up to 128 MiB are available. Full structural editing and capture remain in development. Use the web client for recovery-phrase creation/rotation and advanced features.") } header: { Text("Native preview").foregroundStyle(Color.primary) }
             }.navigationTitle("Chapter").scrollDismissesKeyboard(.interactively)
         }
     }
@@ -248,14 +274,70 @@ struct NotebookList: View {
     @EnvironmentObject private var model: VaultModel
     @State private var name = ""
     @State private var adding = false
+    @State private var editing: VaultRecord?
     var body: some View {
         NavigationStack {
-            List { ForEach(model.journals) { journal in NavigationLink(journal.title) { EntryList(journal: journal.journalID) } } }
+            List { ForEach(model.journals) { journal in
+                HStack {
+                    NavigationLink { EntryList(journal: journal.journalID) } label: {
+                        VStack(alignment: .leading) { Text(journal.title)
+                            if let subtitle = journal.body["subtitle"]?.string, !subtitle.isEmpty { Text(subtitle).font(.caption).foregroundStyle(.secondary) }
+                        }
+                    }
+                    Button { editing = journal } label: { Image(systemName: "pencil").frame(minWidth: 44, minHeight: 44) }
+                        .buttonStyle(.borderless).accessibilityLabel("Edit notebook " + journal.title)
+                }
+            } }
+                .sheet(item: $editing) { NotebookEditor(journal: $0) }
                 .navigationTitle("Notebooks").toolbar { Button { adding = true } label: { Label("New notebook", systemImage: "plus") } }
                 .alert("New notebook", isPresented: $adding) {
                     TextField("Name", text: $name)
                     Button("Create") { do { try model.createJournal(name: name); name = "" } catch { model.message = error.localizedDescription } }.disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
                     Button("Cancel", role: .cancel) {}
+                }
+        }
+    }
+}
+struct NotebookEditor: View {
+    @EnvironmentObject private var model: VaultModel
+    @Environment(\.dismiss) private var dismiss
+    let journal: VaultRecord
+    @State private var name: String
+    @State private var subtitle: String
+    @State private var color: String
+    @State private var cover: String
+    @State private var error: String?
+    private let covers = ["lines", "dots", "grid", "plain", "photo"]
+    init(journal: VaultRecord) {
+        self.journal = journal
+        _name = State(initialValue: journal.body["name"]?.string ?? journal.title)
+        _subtitle = State(initialValue: journal.body["subtitle"]?.string ?? "")
+        _color = State(initialValue: journal.body["color"]?.string ?? "")
+        _cover = State(initialValue: journal.body["cover"]?.string ?? "plain")
+    }
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Notebook") {
+                    TextField("Name", text: $name).accessibilityIdentifier("notebook.name")
+                    TextField("Subtitle", text: $subtitle, axis: .vertical).accessibilityIdentifier("notebook.subtitle")
+                }
+                Section("Original web appearance") {
+                    TextField("Color (#RRGGBB)", text: $color).autocorrectionDisabled().textInputAutocapitalization(.never).accessibilityIdentifier("notebook.color")
+                    Picker("Cover pattern", selection: $cover) {
+                        ForEach(covers, id: \.self) { Text($0.capitalized).tag($0) }
+                        if !covers.contains(cover) { Text("Existing: " + cover).tag(cover) }
+                    }
+                    Text("These settings sync to the original web client. They do not change the system-native iOS theme. Photo preserves the original cover style; this does not upload a cover image.").font(.footnote)
+                }
+                if let error { Section { Text(error).accessibilityIdentifier("notebook.error") } }
+            }.navigationTitle("Edit notebook")
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Save") { do { try model.updateJournal(journal, name: name, subtitle: subtitle, color: color, cover: cover); dismiss() } catch { self.error = "Unable to save: " + error.localizedDescription + " Your edits are retained here. Cancel and reopen if this notebook changed on another device." } }
+                            .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    }
                 }
         }
     }

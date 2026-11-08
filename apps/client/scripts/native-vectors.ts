@@ -51,6 +51,14 @@ if(process.argv.includes('--write')) {
   assert.deepEqual(attachedBody.unknownFuture,JSON.parse(body).unknownFuture);
   assert.deepEqual(attachedDoc.content[0].attrs,{id:uploaded.id,kind:'file',mime:'application/octet-stream',name:'PRIVATE-FILENAME',bytes:uploaded.plainBytes});
   console.log('Swift durable media stage → actual web chunk decoder: multi-chunk payload, framing totals, reorder/truncation rejection passed.');
+  const notebook = JSON.parse(readFileSync(path + '.notebook','utf8')) as {id:string;ciphertext:string;expected:Record<string,unknown>};
+  const notebookBody = JSON.parse(Buffer.from(decryptRecord(id.dataKey,notebook.id,Buffer.from(notebook.ciphertext,'base64'))).toString());
+  assert.deepEqual(notebookBody,notebook.expected);
+  assert.equal(notebookBody.kind,'journal'); assert.equal(notebookBody.journalId,'public-logical-notebook');
+  assert.equal(notebookBody.name,'Renamed 📝'); assert.equal(notebookBody.subtitle,'New subtitle');
+  assert.equal(notebookBody.color,'#B0563A'); assert.equal(notebookBody.cover,'grid');
+  assert.deepEqual(notebookBody.opaqueFuture,{keep:[true,7]}); assert.equal(notebookBody.createdAt,1);
+  console.log('Swift notebook metadata edit → actual web record decoder: all fields, stable IDs and opaque data passed.');
   const r = native.registration;
   assert.equal(r.owner_pubkey, Buffer.from(id.ownerPub).toString('base64'));
   assert.equal(r.device_pubkey, Buffer.from(id.devicePub).toString('base64'));

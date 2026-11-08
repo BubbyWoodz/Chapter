@@ -88,6 +88,27 @@ final class ChapterUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Mark task incomplete"].exists)
         attach(app, name: "Chapter actual native formatted-run edit")
     }
+    func testUnmodifiedNativeFormDynamicTypeReproduction() throws {
+        let app = XCUIApplication(); app.launchArguments = ["--chapter-native-form-audit-repro"]; app.launch()
+        XCTAssertTrue(app.buttons["repro.native-button"].waitForExistence(timeout: 10))
+        attach(app, name: "Unmodified native SwiftUI Form Dynamic Type reproduction")
+        // Additional required diagnostic only. Both original production audits
+        // remain required and no issue is accepted/ignored in this comparison.
+        try audit(app, for: .dynamicType)
+    }
+    func testNotebookMetadataEditingPersistsInNativeList() throws {
+        let app = XCUIApplication(); app.launchArguments = ["--chapter-rich-fixture"]; app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Notebooks"].waitForExistence(timeout: 10)); app.tabBars.buttons["Notebooks"].tap()
+        let edit = app.buttons["Edit notebook Public notebook"]
+        XCTAssertTrue(edit.waitForExistence(timeout: 5)); edit.tap()
+        let name = app.textFields["notebook.name"]
+        XCTAssertTrue(name.waitForExistence(timeout: 5)); name.tap(); name.typeText(" RENAMED")
+        app.buttons["Save"].tap()
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "RENAMED")).firstMatch.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["notebook.error"].exists)
+        XCTAssertTrue(app.staticTexts["Public subtitle"].exists)
+        attach(app, name: "Chapter actual persisted notebook metadata edit")
+    }
     func testHTTPIsRejectedBeforeAnyAuthenticationOrVaultCreation() throws {
         let app = XCUIApplication(); app.launch()
         let server = app.textFields["connection.server"]

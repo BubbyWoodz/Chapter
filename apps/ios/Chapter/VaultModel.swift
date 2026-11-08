@@ -33,7 +33,7 @@ import ChapterCore
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let disk = EncryptedSnapshotStore(directory: directory, namespace: "public-fixture-only", key: SymmetricKey(data: Data(repeating: 7, count: 32)))
         var value = VaultSnapshot()
-        value.records = [VaultRecord(id: "public-rich-fixture", clock: 1, body: ["title": .string("Public rich fixture"), "bodyJson": .string(PublicRichFixture.json), "bodyText": .string(try RichDocument(json: PublicRichFixture.json).plainText)])]
+        value.records = [VaultRecord(id: "public-notebook-record", clock: 1, body: ["kind": .string("journal"), "journalId": .string("public-notebook"), "name": .string("Public notebook"), "subtitle": .string("Public subtitle"), "color": .string("#4E8B85"), "cover": .string("lines"), "opaqueFuture": .object(["preserve": .bool(true)])]), VaultRecord(id: "public-rich-fixture", clock: 1, body: ["title": .string("Public rich fixture"), "bodyJson": .string(PublicRichFixture.json), "bodyText": .string(try RichDocument(json: PublicRichFixture.json).plainText)])]
         try disk.save(value); store = disk; snapshot = value; unlocked = true
         // Deliberately no identity, relay or fake sync/auth result. Tests exercise
         // real encrypted local editing, never production Keychain/server auth.
@@ -192,6 +192,16 @@ import ChapterCore
         let clock = try nextClock(); let id = UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
         let body: [String: JSONValue] = ["kind": .string("journal"), "journalId": .string(id), "name": .string(name), "subtitle": .string(""), "color": .string("#62564a"), "cover": .string("plain"), "createdAt": .number(Double(clock)), "updatedAt": .number(Double(clock))]
         var next = snapshot; next.records.append(VaultRecord(id: UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased(), clock: clock, body: body, dirty: true))
+        try commit(next); scheduleSync()
+    }
+    func updateJournal(_ expected: VaultRecord, name: String, subtitle: String, color: String, cover: String) throws {
+        var next = snapshot
+        guard let i = next.records.firstIndex(where: { $0.id == expected.id }) else { throw ChapterError.conflict }
+        next.records[i] = try next.records[i].editingJournal(expected: expected,
+            name: name == expected.body["name"]?.string ? nil : name,
+            subtitle: subtitle == (expected.body["subtitle"]?.string ?? "") ? nil : subtitle,
+            color: color == (expected.body["color"]?.string ?? "") ? nil : color,
+            cover: cover == (expected.body["cover"]?.string ?? "plain") ? nil : cover)
         try commit(next); scheduleSync()
     }
     func deleteEntry(_ entry: VaultRecord) throws {
