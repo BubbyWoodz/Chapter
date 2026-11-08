@@ -27,6 +27,7 @@ import QuickLook
                 rootContent
                 if phase != .active { Color(uiColor: .systemBackground).ignoresSafeArea().overlay(Text("Chapter").font(.title)) }
             }
+            .modifier(ChapterAppearanceStyle(preference: model.snapshot.appearance ?? .standard))
             .environmentObject(model)
             .onAppear {
                 #if DEBUG
@@ -276,9 +277,13 @@ struct NotebookList: View {
             List { ForEach(model.journals) { journal in
                 HStack {
                     NavigationLink { EntryList(journal: journal.journalID) } label: {
-                        VStack(alignment: .leading) { Text(journal.title)
-                            if let subtitle = journal.body["subtitle"]?.string, !subtitle.isEmpty { Text(subtitle).font(.caption).foregroundStyle(.secondary) }
-                        }
+                        HStack(spacing: 14) {
+                            NotebookCover(color:journal.body["color"]?.string ?? "#B0563A",pattern:journal.body["cover"]?.string ?? "plain")
+                            VStack(alignment: .leading, spacing:4) { Text(journal.title).font(.headline)
+                                if let subtitle = journal.body["subtitle"]?.string, !subtitle.isEmpty { Text(subtitle).font(.caption).foregroundStyle(.secondary) }
+                                Text("\(model.entries.filter { $0.journalID == journal.journalID }.count) entries").font(.caption).foregroundStyle(.secondary)
+                            }
+                        }.padding(.vertical,6)
                     }
                     Button { editing = journal } label: { Image(systemName: "pencil").frame(minWidth: 44, minHeight: 44) }
                         .buttonStyle(.borderless).accessibilityLabel("Edit notebook " + journal.title)
@@ -324,7 +329,7 @@ struct NotebookEditor: View {
                         ForEach(covers, id: \.self) { Text($0.capitalized).tag($0) }
                         if !covers.contains(cover) { Text("Existing: " + cover).tag(cover) }
                     }
-                    Text("These settings sync to the original web client. They do not change the system-native iOS theme. Photo preserves the original cover style; this does not upload a cover image.").font(.footnote)
+                    Text("These settings sync to the original web client. The notebook cover retains its original web pattern. Photo preserves the original cover style; this does not upload a cover image.").font(.footnote)
                 }
                 if let error { Section { Text(error).accessibilityIdentifier("notebook.error") } }
             }.navigationTitle("Edit notebook")
@@ -359,6 +364,7 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
+                AppearanceSettings()
                 Section("Sync") {
                     Button { Task { await model.sync() } } label: { if model.syncing { ProgressView("Syncing") } else { Label("Sync now", systemImage: "arrow.triangle.2.circlepath") } }.disabled(model.syncing)
                     LabeledContent("Pending changes", value: "\(model.pending)")
@@ -371,6 +377,10 @@ struct SettingsView: View {
                             VStack(alignment: .leading) { Text(record.title).font(.headline); Text(record.text).lineLimit(4)
                                 if record.kind == "entry" {
                                     Button("Restore as new entry") { do { try model.restoreConflict(record) } catch { model.message = error.localizedDescription } }
+                                } else if record.kind == "aiSettings", let preference=try? SharedAppearance(value:record.body["settings"]?["chapterAppearance"] ?? .null) {
+                                    Text("Recovered appearance: " + preference.skin + ", " + preference.palette + ", " + preference.mode).font(.footnote)
+                                    Button("Apply recovered appearance") { do { try model.saveAppearance(preference) } catch { model.message=error.localizedDescription } }
+                                    Text("Only appearance is reapplied over current settings; current AI credentials and both recovered versions remain preserved.").font(.footnote)
                                 } else {
                                     Text("This metadata conflict is preserved read-only; restoring it needs kind-specific handling.").font(.footnote)
                                 }
@@ -402,7 +412,7 @@ struct SettingsView: View {
                     Button("Lock vault", role: .destructive) { model.lock() }
                 }
                 Section("Not yet implemented") {
-                    Text("Full rich formatting/structural editing and exact custom-node/math/table rendering, camera/audio/video capture, large media and unsupported playback codecs, templates UI, interviews/AI/transcription, import/export, maps, themes/localization, badges, reminders, vault deletion/rotation and operator tools. The web app remains available for these. This preview is not full parity or an independently audited secure product.")
+                    Text("Full rich formatting/structural editing and exact custom-node/math/table rendering, camera/audio/video capture, large media and unsupported playback codecs, templates UI, interviews/AI/transcription, import/export, maps, localization, badges, reminders, vault deletion/rotation and operator tools. The web app remains available for these. This preview is not full parity or an independently audited secure product.")
                 }
                 Section("Open source") { Link("Source and AGPL-3.0 license", destination: URL(string: "https://github.com/BubbyWoodz/Chapter")!) }
             }.navigationTitle("Settings")
@@ -438,5 +448,76 @@ struct PrivateImportedFile: Transferable {
             try output.synchronize(); success = true
             return PrivateImportedFile(url: destination)
         }
+    }
+}
+
+// The catalog is generated from original web tokens, not approximate system colors.
+private extension Color {
+    init(chapterHex: String) {
+        let value=UInt64(chapterHex.trimmingCharacters(in:CharacterSet(charactersIn:"#")),radix:16) ?? 0xB0563A
+        self.init(.sRGB,red:Double((value>>16)&255)/255,green:Double((value>>8)&255)/255,blue:Double(value&255)/255,opacity:1)
+    }
+}
+private struct ChapterAppearanceStyle: ViewModifier {
+    let preference: SharedAppearance
+    @Environment(\.colorScheme) private var scheme
+    func body(content: Content) -> some View {
+        let dark=preference.mode=="dark" || (preference.mode=="system" && scheme == .dark)
+        let tokens=AppearanceCatalog.tokens(preference,dark:dark)
+        let paper=Color(chapterHex:tokens["paper"].string ?? (dark ? "#181612":"#F7F4EE"))
+        content.tint(Color(chapterHex:AppearanceCatalog.value["palettes"][preference.palette].string ?? "#B0563A"))
+            .foregroundStyle(Color(chapterHex:tokens["ink"].string ?? (dark ? "#EEE6D8":"#28231F")))
+            .scrollContentBackground(.hidden).background(paper)
+            .preferredColorScheme(preference.mode=="system" ? nil : (dark ? .dark:.light))
+    }
+}
+private struct AppearanceSettings: View {
+    @EnvironmentObject private var model: VaultModel
+    @State private var error: String?
+    private var preference: SharedAppearance { model.snapshot.appearance ?? .standard }
+    private func binding(_ key: WritableKeyPath<SharedAppearance,String>) -> Binding<String> {
+        Binding(get:{ preference[keyPath:key] },set:{value in
+            var next=preference;next[keyPath:key]=value
+            if key == \SharedAppearance.skin, let accent=AppearanceCatalog.value["skins"][value]["defaultAccent"].string { next.palette=accent }
+            do { try model.saveAppearance(next); error=nil } catch { self.error="Appearance was not saved. " + error.localizedDescription }
+        })
+    }
+    var body: some View {
+        Section("Appearance — encrypted vault sync") {
+            if !model.appearanceInitialized { Text("Complete a server sync before creating shared appearance settings on this device. Existing downloaded preferences remain editable offline.").font(.footnote) }
+            Picker("Mode",selection:binding(\.mode)) { ForEach(SharedAppearance.modes,id:\.self) { Text($0.capitalized).tag($0) } }.disabled(!model.appearanceInitialized).accessibilityIdentifier("appearance.mode")
+            Picker("Style",selection:binding(\.skin)) { ForEach(SharedAppearance.skins,id:\.self) { Text($0.capitalized).tag($0) } }.disabled(!model.appearanceInitialized).accessibilityIdentifier("appearance.skin")
+            Picker("Accent",selection:binding(\.palette)) { ForEach(SharedAppearance.palettes,id:\.self) { Text($0.capitalized).tag($0) } }.disabled(!model.appearanceInitialized).accessibilityIdentifier("appearance.palette")
+            Text("Choices use the web app’s original colors and are saved inside encrypted vault settings. System mode follows each device. Offline edits queue for normal sync; AI stays disabled unless you explicitly enable it in the web app.").font(.footnote)
+            if let error { Text(error).accessibilityIdentifier("appearance.error") }
+        }
+    }
+}
+// Original mobile book thumbnail (46×58), including spine and all five patterns.
+// 'photo' is the original diagonal stripe skin, NOT a remote image request.
+private struct NotebookCover: View {
+    let color: String
+    let pattern: String
+    @Environment(\.layoutDirection) private var direction
+    var body: some View {
+        Canvas { context,size in
+            let rect=CGRect(origin:.zero,size:size)
+            context.fill(Path(roundedRect:rect,cornerRadius:4),with:.color(Color(chapterHex:color).opacity(0.13)))
+            if pattern=="dots" {
+                for x in stride(from:4.5,to:Double(size.width),by:9) { for y in stride(from:4.5,to:Double(size.height),by:9) {
+                    context.fill(Path(ellipseIn:CGRect(x:x-1.4,y:y-1.4,width:2.8,height:2.8)),with:.color(Color(chapterHex:color).opacity(0.28)))
+                }}
+            } else if pattern=="lines" || pattern=="grid" {
+                var lines=Path();let step=pattern=="lines" ? 8.0:9.0
+                for y in stride(from:step,to:Double(size.height),by:step) { lines.move(to:CGPoint(x:0,y:y));lines.addLine(to:CGPoint(x:size.width,y:y)) }
+                if pattern=="grid" { for x in stride(from:9.0,to:Double(size.width),by:9) { lines.move(to:CGPoint(x:x,y:0));lines.addLine(to:CGPoint(x:x,y:size.height)) } }
+                context.stroke(lines,with:.color(Color(chapterHex:color).opacity(0.16)),lineWidth:1)
+            } else if pattern=="photo" {
+                var stripes=Path()
+                for x in stride(from:-64.0,to:Double(size.width)+64,by:12) { stripes.move(to:CGPoint(x:x,y:0));stripes.addLine(to:CGPoint(x:x-Double(size.height),y:Double(size.height))) }
+                context.stroke(stripes,with:.color(Color(chapterHex:color).opacity(0.18)),lineWidth:6)
+            }
+            context.fill(Path(CGRect(x:direction == .rightToLeft ? size.width-4:0,y:0,width:4,height:size.height)),with:.color(Color(chapterHex:color).opacity(0.85)))
+        }.frame(width:46,height:58).clipShape(RoundedRectangle(cornerRadius:8)).overlay(RoundedRectangle(cornerRadius:8).stroke(Color(chapterHex:color).opacity(0.3),lineWidth:1)).accessibilityHidden(true)
     }
 }

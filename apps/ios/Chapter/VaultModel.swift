@@ -10,6 +10,7 @@ import ChapterCore
     @Published private(set) var mediaErrors: [String: String] = [:]
     @Published var message: String?
     @Published private(set) var syncing = false
+    @Published private(set) var appearanceInitialized = false
     @Published var connecting = false
     private var identity: VaultIdentity?
     private var store: EncryptedSnapshotStore?
@@ -34,7 +35,7 @@ import ChapterCore
         let disk = EncryptedSnapshotStore(directory: directory, namespace: "public-fixture-only", key: SymmetricKey(data: Data(repeating: 7, count: 32)))
         var value = VaultSnapshot()
         value.records = [VaultRecord(id: "public-notebook-record", clock: 1, body: ["kind": .string("journal"), "journalId": .string("public-notebook"), "name": .string("Public notebook"), "subtitle": .string("Public subtitle"), "color": .string("#4E8B85"), "cover": .string("lines"), "opaqueFuture": .object(["preserve": .bool(true)])]), VaultRecord(id: "public-rich-fixture", clock: 1, body: ["title": .string("Public rich fixture"), "bodyJson": .string(PublicRichFixture.json), "bodyText": .string(try RichDocument(json: PublicRichFixture.json).plainText)])]
-        try disk.save(value); store = disk; snapshot = value; unlocked = true
+        try disk.save(value); store = disk; snapshot = value; unlocked = true; appearanceInitialized = true
         // Deliberately no identity, relay or fake sync/auth result. Tests exercise
         // real encrypted local editing, never production Keychain/server auth.
     }
@@ -58,7 +59,7 @@ import ChapterCore
             let local = try disk.load()
             guard attempt == generation else { return }
             let files = try EncryptedMediaFiles(directory: EncryptedSnapshotStore.applicationDirectory(), namespace: disk.namespace)
-            mediaFiles = files; identity = id; store = disk; snapshot = local; relay = Relay(address: address); unlocked = true
+            mediaFiles = files; identity = id; store = disk; snapshot = local; relay = Relay(address: address); unlocked = true; appearanceInitialized = local.appearanceRecord != nil
             UserDefaults.standard.set(address.url.absoluteString, forKey: "chapter.server")
             await sync()
         } catch { if attempt == generation { message = error.localizedDescription } }
@@ -66,11 +67,15 @@ import ChapterCore
     func lock() {
         generation = UUID(); scheduledSync?.cancel(); scheduledSync = nil; backoff = SyncBackoff(); mediaErrors = [:]; mediaImport?.cancel(); mediaImport = nil; mediaFiles = nil; playbackFiles.forEach { try? FileManager.default.removeItem(at: $0) }; playbackFiles = []; relay?.cancel(); relay = nil; identity = nil; store = nil
         if let root = try? EncryptedSnapshotStore.applicationDirectory() { try? FileManager.default.removeItem(at: root.appendingPathComponent("ImportStaging", isDirectory: true)) }
-        snapshot = VaultSnapshot(); unlocked = false; syncing = false; connecting = false; message = nil
+        snapshot = VaultSnapshot(); appearanceInitialized = false; unlocked = false; syncing = false; connecting = false; message = nil
     }
     private func commit(_ next: VaultSnapshot) throws {
         guard let store else { throw ChapterError.storage }
         try store.save(next); snapshot = next
+    }
+    func saveAppearance(_ preference: SharedAppearance) throws {
+        guard unlocked, appearanceInitialized else { throw ChapterError.storage }
+        var next=snapshot; try next.setAppearance(preference); try commit(next); scheduleSync()
     }
     private func scheduleSync() {
         scheduledSync?.cancel()
@@ -113,6 +118,7 @@ import ChapterCore
                 if !page.more { break }
                 pages += 1; guard pages < 10_000 else { throw ChapterError.corruptData }
             }
+            appearanceInitialized = true // Never bootstrap unseen server AI settings while offline.
             if let mediaFiles {
                 for upload in snapshot.mediaUploads ?? [] {
                     do {

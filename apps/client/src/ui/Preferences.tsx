@@ -347,6 +347,7 @@ export function PreferencesSheet({ desk, theme, onClose, initialTab, ownerId, st
 
   const appearance = (
     <div>
+      <p role="status" style={{color:"var(--ink-2)",fontSize:13}}>{theme.syncMessage}</p>
       <SectionLabel first>{t('prefs.language')}</SectionLabel>
       <div style={{ display: 'grid', gridTemplateColumns: desk ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)', gap: 8 }}>
         {i18n.locales.map((l) => {

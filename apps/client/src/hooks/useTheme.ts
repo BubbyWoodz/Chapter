@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'preact/hooks';
+import { useCallback, useEffect, useState, useRef } from 'preact/hooks';
+import { readAppearance, type SharedAppearance } from '../appearance/shared';
 import { darken, hexA } from '../ui/color';
 
 const MODE_KEY = 'mneme.theme.mode';
@@ -65,6 +66,7 @@ function initialSkin(): string {
 }
 
 export interface ThemeControls {
+  syncMessage: string;
   mode: ThemeMode;
   setMode: (m: ThemeMode) => void;
   /** Resolved dark flag (mode + system preference). */
@@ -80,14 +82,34 @@ export interface ThemeControls {
 
 /**
  * Theme layer: light/dark/system mode + accent palette, persisted per device
- * in localStorage (appearance is not content — it never syncs). Mirrors the
+ * in localStorage before unlock; explicit changes also persist in existing encrypted vault settings. Mirrors the
  * design handoff's "tweaks" but keeps only the product-relevant bits; the
  * accent ramp is recomputed for dark (softer fills) like the prototype.
  */
-export function useTheme(): ThemeControls {
+export function useTheme(shared?: {value:unknown;ready:boolean;save:(p:SharedAppearance)=>Promise<void>}): ThemeControls {
   const [mode, setModeState] = useState<ThemeMode>(initialMode);
   const [palette, setPaletteState] = useState<string>(initialPalette);
   const [skin, setSkinState] = useState<string>(initialSkin);
+  const [syncMessage,setSyncMessage]=useState('Appearance is local until you change it while a vault is unlocked.');
+  const latest=useRef<SharedAppearance>({v:1,mode,palette,skin});
+  const generation=useRef(0);
+  useEffect(()=>{
+    generation.current++;
+    if(!shared?.ready) return;
+    const remote=readAppearance(shared.value);
+    if(remote) { latest.current=remote; setModeState(remote.mode);setPaletteState(remote.palette);setSkinState(remote.skin);
+      localStorage.setItem(MODE_KEY,remote.mode);localStorage.setItem(PALETTE_KEY,remote.palette);localStorage.setItem(SKIN_KEY,remote.skin);
+      setSyncMessage('Appearance loaded from encrypted vault settings.');
+    } else if(shared.value) setSyncMessage('Unsupported shared appearance preserved; upgrade before editing.');
+  },[shared?.value,shared?.ready]);
+  const apply=useCallback((patch:Partial<SharedAppearance>)=>{
+    const next={...latest.current,...patch}; latest.current=next;
+    setModeState(next.mode);setPaletteState(next.palette);setSkinState(next.skin);
+    localStorage.setItem(MODE_KEY,next.mode);localStorage.setItem(PALETTE_KEY,next.palette);localStorage.setItem(SKIN_KEY,next.skin);
+    if(shared?.ready) { const attempt=generation.current; setSyncMessage('Saving encrypted appearance…');
+      void shared.save(next).then(()=>{if(attempt===generation.current)setSyncMessage('Saved encrypted on this device; vault sync sends it to your other clients.');},()=>{if(attempt===generation.current)setSyncMessage('Appearance could not be saved to the vault. Local preview only; retry your choice.');});
+    } else setSyncMessage('Local preview only. Unlock the vault to save a shared appearance.');
+  },[shared?.ready,shared?.save]);
   const [systemDark, setSystemDark] = useState(
     () => window.matchMedia('(prefers-color-scheme: dark)').matches,
   );
@@ -126,27 +148,11 @@ export function useTheme(): ThemeControls {
     }
   }, [dark, accent, skin]);
 
-  const setMode = useCallback((m: ThemeMode) => {
-    setModeState(m);
-    localStorage.setItem(MODE_KEY, m);
-  }, []);
-
-  const setPalette = useCallback((id: string) => {
-    setPaletteState(id);
-    localStorage.setItem(PALETTE_KEY, id);
-  }, []);
-
-  const setSkin = useCallback(
-    (id: string) => {
-      setSkinState(id);
-      localStorage.setItem(SKIN_KEY, id);
-      const def = SKINS.find((s) => s.id === id)?.accent;
-      if (def) setPalette(def);
-    },
-    [setPalette],
-  );
+  const setMode = useCallback((m:ThemeMode)=>apply({mode:m}),[apply]);
+  const setPalette = useCallback((id:string)=>{if(PALETTES.some(p=>p.id===id))apply({palette:id});},[apply]);
+  const setSkin = useCallback((id:string)=>{const value=SKINS.find(s=>s.id===id);if(value)apply({skin:id,palette:value.accent});},[apply]);
 
   const toggleDark = useCallback(() => setMode(dark ? 'light' : 'dark'), [dark, setMode]);
 
-  return { mode, setMode, dark, toggleDark, palette, setPalette, skin, setSkin };
+  return { syncMessage, mode, setMode, dark, toggleDark, palette, setPalette, skin, setSkin };
 }

@@ -109,6 +109,20 @@ final class ChapterUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Public subtitle"].exists)
         attach(app, name: "Chapter actual persisted notebook metadata edit")
     }
+    func testAppearanceChoicesAndNativeNotebookCovers() throws {
+        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture"];app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Notebooks"].waitForExistence(timeout:10));app.tabBars.buttons["Notebooks"].tap()
+        attach(app,name:"Chapter actual native notebook cover from original web pattern")
+        app.tabBars.buttons["Settings"].tap()
+        let style=app.buttons["appearance.skin"]
+        XCTAssertTrue(style.waitForExistence(timeout:5));style.tap()
+        app.buttons["Forest"].tap()
+        XCTAssertFalse(app.staticTexts["appearance.error"].exists)
+        attach(app,name:"Chapter actual Forest theme using original web colors")
+        app.tabBars.buttons["Notebooks"].tap()
+        XCTAssertTrue(app.staticTexts["Public notebook"].waitForExistence(timeout:5))
+        attach(app,name:"Chapter actual Forest-themed native notebook")
+    }
     func testHTTPIsRejectedBeforeAnyAuthenticationOrVaultCreation() throws {
         let app = XCUIApplication(); app.launch()
         let server = app.textFields["connection.server"]

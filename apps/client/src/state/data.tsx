@@ -1,3 +1,4 @@
+import { withAppearance, withAiSettingsPreservingAppearance, type SharedAppearance } from '../appearance/shared';
 // AppData provider: holds the in-memory identity/session, the live entry list,
 // and the background sync loop. Seed/identity live in memory; at rest the seed
 // is either nowhere (re-enter the mnemonic on cold start — the default) or, if
@@ -118,6 +119,7 @@ interface AppData {
   aiSettings: AiSettings | null;
   /** Persist (sealed) and apply new AI settings; null disables and clears the record. */
   saveAiSettings(s: AiSettings | null): Promise<void>;
+  saveAppearance(p: SharedAppearance): Promise<void>;
   /**
    * Enter with the recovery phrase. With a `seal` choice, the derived seed is
    * additionally sealed into IndexedDB — under an Argon2id passphrase or a
@@ -299,7 +301,10 @@ export function AppDataProvider({ children }: { children: ComponentChildren }): 
   const [journals, setJournals] = useState<Journal[]>([]);
   const [templates, setTemplates] = useState<TemplateRecord[]>([]);
   const [interviewTypes, setInterviewTypes] = useState<InterviewType[]>([]);
-  const [aiSettings, setAiSettings] = useState<AiSettings | null>(null);
+  const [aiSettings, setAiSettingsState] = useState<AiSettings | null>(null);
+  const currentAiSettings = useRef<AiSettings | null>(null);
+  const settingsWrites = useRef<Promise<void>>(Promise.resolve());
+  const setAiSettings = useCallback((s: AiSettings | null) => { currentAiSettings.current=s; setAiSettingsState(s); }, []);
 
   // Render-fresh snapshots for callbacks that act on the CURRENT lists outside
   // a setState updater (the delete paths). Assigned every render below.
@@ -1192,28 +1197,31 @@ export function AppDataProvider({ children }: { children: ComponentChildren }): 
   // configuration — API key included — follows the vault to its other devices.
   // The plaintext only ever lives in this state object while unlocked; on the
   // wire and on the relay it is ciphertext like everything else.
-  const saveAiSettings: AppData['saveAiSettings'] = useCallback(
-    async (s) => {
-      const id = identity.current;
-      if (!id) throw new Error('not signed in');
-      const now = Date.now();
-      const recordId = aiSync.current.recordId ?? newRecordId();
-      aiSync.current = { recordId, updatedAt: now, dirty: true };
-      if (s === null) {
-        await clearAiSettingsRecord();
-        setAiSettings(null);
-        // Tombstone so the clearing reaches the other devices too.
-        pendingAi.current = { recordId, settings: null, updatedAt: now, deleted: true };
-      } else {
-        await storeAiSettingsRecord(sealAiSettings(id.aiKey, s, aiSync.current));
-        setAiSettings(s);
-        pendingAi.current = { recordId, settings: s, updatedAt: now };
-      }
-      syncPendingCount();
-      void flush();
-    },
-    [flush, syncPendingCount],
-  );
+  // Serialize durable settings edits; rapid palette/skin changes and an open AI
+  // form must not overwrite each other's latest fields or claim pre-disk success.
+  const persistSettings = useCallback((change: (current: AiSettings|null) => AiSettings|null): Promise<void> => {
+    const owner = identity.current;
+    const task = settingsWrites.current.catch(() => undefined).then(async () => {
+      if (!owner || identity.current !== owner) throw new Error('Vault changed or locked');
+      const next=change(currentAiSettings.current);
+      const clock=Math.max(Date.now(),aiSync.current.updatedAt+1);
+      if (!Number.isSafeInteger(clock)) throw new Error('Invalid settings clock');
+      const recordId=aiSync.current.recordId ?? newRecordId();
+      const meta={recordId,updatedAt:clock,dirty:true};
+      if(next===null) await clearAiSettingsRecord();
+      else await storeAiSettingsRecord(sealAiSettings(owner.aiKey,next,meta));
+      if(identity.current!==owner) throw new Error('Vault changed or locked');
+      aiSync.current=meta; setAiSettings(next);
+      pendingAi.current={recordId,settings:next,updatedAt:clock,...(next===null?{deleted:true}:{})};
+      syncPendingCount(); void flush();
+    });
+    settingsWrites.current=task.catch(()=>undefined); return task;
+  },[flush,syncPendingCount,setAiSettings]);
+  const saveAiSettings: AppData['saveAiSettings'] = useCallback((s) => persistSettings(current => {
+    // AI forms opened before a remote theme update retain the newer appearance.
+    return withAiSettingsPreservingAppearance(current,s);
+  }),[persistSettings]);
+  const saveAppearance: AppData['saveAppearance'] = useCallback((p) => persistSettings(current => withAppearance(current,p)),[persistSettings]);
 
   // Store a recording: bytes go to the local DB + media outbox. The attachment
   // metadata is returned for the editor to embed as an inline node in the entry
@@ -1705,8 +1713,8 @@ export function AppDataProvider({ children }: { children: ComponentChildren }): 
   // re-rendered every useAppData consumer in the app. The callbacks are all
   // useCallback-stable, so the memo keys on the data that actually changes.
   const value: AppData = useMemo(
-    () => ({ status, hasVault, transcribeToken, vaultMethod, ownerId, pendingApproval, approvalHint, retryApproval, pendingCount, pendingJournalIds, syncTotal, saving, bootstrapping, entries: liveEntries, journals: journalsWithCounts, templates: localizedTemplates, interviewTypes: localizedInterviewTypes, aiSettings, saveAiSettings, signIn, unlock, unlockWithKey, setDeviceUnlock, lock, createEntry, updateEntry, attachFilm, attachTranscript, deleteEntry, newJournal, updateJournal, deleteJournal, createTemplate, updateTemplate, deleteTemplate, createInterviewType, updateInterviewType, deleteInterviewType, addMedia, removeMedia, mediaBlob, mediaThumb, rotatePhrase, deleteVault, relayUrl, setRelayUrl }),
-    [status, hasVault, transcribeToken, vaultMethod, ownerId, pendingApproval, approvalHint, retryApproval, pendingCount, pendingJournalIds, syncTotal, saving, bootstrapping, liveEntries, journalsWithCounts, localizedTemplates, localizedInterviewTypes, aiSettings, saveAiSettings, signIn, unlock, unlockWithKey, setDeviceUnlock, lock, createEntry, updateEntry, attachFilm, attachTranscript, deleteEntry, newJournal, updateJournal, deleteJournal, createTemplate, updateTemplate, deleteTemplate, createInterviewType, updateInterviewType, deleteInterviewType, addMedia, removeMedia, mediaBlob, mediaThumb, rotatePhrase, deleteVault, relayUrl, setRelayUrl],
+    () => ({ status, hasVault, transcribeToken, vaultMethod, ownerId, pendingApproval, approvalHint, retryApproval, pendingCount, pendingJournalIds, syncTotal, saving, bootstrapping, entries: liveEntries, journals: journalsWithCounts, templates: localizedTemplates, interviewTypes: localizedInterviewTypes, aiSettings, saveAiSettings, saveAppearance, signIn, unlock, unlockWithKey, setDeviceUnlock, lock, createEntry, updateEntry, attachFilm, attachTranscript, deleteEntry, newJournal, updateJournal, deleteJournal, createTemplate, updateTemplate, deleteTemplate, createInterviewType, updateInterviewType, deleteInterviewType, addMedia, removeMedia, mediaBlob, mediaThumb, rotatePhrase, deleteVault, relayUrl, setRelayUrl }),
+    [status, hasVault, transcribeToken, vaultMethod, ownerId, pendingApproval, approvalHint, retryApproval, pendingCount, pendingJournalIds, syncTotal, saving, bootstrapping, liveEntries, journalsWithCounts, localizedTemplates, localizedInterviewTypes, aiSettings, saveAiSettings, saveAppearance, signIn, unlock, unlockWithKey, setDeviceUnlock, lock, createEntry, updateEntry, attachFilm, attachTranscript, deleteEntry, newJournal, updateJournal, deleteJournal, createTemplate, updateTemplate, deleteTemplate, createInterviewType, updateInterviewType, deleteInterviewType, addMedia, removeMedia, mediaBlob, mediaThumb, rotatePhrase, deleteVault, relayUrl, setRelayUrl],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

@@ -1,3 +1,4 @@
+import { verifyThemeCatalog } from './native-theme-vectors';
 // Public BIP39 test phrase only. Never use these identities for real journals.
 // --write refreshes committed Swift fixtures; default verifies native-generated
 // ciphertext using the ACTUAL web implementation (cross-client reverse leg).
@@ -13,6 +14,7 @@ import { decryptRecord } from '../src/sync/engine';
 import { decrypt } from '../src/crypto/aead';
 import { decryptMediaChunks } from '../src/crypto/media';
 import { docMediaIds, docToText } from '../src/editor/doc';
+verifyThemeCatalog();
 const phrase = 'legal winner thank year wave sausage worth useful legal winner thank yellow';
 const seed = mnemonicToSeed(phrase), id = deriveIdentity(seed);
 const recordId = '0123456789abcdef0123456789abcdef';

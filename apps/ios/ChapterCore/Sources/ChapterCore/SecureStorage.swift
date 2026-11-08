@@ -70,15 +70,21 @@ public final class EncryptedSnapshotStore {
             return value
         } catch { throw ChapterError.corruptData }
     }
+    // Internal fault seam; production always protects the dedicated owned folder.
+    var prepareWriteForTesting: (() throws -> Void)?
     public func save(_ value: VaultSnapshot) throws {
         let plain = try JSONEncoder().encode(value)
         guard let data = try AES.GCM.seal(plain, using: key, authenticating: aad).combined else { throw ChapterError.storage }
+        // Backup metadata must be prepared BEFORE atomic content commit. A
+        // post-commit throwing xattr could leave model memory behind saved disk.
+        if let prepareWriteForTesting { try prepareWriteForTesting() }
+        var values = URLResourceValues(); values.isExcludedFromBackup = true
+        var ownedDirectory = file.deletingLastPathComponent()
+        try ownedDirectory.setResourceValues(values)
         #if os(iOS)
         try data.write(to: file, options: [.atomic, .completeFileProtection])
         #else
         try data.write(to: file, options: .atomic)
         #endif
-        var values = URLResourceValues(); values.isExcludedFromBackup = true
-        var target = file; try target.setResourceValues(values)
     }
 }

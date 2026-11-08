@@ -187,3 +187,11 @@ settings fields, unlike unknown top-level record kinds. Evaluate with real old/n
 client tests before choosing it; preserve all AI fields/secrets and do not enable
 AI or issue external requests just to save appearance. This is a design candidate,
 not a schema change or completed sync feature.
+
+
+## Current appearance/visual increment (verification pending)
+
+- Added updated-web/native shared appearance extension in the existing encrypted settings record; original encryption unchanged. All original skin/accent/mode combinations and mobile book-cover patterns are represented. Local browser check/build and Foundation mutation/catalog checks pass; macOS ciphertext/restart/live TLS and actual screenshot gates must pass before declaring this feature verified.
+- Native equal-clock settings conflicts remain recoverable with explicit appearance-only reapply; automatic browser equal-clock convergence and provider durability/race tests remain open. Original upstream web cannot synchronize its local theme UI; updated Chapter web is required. See `CHAPTER-APPEARANCE.md`.
+- Whole-app visual parity is NOT achieved by adding themes or covers. Original web notebook preview has been prepared from actual source/public samples for comparison; native typography/surfaces, rich custom nodes, all controls and remaining feature groups still require translation and visual/device acceptance.
+- Local backup metadata ordering corrected to avoid a known post-commit throwing operation; Apple fault-injection test pending. Existing encrypted storage/wire formats unchanged.
