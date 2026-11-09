@@ -223,23 +223,6 @@ final class ChapterUITests: XCTestCase {
         created.tap()
         XCTAssertTrue(app.staticTexts["One intention"].waitForExistence(timeout:5),"A native-created template starts an entry with its content")
     }
-    /// TEMPORARY bisection of the unnamed connection-screen Dynamic Type finding.
-    /// Every finding is still recorded as a failure; the log names each variant.
-    func testConnectionAuditVariantsIsolateTheProductionDifference() throws {
-        continueAfterFailure = true
-        for kind in ["surface", "headers", "sections", "secure", "fields", "inset", "dismiss", "footnotes"] {
-            let app = XCUIApplication(); app.launchArguments = ["--chapter-connection-variant=" + kind]; app.launch()
-            XCTAssertTrue(app.navigationBars["Variant " + kind].waitForExistence(timeout: 10))
-            var findings = 0
-            try app.performAccessibilityAudit(for: .dynamicType) { issue in
-                findings += 1
-                print("VARIANT \(kind) AUDIT: \(issue.compactDescription) | \(issue.detailedDescription) | element: \(issue.element?.debugDescription ?? "unknown")")
-                return false
-            }
-            print("VARIANT \(kind) findings: \(findings)")
-            app.terminate()
-        }
-    }
     func testOriginalLanguageChoiceLocalizesBuiltinTemplatesLikeTheWeb() throws {
         let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture"];app.launch()
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout:10));app.tabBars.buttons["Settings"].tap()
@@ -269,7 +252,8 @@ final class ChapterUITests: XCTestCase {
         attach(app,name:"Actual native table editor after adding a row and a column")
         app.buttons["table.command.deleteColumn"].tap()
         XCTAssertTrue(app.buttons["table.cell.0.3"].waitForNonExistence(timeout:5))
-        app.buttons["table.command.deleteTable"].tap()
+        // The last command row of the lazy Form is off-screen after the table grew.
+        let deleteTable=app.buttons["table.command.deleteTable"];reveal(deleteTable,in:app);deleteTable.tap()
         let confirm=app.buttons["table.confirmDelete"];XCTAssertTrue(confirm.waitForExistence(timeout:5));confirm.tap()
         XCTAssertTrue(app.navigationBars["Edit rich entry"].waitForExistence(timeout:5))
         XCTAssertFalse(app.buttons["rich.table.5"].exists,"The table is gone")
