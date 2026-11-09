@@ -9,10 +9,24 @@ concurrency:
   cancel-in-progress: true
 jobs:
   native:
-    runs-on: macos-15
+    # Hosted macos-15 (arm64) jobs were repeatedly "not acquired" for capacity, so the identical job
+    # also runs on macos-15-intel: the same macOS 15 image, default Xcode 16.4 and iOS 18.5 SDK, from
+    # a separate runner pool. Every step, test and strict audit is the same on both; either leg is
+    # a real Apple build. Artifacts are suffixed by runner because upload-artifact needs unique names.
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-15, macos-15-intel]
+    name: native (${{ matrix.runner }})
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+      - name: Record toolchain
+        run: |
+          uname -m
+          xcodebuild -version
+          xcrun --sdk iphonesimulator --show-sdk-version
       - name: Choose an installed iPhone Simulator
         id: simulator
         run: |
@@ -61,7 +75,7 @@ jobs:
         run: ditto -c -k --sequesterRsrc --keepParent "$RUNNER_TEMP/ChapterBuild/Build/Products/Debug-iphonesimulator/Chapter.app" "$RUNNER_TEMP/Chapter-Simulator.zip"
       - uses: actions/upload-artifact@v4
         with:
-          name: Chapter-unsigned-Simulator
+          name: Chapter-unsigned-Simulator-${{ matrix.runner }}
           path: ${{ runner.temp }}/Chapter-Simulator.zip
           retention-days: 7
       - name: Capture actual implemented native pages (public fixture, no mocks)
@@ -80,7 +94,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: Chapter-actual-page-screenshots
+          name: Chapter-actual-page-screenshots-${{ matrix.runner }}
           path: |
             ${{ runner.temp }}/ChapterPages.xcresult
             ${{ runner.temp }}/ChapterPageAttachments
@@ -115,7 +129,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: Chapter-required-accessibility-audit-results
+          name: Chapter-required-accessibility-audit-results-${{ matrix.runner }}
           path: |
             ${{ runner.temp }}/ChapterConnectionAudit.xcresult
             ${{ runner.temp }}/ChapterConnectionAuditAttachments
@@ -143,7 +157,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Chapter-native-ui-results
+          name: Chapter-native-ui-results-${{ matrix.runner }}
           path: |
             ${{ runner.temp }}/ChapterUITests.xcresult
             ${{ runner.temp }}/ChapterUIAttachments

@@ -258,7 +258,7 @@ explicit; metadata form changes still are not autosaved before locking.
 
 ### Actual page captures and recoverable notebook deletion
 
-CI exports `Chapter-actual-page-screenshots` early from REQUIRED real Simulator
+CI exports `Chapter-actual-page-screenshots-<runner>` (`macos-15` or `macos-15-intel`) early from REQUIRED real Simulator
 page-tour tests. These are public synthetic journal states, not app mockups.
 Only this screenshot tour disables animations; separate normal/XXXL functional
 and strict accessibility runs retain production animation and every finding.

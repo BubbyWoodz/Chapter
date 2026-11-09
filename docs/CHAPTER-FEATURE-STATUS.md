@@ -72,6 +72,19 @@ the exact revision; a failing strict accessibility audit remains a release block
   is treated as unproven until it passes again. No audit is waived; re-verification pending.
 
 <!-- Times are commit times in America/Los_Angeles; earlier labels this night ran ahead of the clock and were corrected. -->
+## Native iOS runner fallback — November 9, 2026, 6:43 AM PST
+
+Native 42634671252 (on d8029d4) was cancelled at 6:41 AM PST, again "not acquired by Runner of type hosted". That is five runs in a row on `macos-15` (arm64), whose queue GitHub says is under capacity constraints. `macos-14` was retired on November 2, 2026.
+
+- **`.github/workflows/ios.yml` now runs the identical `native` job on both `macos-15` and `macos-15-intel`:**
+  - `fail-fast: false`.
+  - `macos-15-intel` uses the same macOS 15 image, with default Xcode 16.4 and the iOS 18.5 Simulator SDK, but a separate runner pool.
+  - Every step, test, strict accessibility audit and timeout is unchanged.
+  - The only additions are a step that records the architecture, Xcode and SDK, and a runner suffix on artifact names (upload-artifact refuses duplicates).
+  - Either leg that runs is a real Apple build. The repo is public, so standard hosted runners are free.
+  - `macos-26` was not used because its Xcode 26.6 would change the toolchain under test.
+- **Not changed:** `chapter-server.yml`'s macOS job, release.yml and version-bump.yml.
+
 ## Video interview and film timeline core — November 9, 2026, 6:35 AM PST
 
 This is a local commit, not pushed yet. Native 42634671252 (on d8029d4) is queued.

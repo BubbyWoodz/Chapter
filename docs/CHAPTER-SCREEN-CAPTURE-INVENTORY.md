@@ -2,7 +2,7 @@
 
 This inventories implemented SwiftUI user-facing screens, NOT all original Mneme
 features. Unimplemented features have no fabricated screen. Required Simulator
-UI tours export unchanged screenshots in `Chapter-actual-page-screenshots` before
+UI tours export unchanged screenshots in `Chapter-actual-page-screenshots-<runner>` (`macos-15` or `macos-15-intel`) before
 separate strict production accessibility/functional runs. Observe the actual
 Xcode attachment manifest and test results; source calls are intended coverage,
 not proof that navigation/capture succeeded. Only screenshot tours disable
