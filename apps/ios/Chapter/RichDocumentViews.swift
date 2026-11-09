@@ -237,6 +237,7 @@ struct RichDraftEditor: View {
     @State private var savedDraft = false
     @State private var formattingExpanded = false
     @State private var caret: Int?
+    @State private var selected: Range<Int>?
     @State private var insertion: CaretInsertion?
     private static var caretSupported: Bool { if #available(iOS 18.0, *) { return true } else { return false } }
     private let formats = [("bold", "Bold"), ("italic", "Italic"), ("underline", "Underline"), ("strike", "Strikethrough"), ("code", "Inline code")]
@@ -248,6 +249,13 @@ struct RichDraftEditor: View {
                     ForEach(RichBlockStyle.allCases, id: \.self) { Text($0.title).tag($0) }
                 }.pickerStyle(.menu).padding().accessibilityIdentifier("rich.block-style")
             }
+            Group {
+                if #available(iOS 18.0, *) {
+                    if current.newBlockStyle == nil { CaretTrackingEditor(text: $current.text, caret: $caret, selected: $selected) } else { TextEditor(text: $current.text) }
+                } else {
+                    TextEditor(text: $current.text)
+                }
+            }.font(chapterFont(.prose,skin:model.snapshot.appearance?.skin ?? "paper",size:18)).scrollContentBackground(.hidden).background(chapterToken("paper",preference:model.snapshot.appearance ?? .standard)).accessibilityLabel(current.newBlockStyle == nil ? "Formatted text run" : "New block text").autocorrectionDisabled().padding()
             if current.supportsFormatting {
                 Button("Formatting") { formattingExpanded.toggle() }.accessibilityValue(formattingExpanded ? "Expanded":"Collapsed")
                     .frame(minWidth:44,minHeight:44).padding(.horizontal).accessibilityIdentifier("rich.formatting")
@@ -255,21 +263,18 @@ struct RichDraftEditor: View {
                     VStack(alignment:.leading) {
                         ForEach(formats,id:\.0) { type,title in
                             Button {
-                                do { current = try current.togglingMark(type); formattingExpanded = false }
-                                catch { self.error = error.localizedDescription }
+                                if let selected, current.newBlockStyle == nil { format(type, selection: selected) }
+                                else {
+                                    do { current = try current.togglingMark(type); formattingExpanded = false }
+                                    catch { self.error = error.localizedDescription }
+                                }
                             } label: { Label(title,systemImage:current.hasMark(type) ? "checkmark":"circle").frame(maxWidth:.infinity,minHeight:44,alignment:.leading) }
                                 .buttonStyle(.bordered).accessibilityIdentifier("rich.format." + type)
                         }
+                        if selected != nil { Text("With text selected, formatting applies to the selection and saves the entry, like the original toolbar.").font(.footnote).accessibilityIdentifier("rich.selection-hint") }
                     }.padding(.horizontal)
                 }
             }
-            Group {
-                if #available(iOS 18.0, *) {
-                    if current.newBlockStyle == nil { CaretTrackingEditor(text: $current.text, caret: $caret) } else { TextEditor(text: $current.text) }
-                } else {
-                    TextEditor(text: $current.text)
-                }
-            }.font(chapterFont(.prose,skin:model.snapshot.appearance?.skin ?? "paper",size:18)).scrollContentBackground(.hidden).background(chapterToken("paper",preference:model.snapshot.appearance ?? .standard)).accessibilityLabel(current.newBlockStyle == nil ? "Formatted text run" : "New block text").autocorrectionDisabled().padding()
             if current.newBlockStyle == nil && Self.caretSupported {
                 HStack {
                     Button { prepare(link: true) } label: { Label("Insert link here", systemImage: "link").frame(minHeight: 44) }.accessibilityIdentifier("rich.insert-link")
@@ -302,34 +307,56 @@ struct RichDraftEditor: View {
     private func prepare(link: Bool) {
         do {
             guard let caret else { throw ChapterError.unsupported }
-            func live() -> VaultRecord? { model.snapshot.records.first { $0.id == current.entryID && !$0.deleted && $0.kind == "entry" } }
-            guard var record = live(), var raw = record.body["bodyJson"]?.string else { throw ChapterError.conflict }
-            let leaf = try RichDocument(json: raw).editableTextNodes.first { $0.path == current.path }
-            let leafText = leaf?.type == "text" ? leaf?.text : ""
-            if leafText.map({ Data($0.utf8) != Data(current.text.utf8) }) ?? true || current.marks != nil {
-                try model.applyRichDraft(current)
-                guard let saved = live(), let savedRaw = saved.body["bodyJson"]?.string else { throw ChapterError.conflict }
-                record = saved; raw = savedRaw
-            }
+            let (record, raw) = try committed()
             let point = try RichDocument(json: raw).caret(leaf: current.path, utf16Offset: caret)
             insertion = CaretInsertion(link: link, entry: record, caret: point)
             error = nil
         } catch { self.error = "Place the cursor in text that still exists, then try again. Your writing was kept. " + error.localizedDescription }
     }
+    /// Saves pending text first, so positions refer to exactly what you see.
+    private func committed() throws -> (VaultRecord, String) {
+        func live() -> VaultRecord? { model.snapshot.records.first { $0.id == current.entryID && !$0.deleted && $0.kind == "entry" } }
+        guard let record = live(), let raw = record.body["bodyJson"]?.string else { throw ChapterError.conflict }
+        let leaf = try RichDocument(json: raw).editableTextNodes.first { $0.path == current.path }
+        let leafText = leaf?.type == "text" ? leaf?.text : ""
+        guard leafText.map({ Data($0.utf8) != Data(current.text.utf8) }) ?? true || current.marks != nil else { return (record, raw) }
+        try model.applyRichDraft(current)
+        guard let saved = live(), let savedRaw = saved.body["bodyJson"]?.string else { throw ChapterError.conflict }
+        return (saved, savedRaw)
+    }
+    /// Original toolbar toggleMark over the selected part of this run.
+    private func format(_ type: String, selection: Range<Int>) {
+        do {
+            let (record, raw) = try committed()
+            // A run typed into an empty block becomes that block's first text node.
+            let nodes = try RichDocument(json: raw).editableTextNodes
+            guard let leaf = nodes.first(where: { $0.path == current.path && $0.type == "text" }) ?? nodes.first(where: { $0.path == current.path + [0] && $0.type == "text" }) else { throw ChapterError.unsupported }
+            try model.toggleSelectionMark(record, type: type, leaf: leaf.path, range: selection)
+            dismiss()
+        } catch { self.error = "That selection can’t take this formatting (for example inside inline code or a link). Your writing was kept. " + error.localizedDescription }
+    }
 }
 private struct CaretInsertion: Identifiable { let link: Bool; let entry: VaultRecord; let caret: RichCaret; var id: String { (link ? "link:" : "template:") + caret.block.map(String.init).joined(separator: "/") + ":" + String(caret.offset) } }
-/// iOS 18 TextEditor selection, reported as a collapsed UTF-16 cursor offset.
+/// iOS 18 TextEditor selection, reported as a collapsed UTF-16 cursor offset or a selected range.
 @available(iOS 18.0, *)
 struct CaretTrackingEditor: View {
     @Binding var text: String
     @Binding var caret: Int?
+    @Binding var selected: Range<Int>?
     @State private var selection: TextSelection?
     var body: some View {
         TextEditor(text: $text, selection: Binding(get: { selection }, set: { value in
             selection = value
-            caret = Self.offset(value, in: text)
+            caret = Self.offset(value, in: text); selected = Self.range(value, in: text)
         }))
-        .onChange(of: text) { _, newText in caret = Self.offset(selection, in: newText) }
+        .onChange(of: text) { _, newText in caret = Self.offset(selection, in: newText); selected = Self.range(selection, in: newText) }
+    }
+    /// A non-empty selection as a UTF-16 range of this run's text.
+    static func range(_ selection: TextSelection?, in text: String) -> Range<Int>? {
+        guard let selection, case .selection(let range) = selection.indices, !range.isEmpty, range.upperBound <= text.endIndex,
+              let start = range.lowerBound.samePosition(in: text.utf16), let end = range.upperBound.samePosition(in: text.utf16) else { return nil }
+        let utf16 = text.utf16
+        return utf16.distance(from: utf16.startIndex, to: start)..<utf16.distance(from: utf16.startIndex, to: end)
     }
     static func offset(_ selection: TextSelection?, in text: String) -> Int? {
         guard let selection, case .selection(let range) = selection.indices, range.isEmpty,

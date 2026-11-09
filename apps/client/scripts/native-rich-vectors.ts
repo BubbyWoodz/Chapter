@@ -1,6 +1,7 @@
 // Public lossless native/web document fixtures. No personal journal content.
 import assert from 'node:assert/strict';
-import { getSchema, createNodeFromContent, type JSONContent } from '@tiptap/core';
+import { Editor, getSchema, createNodeFromContent, type JSONContent } from '@tiptap/core';
+import { JSDOM } from 'jsdom';
 import { Fragment, type Node as PMNode } from '@tiptap/pm/model';
 import { EditorState } from '@tiptap/pm/state';
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -129,6 +130,49 @@ export function verifyRichFixture(write: boolean, identity: {dataKey:Uint8Array}
   ['template after leaf nodes','leaves',[0],3,tplA],
  ];
  const caretCases = caretInputs.map(([name,docName,block,offset,insert]) => ({name, doc:caretDocs[docName], block, offset, insert, expected:insertAtCaret(caretDocs[docName],block,offset,insert)}));
+ // Selection formatting: the real TipTap Editor (original extensions) runs the
+ // toolbar's toggleMark over a selection inside one text leaf, headless in jsdom.
+ const dom = new JSDOM('<!doctype html><html><body></body></html>');
+ const g = globalThis as Record<string, unknown>;
+ for (const k of ['window','document','Node','HTMLElement','Element','Text','MutationObserver','DOMParser','getComputedStyle']) if (g[k] === undefined) g[k] = (dom.window as unknown as Record<string, unknown>)[k];
+ const markOrder = Object.keys(caretSchema.marks);
+ const markExclusions = Object.fromEntries(markOrder.map(a => [a, markOrder.filter(b => b !== a && caretSchema.marks[a].excludes(caretSchema.marks[b]))]).filter(([, v]) => (v as string[]).length));
+ const leafPos = (docJSON:JSONContent, leaf:number[]):number => {
+  const doc = caretSchema.nodeFromJSON(docJSON); let pos = 0; let node:PMNode = doc;
+  leaf.forEach((i, depth) => { for (let j = 0; j < i; j++) pos += node.child(j).nodeSize; if (depth < leaf.length - 1) pos += 1; node = node.child(i); });
+  return pos;
+ };
+ const toggleInEditor = (docJSON:JSONContent, leaf:number[], from:number, to:number, mark:string):JSONContent => {
+  const editor = new Editor({extensions:buildExtensions(''), content:docJSON});
+  // Load must not normalise anything, so the result isolates toggleMark itself.
+  assert.deepEqual(JSON.parse(JSON.stringify(editor.getJSON())),JSON.parse(JSON.stringify(caretSchema.nodeFromJSON(docJSON).toJSON())),'TipTap load changed a selection fixture');
+  const base = leafPos(docJSON, leaf);
+  editor.chain().setTextSelection({from:base + from, to:base + to}).toggleMark(mark).run();
+  const out = JSON.parse(JSON.stringify(editor.getJSON())) as JSONContent; editor.destroy(); return out;
+ };
+ const endsInParagraph = (d:JSONContent):JSONContent => d.content?.at(-1)?.type === 'paragraph' ? d : {...d, content:[...(d.content ?? []), cp()]};
+ const selDocs:Record<string,JSONContent> = {
+  ...Object.fromEntries(Object.entries(caretDocs).map(([k, d]) => [k, endsInParagraph(d)])),
+  italic:{type:'doc',content:[cp(ct('xy',[{type:'italic'}]),ct('z'))]},
+  sandwich:{type:'doc',content:[cp(ct('a',[{type:'underline'}]),ct('b'),ct('c',[{type:'underline'}]))]},
+  code:{type:'doc',content:[cp(ct('ab',bold),ct('code',[{type:'code'}]))]},
+  block:{type:'doc',content:[{type:'codeBlock',attrs:{language:'swift'},content:[ct('let x')]},cp()]},
+ };
+ const selInputs:[string,string,number[],number,number,string][] = [
+  ['bold word','plain',[0,0],6,11,'bold'], ['italic across space','plain',[0,0],3,7,'italic'], ['code word','plain',[0,0],0,5,'code'],
+  ['bold whole heading','plain',[1,0],0,4,'bold'], ['strike middle','plain',[0,0],2,4,'strike'], ['underline end','plain',[0,0],10,11,'underline'],
+  ['bold joins left','marks',[0,1],0,1,'bold'], ['bold removes inside','marks',[0,0],1,2,'bold'], ['bold removes all joins','marks',[0,0],0,2,'bold'],
+  ['italic on bold rank order','marks',[0,0],0,1,'italic'], ['bold on italic rank order','italic',[0,0],0,2,'bold'], ['italic removed partly','italic',[0,0],1,2,'italic'],
+  ['underline joins both sides','sandwich',[0,1],0,1,'underline'], ['code drops bold','code',[0,0],0,1,'code'], ['code removed','code',[0,1],1,3,'code'],
+  ['bold on code no-op','code',[0,1],0,2,'bold'], ['bold inside link','linked',[0,0],0,2,'bold'], ['bold emoji whole','emoji',[0,0],1,8,'bold'],
+  ['bold next to entry link','leaves',[0,0],1,2,'bold'], ['italic after hard break','leaves',[1,2],0,1,'italic'], ['bold in list item','nested',[0,0,0,0],0,4,'bold'],
+  ['bold in table cell','nested',[1,0,0,0,0],1,3,'bold'], ['bold in code block no-op','block',[0,0],0,3,'bold'],
+ ];
+ const selCases = selInputs.map(([name,docName,leaf,from,to,mark]) => ({name, doc:selDocs[docName], leaf, from, to, mark, expected:toggleInEditor(selDocs[docName],leaf,from,to,mark)}));
+ const selURL = new URL('../../ios/ChapterCore/Tests/ChapterCoreTests/Fixtures/rich-selection.json',import.meta.url);
+ const selFixture = {markOrder, markExclusions, cases:selCases};
+ if (write) writeFileSync(selURL,JSON.stringify(selFixture,null,2)+'\n');
+ else assert.deepEqual(JSON.parse(readFileSync(selURL,'utf8')),JSON.parse(JSON.stringify(selFixture)),'Native selection fixtures must equal the actual TipTap toggleMark');
  const caretURL = new URL('../../ios/ChapterCore/Tests/ChapterCoreTests/Fixtures/rich-caret.json',import.meta.url);
  if (write) writeFileSync(caretURL,JSON.stringify(caretCases,null,2)+'\n');
  else assert.deepEqual(JSON.parse(readFileSync(caretURL,'utf8')),JSON.parse(JSON.stringify(caretCases)),'Native caret fixtures must equal the actual ProseMirror insertion');
@@ -173,6 +217,10 @@ export function verifyRichFixture(write: boolean, identity: {dataKey:Uint8Array}
   assert.equal(nativeCarets.length,caretCases.length);
   nativeCarets.forEach((doc,i) => assert.deepEqual(JSON.parse(JSON.stringify(webSchema.nodeFromJSON(doc).toJSON())),JSON.parse(JSON.stringify(caretCases[i].expected)),'Native at-cursor insertion differs from ProseMirror: '+caretCases[i].name));
   console.log('Native at-cursor link and template insertion equals the actual ProseMirror/TipTap result on all '+caretCases.length+' cases.');
+  const nativeSel = JSON.parse(readFileSync(nativePath+'.rich-selection','utf8')) as JSONContent[];
+  assert.equal(nativeSel.length,selCases.length);
+  nativeSel.forEach((doc,i) => assert.deepEqual(JSON.parse(JSON.stringify(webSchema.nodeFromJSON(doc).toJSON())),JSON.parse(JSON.stringify(selCases[i].expected)),'Native selection formatting differs from TipTap: '+selCases[i].name));
+  console.log('Native selection formatting equals the actual TipTap toggleMark on all '+selCases.length+' cases.');
   const arranged = JSON.parse(readFileSync(nativePath+'.rich-structure','utf8')) as {id:string;record:string};
   const arrangedBody = JSON.parse(Buffer.from(decryptRecord(identity.dataKey,arranged.id,Buffer.from(arranged.record,'base64'))).toString());
   assert.deepEqual(JSON.parse(arrangedBody.bodyJson),reordered,'Native block move lost, flattened or rewrote an original/opaque block');

@@ -259,6 +259,28 @@ final class ChapterUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","Y")).firstMatch.exists)
         attach(app,name:"Actual native template inserted at the cursor, splitting the original heading")
     }
+    func testSelectionFormattingAppliesOnlyToSelectedTextLikeOriginalToolbar() throws {
+        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture"];app.launch()
+        let entry=app.staticTexts["Public rich fixture"];XCTAssertTrue(entry.waitForExistence(timeout:10));entry.tap()
+        app.buttons["Edit"].tap()
+        let run=app.buttons["rich.run.0/0"];XCTAssertTrue(run.waitForExistence(timeout:5));run.tap()
+        let editor=app.textViews["Formatted text run"];XCTAssertTrue(editor.waitForExistence(timeout:5))
+        // Select the first word of the bold heading "Public heading".
+        editor.coordinate(withNormalizedOffset:CGVector(dx:0.06,dy:0.05)).doubleTap()
+        let formatting=app.buttons["rich.formatting"];XCTAssertTrue(formatting.waitForExistence(timeout:5));formatting.tap()
+        XCTAssertTrue(app.staticTexts["rich.selection-hint"].waitForExistence(timeout:5),"A real selection was tracked")
+        attach(app,name:"Actual native editor with selected text and the original toolbar marks")
+        app.buttons["rich.format.bold"].tap()
+        XCTAssertTrue(app.navigationBars["Edit rich entry"].waitForExistence(timeout:5))
+        let tail=app.buttons["rich.run.0/1"];XCTAssertTrue(tail.waitForExistence(timeout:5),"The heading split into the selected word and the rest")
+        run.tap();XCTAssertTrue(editor.waitForExistence(timeout:5))
+        XCTAssertEqual(editor.value as? String,"Public")
+        XCTAssertEqual(app.staticTexts["rich.format-summary"].label,"Formatting: Plain text","Bold was removed from the selection only")
+        app.navigationBars["Edit text"].buttons["Edit rich entry"].tap()
+        XCTAssertTrue(tail.waitForExistence(timeout:5));tail.tap();XCTAssertTrue(editor.waitForExistence(timeout:5))
+        XCTAssertEqual(editor.value as? String," heading");XCTAssertEqual(app.staticTexts["rich.format-summary"].label,"Formatting: Bold")
+        attach(app,name:"Actual native run outside the selection keeps the original bold")
+    }
     func testNativeRichRenderingEditingAndTaskPersistence() throws {
         let app = XCUIApplication(); app.launchArguments = ["--chapter-rich-fixture"]; app.launch()
         let entry = app.staticTexts["Public rich fixture"]

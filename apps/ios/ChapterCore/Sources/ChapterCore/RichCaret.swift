@@ -111,12 +111,75 @@ public extension RichDocument {
     }
 }
 
+/// Formatting a selection, as the original toolbar's TipTap toggleMark does it.
+/// The native editor edits one text leaf at a time, so a selection is a UTF-16
+/// range inside that leaf; there TipTap's isMarkActive is simply "this leaf
+/// already has the mark". Verified against the real TipTap Editor (rich-selection.json).
+public extension RichDocument {
+    /// Original schema mark rank (ProseMirror orders every mark set by it).
+    static let markOrder = ["link", "bold", "code", "italic", "strike", "underline"]
+    /// Original schema exclusions: inline code excludes every other mark.
+    static let markExclusions: [String: Set<String>] = ["code": ["link", "bold", "italic", "strike", "underline"]]
+    /// Stable sort by schema rank; marks unknown to this build keep their order, last.
+    static func rankSorted(_ marks: [JSONValue]) -> [JSONValue] {
+        marks.enumerated().sorted { a, b in
+            let ra = markOrder.firstIndex(of: a.element["type"].string ?? "") ?? Int.max, rb = markOrder.firstIndex(of: b.element["type"].string ?? "") ?? Int.max
+            return ra == rb ? a.offset < b.offset : ra < rb
+        }.map(\.element)
+    }
+
+    mutating func toggleMark(_ type: String, leaf path: [Int], utf16Range range: Range<Int>) throws {
+        guard Self.editableMarks.contains(type), !range.isEmpty, range.lowerBound >= 0, let index = path.last,
+              let blockValue = nodeValue(at: Array(path.dropLast())), case .object(var block) = blockValue,
+              Self.textblockTypes.contains(block["type"]?.string ?? ""), block["type"]?.string != "codeBlock",
+              let leaf = nodeValue(at: path), leaf["type"].string == "text", case .object(let fields) = leaf,
+              let text = fields["text"]?.string, range.upperBound <= text.utf16.count else { throw ChapterError.unsupported }
+        let utf16 = text.utf16
+        let start = utf16.index(utf16.startIndex, offsetBy: range.lowerBound), end = utf16.index(utf16.startIndex, offsetBy: range.upperBound)
+        guard start.samePosition(in: text.unicodeScalars) != nil, end.samePosition(in: text.unicodeScalars) != nil else { throw ChapterError.unsupported }
+        let marks = leaf["marks"].array, name: (JSONValue) -> String = { $0["type"].string ?? "" }
+        var changed: [JSONValue]
+        if marks.contains(where: { name($0) == type }) {
+            changed = marks.filter { name($0) != type }
+        } else {
+            // A mark that excludes this one makes TipTap a no-op; refuse rather than write nothing.
+            guard !marks.contains(where: { Self.markExclusions[name($0)]?.contains(type) == true }) else { throw ChapterError.unsupported }
+            let excluded = Self.markExclusions[type] ?? []
+            // Adding code would erase links or other non-native marks; never do that silently.
+            guard !marks.contains(where: { excluded.contains(name($0)) && !Self.editableMarks.contains(name($0)) }) else { throw ChapterError.unsupported }
+            changed = Self.rankSorted(marks.filter { !excluded.contains(name($0)) } + [.object(["type": .string(type)])])
+        }
+        func piece(_ part: Substring, marks: [JSONValue]?) -> JSONValue {
+            var copy = fields; copy["text"] = .string(String(part))
+            if let marks { if marks.isEmpty { copy.removeValue(forKey: "marks") } else { copy["marks"] = .array(marks) } }
+            return .object(copy)
+        }
+        var pieces: [JSONValue] = []
+        if start > text.startIndex { pieces.append(piece(text[..<start], marks: nil)) }
+        let selected = pieces.count
+        pieces.append(piece(text[start..<end], marks: changed))
+        if end < text.endIndex { pieces.append(piece(text[end...], marks: nil)) }
+        var content = blockValue["content"].array
+        content.replaceSubrange(index...index, with: pieces)
+        // ProseMirror joins equal-mark text at the step's seams; the left node's fields win.
+        let middle = index + selected
+        if middle + 1 < content.count, let joined = Self.join(content[middle], content[middle + 1], keepFirst: true) { content[middle] = joined; content.remove(at: middle + 1) }
+        if middle > 0, let joined = Self.join(content[middle - 1], content[middle], keepFirst: true) { content[middle - 1] = joined; content.remove(at: middle) }
+        block["content"] = .array(content)
+        try replacing(Array(path.dropLast()), with: [.object(block)])
+    }
+}
+
 public extension VaultRecord {
     /// Original wikilink insertEntryLink at the cursor: [entryLink, " "].
     func insertingEntryLink(to target: VaultRecord, at caret: RichCaret, expected: String, now: Date = Date()) throws -> VaultRecord {
         guard target.kind == "entry", !target.deleted, !Data(target.id.utf8).elementsEqual(id.utf8), !target.id.isEmpty else { throw ChapterError.unsupported }
         let link: JSONValue = .object(["type": .string("entryLink"), "attrs": .object(["entryId": .string(target.id), "label": .string(EntryLinkAuthoring.label(for: target))])])
         return try editingRichDocument(expected: expected, now: now) { try $0.insertInline([link, .object(["type": .string("text"), "text": .string(" ")])], at: caret) }
+    }
+    /// Original toolbar formatting applied to a selection inside one text leaf.
+    func togglingMark(_ type: String, leaf: [Int], utf16Range: Range<Int>, expected: String, now: Date = Date()) throws -> VaultRecord {
+        try editingRichDocument(expected: expected, now: now) { try $0.toggleMark(type, leaf: leaf, utf16Range: utf16Range) }
     }
     /// Original Editor insertTemplate: the template's top-level blocks at the cursor.
     /// A template without a readable rich body inserts nothing (refused here).

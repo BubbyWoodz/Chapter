@@ -258,6 +258,8 @@ extension RichDraft {
                 values.removeAll()
             } else { values.removeAll { $0["type"].string == "code" } }
             values.append(node.value["marks"].array.first(where: { $0["type"].string == type }) ?? .object(["type": .string(type)]))
+            // ProseMirror keeps every mark set in schema rank order (bold before italic).
+            values = RichDocument.rankSorted(values)
         }
         copy.marks = values; return copy
     }

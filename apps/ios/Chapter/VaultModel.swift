@@ -284,6 +284,13 @@ import ChapterCore
         next.records[i] = try next.records[i].insertingEntryLink(to: target, at: caret, expected: raw)
         try commit(next); scheduleSync()
     }
+    func toggleSelectionMark(_ expected: VaultRecord, type: String, leaf: [Int], range: Range<Int>) throws {
+        guard unlocked else { throw ChapterError.storage }
+        var next = snapshot
+        guard let raw = expected.body["bodyJson"]?.string, let i = next.records.firstIndex(where: { $0.id.utf8.elementsEqual(expected.id.utf8) }) else { throw ChapterError.conflict }
+        next.records[i] = try next.records[i].togglingMark(type, leaf: leaf, utf16Range: range, expected: raw)
+        try commit(next); scheduleSync()
+    }
     func insertTemplate(_ expected: VaultRecord, template: VaultRecord, at caret: RichCaret) throws {
         guard unlocked else { throw ChapterError.storage }
         var next = snapshot

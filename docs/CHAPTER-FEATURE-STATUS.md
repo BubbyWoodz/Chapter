@@ -72,7 +72,24 @@ the exact revision; a failing strict accessibility audit remains a release block
   is treated as unproven until it passes again. No audit is waived; re-verification pending.
 
 <!-- Times are commit times in America/Los_Angeles; earlier labels this night ran ahead of the clock and were corrected. -->
-## Apple results for 55a66dc (run on 3bcde6e) — November 9, 2026, 2:22 AM PST
+## Formatting selected text — November 9, 2026, 2:30 AM PST
+
+The original toolbar runs TipTap `toggleMark` over the selection. On iOS 18 the native editor now tracks a selected range in the run being edited, and Bold, Italic, Underline, Strikethrough and Inline code apply to just that range:
+- **The mark is removed if the run already has it, otherwise added.** Within one text node this is exactly TipTap's `isMarkActive`.
+- **Mark sets follow the original schema's rank order** (link, bold, code, italic, strike, underline). Whole-run formatting now writes them in that order too, rather than appending.
+- **Inline code excludes every other mark, as in the original.** Adding code drops bold, italic, strike and underline. Native refuses where code would silently erase a link or another non-native mark.
+- **Split pieces keep every original field.** Equal-mark neighbours join at the seams with the left node's fields, like ProseMirror's `addNode`.
+- **Refused:** splitting inside a surrogate pair, code blocks, and cases where the web makes no change (for example bold inside inline code), rather than writing a no-op.
+
+Typing over a selected part of the run replaces it with the run's own marks. Within one text node that equals ProseMirror `insertText`'s `marksAcross`.
+
+**Ground truth:** `rich-selection.json` comes from a real TipTap Editor with the original extensions, run headless in jsdom. The generator asserts that loading the document changed nothing. The 23 cases cover splits, joins on either or both sides, rank order, code exclusion, emoji, links, entry links, hard breaks, lists, tables and code blocks. The schema's mark rank and exclusions are also checked against the Swift tables, and every native output is re-checked through the real web schema.
+
+**Results:** 43 local tests pass, and 5 of 5 deliberately introduced bugs were caught.
+
+**UI:** the formatting controls now sit below the editor, so the system edit menu over a selection can't cover them. `testSelectionFormattingAppliesOnlyToSelectedTextLikeOriginalToolbar` selects "Public" in the bold heading and removes bold from that word only.
+
+## Apple results for 55a66dc (run on 3bcde6e) — November 9, 2026, 2:21 AM PST
 
 Native run 42596110804. GitHub created no runs for 55a66dc itself; an empty commit re-triggered them.
 - **Normal-size connection audit:** the Dynamic Type finding is **gone** (moving the text into ordinary rows worked). The remaining finding is "Contrast nearly passed", caused by the `.secondary` grey footnotes added in 55a66dc. Fixed by restoring the full ink colour.
