@@ -257,9 +257,8 @@ extension RichDraft {
                 guard values.allSatisfy({ RichDocument.editableMarks.contains($0["type"].string ?? "") }) else { throw ChapterError.unsupported }
                 values.removeAll()
             } else { values.removeAll { $0["type"].string == "code" } }
-            values.append(node.value["marks"].array.first(where: { $0["type"].string == type }) ?? .object(["type": .string(type)]))
-            // ProseMirror keeps every mark set in schema rank order (bold before italic).
-            values = RichDocument.rankSorted(values)
+            // ProseMirror addToSet: placed by schema rank (bold before italic), never reordering others.
+            values = RichDocument.insertingMark(node.value["marks"].array.first(where: { $0["type"].string == type }) ?? .object(["type": .string(type)]), into: values)
         }
         copy.marks = values; return copy
     }

@@ -22,8 +22,12 @@ final class RichSelectionTests: XCTestCase {
         guard case .object(let exclusions) = f["markExclusions"] else { return XCTFail("exclusions") }
         XCTAssertEqual(Set(exclusions.keys), Set(RichDocument.markExclusions.keys))
         for (mark, list) in exclusions { XCTAssertEqual(Set(list.array.compactMap(\.string)), RichDocument.markExclusions[mark]) }
-        XCTAssertEqual(RichDocument.rankSorted([.object(["type": .string("future")]), .object(["type": .string("italic")]), .object(["type": .string("link")])]).map { $0["type"].string },
-                       ["link", "italic", "future"], "Unknown marks keep their place after known ones")
+        func types(_ marks: [JSONValue]) -> [String?] { marks.map { $0["type"].string } }
+        let m: (String) -> JSONValue = { .object(["type": .string($0)]) }
+        XCTAssertEqual(types(RichDocument.insertingMark(m("bold"), into: [m("italic")])), ["bold", "italic"])
+        XCTAssertEqual(types(RichDocument.insertingMark(m("italic"), into: [m("link"), m("strike")])), ["link", "italic", "strike"])
+        XCTAssertEqual(types(RichDocument.insertingMark(m("italic"), into: [m("future"), m("bold")])), ["future", "bold", "italic"], "Unknown marks keep their place")
+        XCTAssertEqual(types(RichDocument.insertingMark(m("future"), into: [m("bold")])), ["bold", "future"])
     }
     func testSelectionFormattingEqualsActualTipTapToggleMark() throws {
         let cases = try fixture()["cases"].array
@@ -63,7 +67,7 @@ final class RichSelectionTests: XCTestCase {
         XCTAssertEqual(copy.root["content"].array[0]["future"], .number(1))
         var future = doc
         try future.toggleMark("bold", leaf: [0, 2], utf16Range: 0..<1)
-        XCTAssertEqual(future.root["content"].array[0]["content"].array[2]["marks"].array.map { $0["type"].string }, ["bold", "futureMark"], "Unknown marks are preserved")
+        XCTAssertEqual(future.root["content"].array[0]["content"].array[2]["marks"].array.map { $0["type"].string }, ["futureMark", "bold"], "Unknown marks are preserved in place")
     }
     func testRecordSelectionFormattingIsCompareAndSet() throws {
         let raw = #"{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Hello world"}]}]}"#

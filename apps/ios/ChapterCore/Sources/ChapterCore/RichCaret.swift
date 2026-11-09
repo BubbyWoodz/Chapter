@@ -116,16 +116,18 @@ public extension RichDocument {
 /// range inside that leaf; there TipTap's isMarkActive is simply "this leaf
 /// already has the mark". Verified against the real TipTap Editor (rich-selection.json).
 public extension RichDocument {
-    /// Original schema mark rank (ProseMirror orders every mark set by it).
+    /// Original schema mark rank (ProseMirror keeps every mark set in this order).
     static let markOrder = ["link", "bold", "code", "italic", "strike", "underline"]
     /// Original schema exclusions: inline code excludes every other mark.
     static let markExclusions: [String: Set<String>] = ["code": ["link", "bold", "italic", "strike", "underline"]]
-    /// Stable sort by schema rank; marks unknown to this build keep their order, last.
-    static func rankSorted(_ marks: [JSONValue]) -> [JSONValue] {
-        marks.enumerated().sorted { a, b in
-            let ra = markOrder.firstIndex(of: a.element["type"].string ?? "") ?? Int.max, rb = markOrder.firstIndex(of: b.element["type"].string ?? "") ?? Int.max
-            return ra == rb ? a.offset < b.offset : ra < rb
-        }.map(\.element)
+    /// ProseMirror Mark.addToSet: the new mark goes before the first existing
+    /// mark of higher schema rank. Existing marks are never reordered, and marks
+    /// unknown to this build keep their place.
+    static func insertingMark(_ mark: JSONValue, into marks: [JSONValue]) -> [JSONValue] {
+        guard let rank = markOrder.firstIndex(of: mark["type"].string ?? "") else { return marks + [mark] }
+        var result = marks
+        let at = marks.firstIndex { markOrder.firstIndex(of: $0["type"].string ?? "").map { $0 > rank } ?? false } ?? marks.count
+        result.insert(mark, at: at); return result
     }
 
     mutating func toggleMark(_ type: String, leaf path: [Int], utf16Range range: Range<Int>) throws {
@@ -147,7 +149,7 @@ public extension RichDocument {
             let excluded = Self.markExclusions[type] ?? []
             // Adding code would erase links or other non-native marks; never do that silently.
             guard !marks.contains(where: { excluded.contains(name($0)) && !Self.editableMarks.contains(name($0)) }) else { throw ChapterError.unsupported }
-            changed = Self.rankSorted(marks.filter { !excluded.contains(name($0)) } + [.object(["type": .string(type)])])
+            changed = Self.insertingMark(.object(["type": .string(type)]), into: marks.filter { !excluded.contains(name($0)) })
         }
         func piece(_ part: Substring, marks: [JSONValue]?) -> JSONValue {
             var copy = fields; copy["text"] = .string(String(part))

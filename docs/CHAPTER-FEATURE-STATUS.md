@@ -72,6 +72,14 @@ the exact revision; a failing strict accessibility audit remains a release block
   is treated as unproven until it passes again. No audit is waived; re-verification pending.
 
 <!-- Times are commit times in America/Los_Angeles; earlier labels this night ran ahead of the clock and were corrected. -->
+## Apple run on a71a314 — November 9, 2026, 3:14 AM PST
+
+Native run 42605056777 stopped in core tests. `testFormattingRetainsOpaqueMarksAndCodeFollowsOriginalSchema` failed because d986a6b re-sorted whole mark sets, which moved an unknown future mark behind the known ones. The test correctly requires that native formatting never reorders existing marks.
+
+The fix follows ProseMirror's `Mark.addToSet`: a new mark goes before the first existing mark of higher schema rank, and nothing else moves. Whole-run and selection formatting both use it, and the selection fixtures still match TipTap on all 23 cases.
+
+That test now also runs in the Linux harness (51 tests pass). Because core stopped the run, the UI steps, and with them the connection bisection, didn't run, so the bisection result comes from the next run.
+
 ## Table editing — November 9, 2026, 3:11 AM PST
 
 The original table toolbar's six commands (add row below, add column right, delete row, delete column, toggle header row, delete table) now work natively. In the rich editor, **Tables → Table N** opens a grid: choose the cell the cursor would be in, then run the command.
