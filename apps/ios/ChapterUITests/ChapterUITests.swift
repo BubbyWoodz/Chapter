@@ -328,6 +328,21 @@ final class ChapterUITests: XCTestCase {
         XCTAssertFalse(app.staticTexts["\\frac{a}{b}"].exists,"The LaTeX source is no longer shown in place of the formula")
         attach(app,name:"Actual native KaTeX typesetting of the original inline and display formulas")
     }
+    func testLocationCardDecryptsItsMapOfflineAndUsesTheWebsGermanText() throws {
+        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture","--chapter-location-fixture","--chapter-fixture-locale=de"];app.launch()
+        let entry=app.staticTexts["Public location card"];XCTAssertTrue(entry.waitForExistence(timeout:10));entry.tap()
+        let card=app.descendants(matching:.any)["location.card"];reveal(card,in:app);XCTAssertTrue(card.exists)
+        // The web's own catalog: an empty destination label falls back to t('editorx.location.destination').
+        XCTAssertEqual(app.staticTexts["location.labels"].label,"Musée → Ziel")
+        XCTAssertEqual(app.staticTexts["location.distance"].label,"1,2 km","Web fmtDistance: one decimal below 10 km, German separator")
+        // The real locally encrypted map decrypts offline into the image (alt text from the catalog).
+        let map=app.images["location.map"];XCTAssertTrue(map.waitForExistence(timeout:10),"The encrypted map image is decrypted and shown")
+        XCTAssertEqual(map.label,"Karte")
+        XCTAssertEqual(map.frame.width/map.frame.height,600.0/340.0,accuracy:0.05,"Web aspect ratio from the map's width and height")
+        XCTAssertFalse(app.staticTexts["Karte lädt…"].exists);XCTAssertFalse(app.buttons["Noch nicht verfügbar — erneut versuchen"].exists)
+        attach(app,name:"Actual native location card with decrypted map and German web text")
+        try audit(app)
+    }
     func testFormatAcrossRunsAppliesOriginalToggleMarkOverSeveralRuns() throws {
         let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture"];app.launch()
         let entry=app.staticTexts["Public rich fixture"];XCTAssertTrue(entry.waitForExistence(timeout:10));entry.tap()

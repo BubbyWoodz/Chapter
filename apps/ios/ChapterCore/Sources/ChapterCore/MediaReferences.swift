@@ -7,6 +7,7 @@ public struct VaultMedia: Identifiable, Equatable {
     public let mime: String
     public let name: String
     public let bytes: Int
+    init(id: String, kind: String, mime: String, name: String, bytes: Int) { self.id = id; self.kind = kind; self.mime = mime; self.name = name; self.bytes = bytes }
     init?(_ raw: JSONValue, forceKind: String? = nil) {
         guard let id = raw["id"].string, !id.isEmpty else { return nil }
         let size = raw["bytes"].number ?? 0

@@ -129,6 +129,10 @@ struct RichDocumentView: View {
             return AnyView(ChapterMathView(bodyHTML: KaTeXRenderer.shared.html(latex, kind: .block) ?? "", block: true, heading: nil))
         case "blockMath": return AnyView(Text(node.value["attrs"]["latex"].string ?? "").font(chapterFont(.mono,skin:model.snapshot.appearance?.skin ?? "paper",size:16)).textSelection(.enabled).accessibilityLabel("LaTeX formula: " + (node.value["attrs"]["latex"].string ?? "")))
         case "mediaAttachment", "mediaGallery": return AnyView(Label(node.value["attrs"]["name"].string ?? "Encrypted media — use attachment preview below", systemImage: "paperclip").foregroundStyle(.secondary))
+        case "locationMap" where LocationCardData(node.value["attrs"]) != nil:
+            return AnyView(LocationCardView(card: LocationCardData(node.value["attrs"])!))
+        // Web nodeData() renders nothing for a malformed card; native keeps a visible
+        // marker so stored data is never silently hidden (it is preserved unchanged).
         case "locationMap": return AnyView(customChip(RichCustomBlockLabel.location(node.value["attrs"])).textSelection(.enabled).accessibilityIdentifier("custom.location"))
         case "videoInterview": return AnyView(VStack(alignment: .leading, spacing: 8) {
             customChip(RichCustomBlockLabel.videoInterview(node.value["attrs"])).accessibilityIdentifier("custom.videoInterview")
@@ -144,6 +148,82 @@ struct RichDocumentView: View {
 /// Static KaTeX HTML in a WKWebView with JavaScript disabled, a non-persistent
 /// store and a no-network CSP. Only the page's own load is allowed; a tapped link
 /// is handed to the app's openURL (entry navigation or explicit confirmation).
+/// Web editor/location.tsx LocationCard: the frozen map, "from → to" with distance, and
+/// the optional travel photo, resolved from the user's own encrypted media (local queue or
+/// cache first, else the user's relay) — never a third-party tile request.
+struct LocationCardView: View {
+    @EnvironmentObject private var model: VaultModel
+    @Environment(\.locale) private var locale
+    let card: LocationCardData
+    private func t(_ key: String) -> String { ChapterStrings.bundled.t(key, locale: locale.identifier) }
+    var body: some View {
+        let preference = model.snapshot.appearance ?? .standard, skin = preference.skin
+        VStack(alignment: .leading, spacing: 0) {
+            EncryptedImage(media: card.map, label: t("editorx.location.mapAlt"), loading: t("editorx.location.loadingMap"), retry: t("editorx.location.retry"), icon: "mappin", identifier: "location.map")
+                .aspectRatio(card.aspectRatio, contentMode: .fit).frame(maxWidth: .infinity).clipped()
+                .background(chapterToken("surface", preference: preference))
+            HStack(spacing: 8) {
+                Image(systemName: "mappin").foregroundStyle(chapterToken("accent-ink", preference: preference)).accessibilityHidden(true)
+                (Text(card.from.label.isEmpty ? t("editorx.location.pinned") : card.from.label).foregroundStyle(chapterToken("ink", preference: preference))
+                 + Text(card.to.map { " → " + ($0.label.isEmpty ? t("editorx.location.destination") : $0.label) } ?? "").fontWeight(.medium).foregroundStyle(chapterToken("ink-3", preference: preference)))
+                    .font(chapterFont(.ui, skin: skin, size: 13, relativeTo: .subheadline).weight(.semibold))
+                    .frame(maxWidth: .infinity, alignment: .leading).accessibilityIdentifier("location.labels")
+                if let km = card.distanceKm {
+                    Text(LocationCardData.formatDistance(km, locale: locale.identifier))
+                        .font(chapterFont(.mono, skin: skin, size: 11, relativeTo: .caption)).foregroundStyle(chapterToken("ink-3", preference: preference))
+                        .accessibilityIdentifier("location.distance")
+                }
+            }.padding(.vertical, 9).padding(.horizontal, 11)
+            if let photo = card.photo {
+                EncryptedImage(media: photo, label: photo.name.isEmpty ? t("editorx.location.travelPhoto") : photo.name, loading: t("editorx.location.loadingPhoto"), retry: t("editorx.location.retry"), icon: "photo", identifier: "location.photo", maxHeight: 360)
+                    .clipShape(RoundedRectangle(cornerRadius: 12)).overlay(RoundedRectangle(cornerRadius: 12).stroke(chapterToken("line", preference: preference), lineWidth: 1))
+                    .padding([.horizontal, .bottom], 11)
+            }
+        }
+        .background(chapterToken("surface-2", preference: preference))
+        .clipShape(RoundedRectangle(cornerRadius: 14)).overlay(RoundedRectangle(cornerRadius: 14).stroke(chapterToken("line", preference: preference), lineWidth: 1))
+        .accessibilityElement(children: .contain).accessibilityIdentifier("location.card")
+    }
+}
+
+/// One encrypted image decrypted through VaultModel.downloadMedia; the protected plaintext
+/// file is read into memory and deleted at once.
+private struct EncryptedImage: View {
+    @EnvironmentObject private var model: VaultModel
+    let media: VaultMedia, label: String, loading: String, retry: String, icon: String, identifier: String
+    var maxHeight: CGFloat? = nil
+    @State private var image: UIImage?
+    @State private var failed = false
+    @State private var attempt = 0
+    var body: some View {
+        let preference = model.snapshot.appearance ?? .standard
+        Group {
+            if let image {
+                Image(uiImage: image).resizable().scaledToFill().frame(maxWidth: .infinity, maxHeight: maxHeight)
+                    .accessibilityLabel(label).accessibilityAddTraits(.isImage)
+            } else {
+                VStack(spacing: 8) {
+                    Image(systemName: icon).accessibilityHidden(true)
+                    if failed { Button(retry) { failed = false; attempt += 1 }.font(chapterFont(.ui, skin: preference.skin, size: 12, relativeTo: .caption).weight(.semibold)) }
+                    else { Text(loading).font(chapterFont(.ui, skin: preference.skin, size: 12, relativeTo: .caption)) }
+                }
+                .foregroundStyle(chapterToken("ink-3", preference: preference))
+                .frame(maxWidth: .infinity, minHeight: 120)
+            }
+        }
+        .accessibilityIdentifier(identifier)
+        .task(id: attempt) {
+            guard image == nil else { return }
+            do {
+                let file = try await model.downloadMedia(media)
+                defer { model.discardPlayback(file) }
+                guard let decoded = UIImage(data: try Data(contentsOf: file)) else { throw ChapterError.unsupported }
+                image = decoded
+            } catch is CancellationError { } catch { failed = true }
+        }
+    }
+}
+
 struct ChapterMathView: View {
     @EnvironmentObject private var model: VaultModel
     @Environment(\.openURL) private var openURL

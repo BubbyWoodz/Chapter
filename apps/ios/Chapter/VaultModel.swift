@@ -67,6 +67,25 @@ import ChapterCore
             try value.attach(upload,entryID:"public-rich-fixture",expectedDocument:PublicRichFixture.json)
             identity = publicIdentity; mediaFiles = files
         }
+        if ProcessInfo.processInfo.arguments.contains("--chapter-location-fixture") {
+            // A PUBLIC drawn map image, genuinely encrypted into the protected local media
+            // queue with the public test identity; the card decrypts it offline.
+            let publicIdentity = try identity ?? VaultIdentity(seed:RecoveryPhrase.seed("legal winner thank year wave sausage worth useful legal winner thank yellow"))
+            let files = try mediaFiles ?? EncryptedMediaFiles(directory:directory,namespace:"public-fixture-only")
+            let png = UIGraphicsImageRenderer(size:CGSize(width:600,height:340)).pngData { context in
+                UIColor(red:0.91,green:0.89,blue:0.84,alpha:1).setFill(); context.fill(CGRect(x:0,y:0,width:600,height:340))
+                UIColor(red:0.31,green:0.55,blue:0.52,alpha:1).setStroke(); let road=UIBezierPath(); road.move(to:CGPoint(x:60,y:280)); road.addCurve(to:CGPoint(x:540,y:70),controlPoint1:CGPoint(x:260,y:300),controlPoint2:CGPoint(x:330,y:60)); road.lineWidth=10; road.stroke()
+            }
+            let source = directory.appendingPathComponent("Public map.png"); try png.write(to:source,options:.completeFileProtection)
+            defer { try? FileManager.default.removeItem(at:source) }
+            let upload = try files.stage(source:source,id:String(repeating:"b",count:32),name:"Public map",mime:"image/png",key:publicIdentity.mediaKey)
+            try upload.validate()
+            let json = #"{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Public walk"}]},{"type":"locationMap","attrs":{"from":{"lat":48.8566,"lng":2.3522,"label":"Musée"},"to":{"lat":48.8606,"lng":2.3376,"label":""},"zoom":14,"map":{"id":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","mime":"image/png","bytes":\#(png.count),"width":600,"height":340,"createdAt":1}}}]}"#
+            value.records.append(VaultRecord(id:"public-location-entry",clock:2,body:["journalId":.string("public-notebook"),"title":.string("Public location card"),"bodyJson":.string(json),"bodyText":.string(try RichDocument(json:json).plainText),"createdAt":.number(Date().timeIntervalSince1970 * 1000 + 1)]))
+            value.mediaUploads = (value.mediaUploads ?? []) + [upload]
+            identity = publicIdentity; mediaFiles = files
+        }
+        if let fixtureLocale = ProcessInfo.processInfo.arguments.first(where: { $0.hasPrefix("--chapter-fixture-locale=") })?.dropFirst("--chapter-fixture-locale=".count) { setLanguage(String(fixtureLocale)) }
         try disk.save(value); store = disk; snapshot = value; unlocked = true; appearanceInitialized = true
         // Never creates a relay or pretends to authenticate. Default rich fixture
         // still has no identity; optional media fixture uses public local keys.
