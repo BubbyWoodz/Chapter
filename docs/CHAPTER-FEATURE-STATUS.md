@@ -72,6 +72,14 @@ the exact revision; a failing strict accessibility audit remains a release block
   is treated as unproven until it passes again. No audit is waived; re-verification pending.
 
 <!-- Times are commit times in America/Los_Angeles; earlier labels this night ran ahead of the clock and were corrected. -->
+## Native app builds on Apple — November 9, 2026, 8:33 AM PST
+
+- **Native 42649099502 (on 12620e4, `macos-15-intel`, Xcode 16.4): the app compiles on Apple for the first time since e825899.** The raw-string and public-init fixes in 03129ba were enough.
+  - Passed: core tests, Swift ciphertext through the web decoder, Apple signatures through the Go verifier, the Simulator app build (8:13–8:18 AM PST), and packaging the unsigned Simulator app (it is not an iPhone IPA).
+  - Page capture started at 8:19 AM PST and was still running at 8:33 AM PST. The strict audits and functional UI tests come after it and have no result yet.
+  - The `macos-15` (arm64) leg ended without running.
+- Nothing has been pushed while this run is going: 64e0193, 0347062 and this entry are still local.
+
 ## Film title-card layout core — November 9, 2026, 7:58 AM PST
 
 This is a local commit, not pushed yet. Native 42649099502 (on 12620e4) is running on `macos-15-intel`.
