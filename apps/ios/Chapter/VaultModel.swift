@@ -436,6 +436,50 @@ import ChapterCore
         var next = snapshot; next.records.append(record)
         try commit(next); scheduleSync()
     }
+    // MARK: Interview types (web InterviewTypesSheet)
+    /// Live synced interview types: forked built-ins in built-in order, then the user's own by creation.
+    var interviewTypes: [VaultRecord] {
+        let order = Dictionary(uniqueKeysWithValues: InterviewTypes.builtins.enumerated().map { ($1.slug, $0) })
+        return snapshot.records.filter { $0.kind == "interviewType" && !$0.deleted }.sorted { a, b in
+            let oa = a.body["builtin"]?.string.flatMap { order[$0] } ?? Int.max, ob = b.body["builtin"]?.string.flatMap { order[$0] } ?? Int.max
+            if oa != ob { return oa < ob }
+            let ca = a.body["createdAt"]?.number ?? 0, cb = b.body["createdAt"]?.number ?? 0
+            return ca != cb ? ca < cb : a.id < b.id
+        }
+    }
+    var builtinInterviews: [InterviewTypes.Builtin] { InterviewTypes.pristine(records: snapshot.records) }
+    private func newRecordID() -> String { UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased() }
+    func createInterviewType(name: String, intro: String, prompt: String) throws {
+        guard unlocked else { throw ChapterError.storage }
+        let c = InterviewTypes.cleaned(name: name, intro: intro, prompt: prompt, untitled: t("assistant.types.untitled"))
+        var next = snapshot; next.records.append(try InterviewTypes.newType(name: c.name, intro: c.intro, prompt: c.prompt, id: newRecordID(), clock: try nextClock()))
+        try commit(next); scheduleSync()
+    }
+    func editInterviewType(_ expected: VaultRecord, name: String, intro: String, prompt: String) throws {
+        guard unlocked else { throw ChapterError.storage }
+        let c = InterviewTypes.cleaned(name: name, intro: intro, prompt: prompt, untitled: t("assistant.types.untitled"))
+        var next = snapshot
+        guard let i = next.records.firstIndex(where: { $0.id.utf8.elementsEqual(expected.id.utf8) }) else { throw ChapterError.conflict }
+        let edited = try next.records[i].editingInterviewType(expected: expected, name: c.name, intro: c.intro, prompt: c.prompt)
+        guard edited != next.records[i] else { return }
+        next.records[i] = edited; try commit(next); scheduleSync()
+    }
+    func deleteInterviewType(_ expected: VaultRecord) throws {
+        guard unlocked else { throw ChapterError.storage }
+        var next = snapshot
+        guard let i = next.records.firstIndex(where: { $0.id.utf8.elementsEqual(expected.id.utf8) }) else { throw ChapterError.conflict }
+        next.records[i] = try next.records[i].deletingInterviewType(expected: expected)
+        try commit(next); scheduleSync()
+    }
+    /// First edit or delete of a pristine built-in forks it (web mutateSeeded); an unchanged save forks nothing.
+    func forkBuiltinInterview(_ seed: InterviewTypes.Builtin, name: String? = nil, intro: String? = nil, prompt: String? = nil, deleted: Bool = false) throws {
+        guard unlocked, builtinInterviews.contains(seed) else { throw ChapterError.conflict }
+        let shown = (t(seed.nameKey), t(seed.introKey), seed.prompt)
+        let c = InterviewTypes.cleaned(name: name ?? shown.0, intro: intro ?? shown.1, prompt: prompt ?? shown.2, untitled: t("assistant.types.untitled"))
+        if !deleted && c.name == shown.0 && c.intro == shown.1 && c.prompt == shown.2 { return }
+        var next = snapshot; next.records.append(try InterviewTypes.fork(seed, name: c.name, intro: c.intro, prompt: c.prompt, id: newRecordID(), clock: try nextClock(), deleted: deleted))
+        try commit(next); scheduleSync()
+    }
     func renameTemplate(_ expected: VaultRecord, name: String) throws {
         guard unlocked else { throw ChapterError.storage }
         var next = snapshot

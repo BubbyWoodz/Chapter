@@ -269,6 +269,31 @@ final class ChapterUITests: XCTestCase {
         created.tap()
         XCTAssertTrue(app.staticTexts["One intention"].waitForExistence(timeout:5),"A native-created template starts an entry with its content")
     }
+    func testInterviewTypesAreManagedLikeTheWebInterviewTypesSheet() throws {
+        // Web InterviewTypesSheet: built-ins and own types; first change of a built-in forks it.
+        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture"];app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout:10));app.tabBars.buttons["Settings"].tap()
+        let open=app.buttons["settings.interviewTypes"];reveal(open,in:app);open.tap()
+        XCTAssertTrue(app.navigationBars["Interview types"].waitForExistence(timeout:5))
+        let any=app.descendants(matching:.any)
+        XCTAssertTrue(any.matching(NSPredicate(format:"label CONTAINS %@","Daily check-in")).firstMatch.exists)
+        try audit(app);attach(app,name:"Actual native interview types like the web")
+        app.buttons["interview.edit.morning-intention"].tap();XCTAssertTrue(app.navigationBars["Edit interview"].waitForExistence(timeout:5))
+        app.buttons["interview.save"].tap()
+        XCTAssertTrue(app.buttons["interview.edit.morning-intention"].waitForExistence(timeout:5),"An unchanged save forks nothing")
+        app.buttons["interview.edit.daily-checkin"].tap();let name=app.textFields["interview.name"];XCTAssertTrue(name.waitForExistence(timeout:5))
+        XCTAssertEqual(name.value as? String,"Daily check-in");name.tap();name.typeText(" Q8");app.buttons["interview.save"].tap()
+        XCTAssertTrue(any.matching(NSPredicate(format:"label CONTAINS %@","Daily check-in Q8")).firstMatch.waitForExistence(timeout:5))
+        XCTAssertFalse(app.buttons["interview.edit.daily-checkin"].exists,"The edited built-in is now a synced fork")
+        app.buttons["interview.delete.evening-reflection"].tap();app.buttons["interview.confirmDelete"].tap()
+        XCTAssertFalse(app.buttons["interview.edit.evening-reflection"].waitForExistence(timeout:2))
+        app.buttons["interview.new"].tap();XCTAssertTrue(app.navigationBars["New interview"].waitForExistence(timeout:5))
+        let newName=app.textFields["interview.name"];newName.tap();newName.typeText("Evening Z5")
+        let prompt=app.textFields["interview.prompt"];prompt.tap();prompt.typeText("Cover the evening.")
+        app.buttons["interview.save"].tap()
+        XCTAssertTrue(any.matching(NSPredicate(format:"label CONTAINS %@","Evening Z5")).firstMatch.waitForExistence(timeout:5))
+        attach(app,name:"Actual native interview types after edit, delete and create")
+    }
     func testBadgesCelebrateOnceThenShowInTheGalleryLikeTheWeb() throws {
         // Web useBadges: newly earned badges celebrate one at a time; dismissing marks them seen.
         let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture","--chapter-still-captures","--chapter-media-fixture","--chapter-fixture-badges-unseen"];app.launch()

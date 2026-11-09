@@ -755,6 +755,7 @@ struct CalendarView: View {
 }
 struct SettingsView: View {
     @EnvironmentObject private var model: VaultModel
+    @State private var managingInterviews = false
     var body: some View {
         NavigationStack {
             Form {
@@ -769,6 +770,10 @@ struct SettingsView: View {
                 }
                 WritingStatsSection()
                 BadgeGallerySection()
+                Section(model.t("prefs.assistant.section")) {
+                    Button { managingInterviews = true } label: { Label(model.t("prefs.assistant.interviewTypes"), systemImage: "list.bullet") }
+                        .frame(minHeight: 44).accessibilityIdentifier("settings.interviewTypes")
+                }
                 Section("Sync") {
                     Button { Task { await model.sync() } } label: { if model.syncing { ProgressView("Syncing") } else { Label("Sync now", systemImage: "arrow.triangle.2.circlepath") } }.disabled(model.syncing)
                     LabeledContent("Pending changes", value: "\(model.pending)")
@@ -828,6 +833,7 @@ struct SettingsView: View {
                 }
                 Section("Open source") { NavigationLink("Original font licenses") { ChapterFontLicenses() }; Link("Source and AGPL-3.0 license", destination: URL(string: "https://github.com/BubbyWoodz/Chapter")!) }
             }.modifier(ChapterScreenSurface()).navigationTitle(model.t("common.settings"))
+            .sheet(isPresented: $managingInterviews) { InterviewTypesView() }
         }
     }
 }
@@ -1492,5 +1498,116 @@ struct BadgeCelebrationView: View {
         }
         .padding(32).frame(maxWidth: .infinity, maxHeight: .infinity).modifier(ChapterScreenSurface())
         .presentationDetents([.medium]).interactiveDismissDisabled()
+    }
+}
+
+
+/// Web InterviewTypesSheet: every guided-interview type (built-in seeds and the user's
+/// own) with edit and two-tap delete. Built-ins fork into synced records on first change.
+struct InterviewTypesView: View {
+    @EnvironmentObject private var model: VaultModel
+    @Environment(\.dismiss) private var dismiss
+    enum Target: Identifiable, Hashable {
+        case synced(String), seed(String), new
+        var id: String { switch self { case .synced(let r): return "r:" + r; case .seed(let s): return "s:" + s; case .new: return "new" } }
+    }
+    @State private var editing: Target?
+    @State private var armedDelete: String?
+    @State private var error: String?
+    private func row(id: String, name: String, intro: String, builtin: Bool, edit: Target, delete: @escaping () throws -> Void) -> some View {
+        let p = model.snapshot.appearance ?? .standard
+        return HStack(spacing: 10) {
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 7) {
+                    Text(name.isEmpty ? model.t("common.untitled") : name).font(chapterFont(.prose, skin: p.skin, size: 15.5, relativeTo: .body)).fontWeight(.medium).lineLimit(1)
+                    if builtin {
+                        Text(model.t("assistant.types.builtin")).font(chapterFont(.mono, skin: p.skin, size: 10, relativeTo: .caption2))
+                            .padding(.horizontal, 6).padding(.vertical, 1).overlay(RoundedRectangle(cornerRadius: 6).stroke(chapterToken("line", preference: p)))
+                    }
+                }
+                if !intro.isEmpty { Text(intro).font(chapterFont(.ui, skin: p.skin, size: 12, relativeTo: .caption)).foregroundStyle(.secondary).lineLimit(1) }
+            }.frame(maxWidth: .infinity, alignment: .leading).accessibilityElement(children: .combine)
+            if armedDelete == id {
+                Button(model.t("assistant.types.deleteConfirm"), role: .destructive) { do { try delete(); armedDelete = nil } catch { self.error = error.localizedDescription } }
+                    .buttonStyle(.borderedProminent).frame(minHeight: 44).accessibilityIdentifier("interview.confirmDelete")
+            } else {
+                Button { armedDelete = nil; editing = edit } label: { Image(systemName: "pencil").frame(minWidth: 44, minHeight: 44) }
+                    .buttonStyle(.borderless).accessibilityLabel(model.t("common.edit")).accessibilityIdentifier("interview.edit." + id)
+                Button { armedDelete = id } label: { Image(systemName: "xmark").frame(minWidth: 44, minHeight: 44) }
+                    .buttonStyle(.borderless).accessibilityLabel(model.t("common.delete")).accessibilityIdentifier("interview.delete." + id)
+            }
+        }
+    }
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 9) {
+                    let seeds = model.builtinInterviews, synced = model.interviewTypes
+                    if seeds.isEmpty && synced.isEmpty { Text(model.t("assistant.types.empty")).foregroundStyle(.secondary).padding(.vertical, 22).accessibilityIdentifier("interview.empty") }
+                    ForEach(seeds) { seed in
+                        card(row(id: seed.slug, name: model.t(seed.nameKey), intro: model.t(seed.introKey), builtin: true, edit: .seed(seed.slug)) { try model.forkBuiltinInterview(seed, deleted: true) })
+                    }
+                    ForEach(synced) { r in
+                        card(row(id: r.id, name: r.body["name"]?.string ?? "", intro: r.body["intro"]?.string ?? "", builtin: r.body["builtin"]?.string != nil, edit: .synced(r.id)) { try model.deleteInterviewType(r) })
+                    }
+                    Button { armedDelete = nil; editing = .new } label: { Label(model.t("assistant.types.new"), systemImage: "plus").frame(maxWidth: .infinity, minHeight: 44) }
+                        .buttonStyle(.bordered).accessibilityIdentifier("interview.new")
+                    if let error { Text(error).font(.footnote).accessibilityIdentifier("interview.error") }
+                }.padding(16)
+            }
+            .modifier(ChapterScreenSurface()).navigationTitle(model.t("assistant.types.title")).navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button(model.t("common.done")) { dismiss() } } }
+            .sheet(item: $editing) { InterviewTypeEditor(target: $0) }
+        }
+    }
+    private func card<V: View>(_ content: V) -> some View {
+        let p = model.snapshot.appearance ?? .standard
+        return content.padding(.horizontal, 14).padding(.vertical, 6)
+            .background(chapterToken("paper", preference: p), in: RoundedRectangle(cornerRadius: 14))
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(chapterToken("line", preference: p)))
+    }
+}
+
+/// Web interview-type EditorView: name, intro and prompt; save trims, empty name → untitled.
+struct InterviewTypeEditor: View {
+    @EnvironmentObject private var model: VaultModel
+    @Environment(\.dismiss) private var dismiss
+    let target: InterviewTypesView.Target
+    @State private var name = ""
+    @State private var intro = ""
+    @State private var prompt = ""
+    @State private var loaded = false
+    @State private var error: String?
+    private var record: VaultRecord? { if case .synced(let id) = target { return model.interviewTypes.first { $0.id == id } }; return nil }
+    private var seed: InterviewTypes.Builtin? { if case .seed(let slug) = target { return model.builtinInterviews.first { $0.slug == slug } }; return nil }
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section(model.t("assistant.types.name")) { TextField(model.t("assistant.types.namePlaceholder"), text: $name).accessibilityIdentifier("interview.name") }
+                Section(model.t("assistant.types.intro")) { TextField(model.t("assistant.types.introPlaceholder"), text: $intro).accessibilityIdentifier("interview.intro") }
+                Section(model.t("assistant.types.prompt")) { TextField(model.t("assistant.types.promptPlaceholder"), text: $prompt, axis: .vertical).lineLimit(6...14).accessibilityIdentifier("interview.prompt") }
+                if let error { Section { Text(error).accessibilityIdentifier("interview.editor.error") } }
+            }
+            .modifier(ChapterScreenSurface()).navigationTitle(target == .new ? model.t("assistant.types.new") : model.t("assistant.types.edit")).navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button(model.t("common.cancel")) { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) { Button(target == .new ? model.t("assistant.types.create") : model.t("assistant.types.save")) { save() }.accessibilityIdentifier("interview.save") }
+            }
+            .onAppear {
+                guard !loaded else { return }; loaded = true
+                if let record { name = record.body["name"]?.string ?? ""; intro = record.body["intro"]?.string ?? ""; prompt = record.body["prompt"]?.string ?? "" }
+                else if let seed { name = model.t(seed.nameKey); intro = model.t(seed.introKey); prompt = seed.prompt }
+            }
+        }
+    }
+    private func save() {
+        do {
+            switch target {
+            case .new: try model.createInterviewType(name: name, intro: intro, prompt: prompt)
+            case .synced: guard let record else { throw ChapterError.conflict }; try model.editInterviewType(record, name: name, intro: intro, prompt: prompt)
+            case .seed: guard let seed else { throw ChapterError.conflict }; try model.forkBuiltinInterview(seed, name: name, intro: intro, prompt: prompt)
+            }
+            dismiss()
+        } catch { self.error = error.localizedDescription }
     }
 }
