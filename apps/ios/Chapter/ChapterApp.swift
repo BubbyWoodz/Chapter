@@ -757,6 +757,7 @@ struct CalendarView: View {
 struct SettingsView: View {
     @EnvironmentObject private var model: VaultModel
     @State private var managingInterviews = false
+    @State private var exporting = false
     var body: some View {
         NavigationStack {
             Form {
@@ -771,6 +772,10 @@ struct SettingsView: View {
                 }
                 WritingStatsSection()
                 BadgeGallerySection()
+                Section("Your data") {
+                    Button { exporting = true } label: { Label(model.t("vault.export.title"), systemImage: "square.and.arrow.up") }
+                        .frame(minHeight: 44).accessibilityIdentifier("settings.export")
+                }
                 Section(model.t("prefs.assistant.section")) {
                     Button { managingInterviews = true } label: { Label(model.t("prefs.assistant.interviewTypes"), systemImage: "list.bullet") }
                         .frame(minHeight: 44).accessibilityIdentifier("settings.interviewTypes")
@@ -835,6 +840,7 @@ struct SettingsView: View {
                 Section("Open source") { NavigationLink("Original font licenses") { ChapterFontLicenses() }; Link("Source and AGPL-3.0 license", destination: URL(string: "https://github.com/BubbyWoodz/Chapter")!) }
             }.modifier(ChapterScreenSurface()).navigationTitle(model.t("common.settings"))
             .sheet(isPresented: $managingInterviews) { InterviewTypesView() }
+            .sheet(isPresented: $exporting) { ExportJournalView() }
         }
     }
 }
@@ -1610,5 +1616,105 @@ struct InterviewTypeEditor: View {
             }
             dismiss()
         } catch { self.error = error.localizedDescription }
+    }
+}
+
+
+/// Web ExportJournalSheet: pick a notebook, build the plaintext archive on this device,
+/// then hand it to the share sheet (Save to Files, AirDrop…). The web's wording about
+/// "downloads" doesn't fit iOS, so those three lines are native. The archive file is
+/// deleted when this sheet closes, when the vault locks, and on the next launch.
+struct ExportJournalView: View {
+    @EnvironmentObject private var model: VaultModel
+    @Environment(\.dismiss) private var dismiss
+    private enum Step: Equatable { case pick, working, done(URL, ChapterExport.Summary), error(String) }
+    @State private var step: Step = .pick
+    @State private var task: Task<Void, Never>?
+    var body: some View {
+        let p = model.snapshot.appearance ?? .standard
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) { content(p) }.padding(16)
+            }
+            .modifier(ChapterScreenSurface()).navigationTitle(model.t("vault.export.title")).navigationBarTitleDisplayMode(.inline)
+            .toolbar { if step != .working { ToolbarItem(placement: .cancellationAction) { Button(model.t("common.close")) { dismiss() }.accessibilityIdentifier("export.close") } } }
+        }
+        .interactiveDismissDisabled(step == .working)
+        .onDisappear { task?.cancel(); model.discardExports() }
+    }
+    @ViewBuilder private func content(_ p: SharedAppearance) -> some View {
+        switch step {
+        case .pick:
+            let counts = Dictionary(model.entries.map { ($0.journalID, 1) }, uniquingKeysWith: +)
+            let options = model.journals.filter { (counts[$0.journalID] ?? 0) > 0 }
+            Text(model.t("vault.export.pickBody")).font(.subheadline)
+            if options.isEmpty { Text(model.t("vault.export.empty")).font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("export.empty") }
+            ForEach(options) { journal in
+                Button { run(journal) } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "book.closed").foregroundStyle(chapterToken("accent", preference: p)).accessibilityHidden(true)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(journal.body["name"]?.string ?? journal.title).font(.subheadline.weight(.semibold)).foregroundStyle(chapterToken("ink", preference: p))
+                            Text(model.tp("vault.export.entries", count: counts[journal.journalID] ?? 0)).font(.footnote).foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.forward").foregroundStyle(.secondary).accessibilityHidden(true)
+                    }.padding(12).frame(minHeight: 44)
+                    .background(chapterToken("paper", preference: p), in: RoundedRectangle(cornerRadius: 12))
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(chapterToken("line", preference: p)))
+                }.buttonStyle(.plain).accessibilityElement(children: .combine).accessibilityAddTraits(.isButton).accessibilityIdentifier("export.pick." + journal.journalID)
+            }
+            Text(model.t("vault.export.readyBody")).font(.footnote)
+            Text("The archive is not encrypted. Once you save or share it, it’s as readable as the journal itself — keep it somewhere you trust.").font(.footnote).foregroundStyle(.secondary)
+        case .working:
+            let progress = model.exportProgress
+            VStack(spacing: 10) {
+                ProgressView(value: Double(progress?.done ?? 0), total: Double(max(progress?.total ?? 0, 1)))
+                Text(model.t("vault.export.working")).font(.subheadline.weight(.semibold))
+                if let current = progress?.current, !current.isEmpty { Text(model.t("vault.export.writing", ["name": current])).font(.footnote).multilineTextAlignment(.center) }
+                Text(model.t("vault.export.progress", ["n": String(progress?.done ?? 0), "count": String(progress?.total ?? 0)])).font(.caption.monospaced()).foregroundStyle(.secondary)
+            }.frame(maxWidth: .infinity).accessibilityElement(children: .combine).accessibilityIdentifier("export.working")
+        case .done(let url, let summary):
+            VStack(spacing: 6) {
+                Image(systemName: "checkmark.circle").font(.title).foregroundStyle(chapterToken("accent", preference: p)).accessibilityHidden(true)
+                Text(model.t("vault.export.done")).font(.subheadline.weight(.semibold)).accessibilityIdentifier("export.done")
+                Text(summary.filename).font(.caption.monospaced()).foregroundStyle(.secondary).multilineTextAlignment(.center).accessibilityIdentifier("export.filename")
+            }.frame(maxWidth: .infinity)
+            summaryRow(model.t("vault.export.sum.entries"), summary.entries, id: "entries", p)
+            summaryRow(model.t("vault.export.sum.media"), summary.media, id: "media", p)
+            if summary.missingMedia > 0 { summaryRow(model.t("vault.export.sum.missing"), summary.missingMedia, id: "missing", p) }
+            Text("Share it to Files, AirDrop or another app to keep it. The archive explains its own format, and the full specification is linked from its README.").font(.footnote)
+            if summary.missingMedia > 0 { Text(model.t("vault.export.missingBody")).font(.footnote) }
+            ShareLink(item: url) { Label("Save or share the archive", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity, minHeight: 44) }
+                .buttonStyle(.borderedProminent).accessibilityIdentifier("export.share")
+            HStack {
+                Button(model.t("vault.export.again")) { model.discardExports(); step = .pick }.buttonStyle(.bordered).frame(minHeight: 44).accessibilityIdentifier("export.again")
+                Spacer()
+                Button(model.t("common.done")) { dismiss() }.buttonStyle(.bordered).frame(minHeight: 44)
+            }
+        case .error(let message):
+            Text(model.t("vault.export.error")).font(.subheadline)
+            Text(message).font(.caption.monospaced()).padding(10).frame(maxWidth: .infinity, alignment: .leading)
+                .background(chapterToken("paper", preference: p), in: RoundedRectangle(cornerRadius: 10)).accessibilityIdentifier("export.errorMessage")
+            HStack {
+                Button(model.t("common.close")) { dismiss() }.buttonStyle(.bordered).frame(minHeight: 44)
+                Spacer()
+                Button(model.t("common.back")) { step = .pick }.buttonStyle(.borderedProminent).frame(minHeight: 44).accessibilityIdentifier("export.back")
+            }
+        }
+    }
+    private func summaryRow(_ label: String, _ value: Int, id: String, _ p: SharedAppearance) -> some View {
+        HStack { Text(label); Spacer(); Text(String(value)).font(.body.monospaced().weight(.semibold)) }
+            .font(.footnote).padding(.horizontal, 12).padding(.vertical, 8)
+            .background(chapterToken("paper", preference: p), in: RoundedRectangle(cornerRadius: 10))
+            .accessibilityElement(children: .combine).accessibilityIdentifier("export.sum." + id)
+    }
+    private func run(_ journal: VaultRecord) {
+        step = .working
+        task = Task {
+            do { let (url, summary) = try await model.exportJournal(journal); step = .done(url, summary) }
+            catch is CancellationError { step = .pick }
+            catch { step = .error(error.localizedDescription) }
+        }
     }
 }

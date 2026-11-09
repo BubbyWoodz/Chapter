@@ -3,7 +3,7 @@ import XCTest
 @testable import ChapterCore
 
 final class ChapterExportTests: XCTestCase {
-    func testArchiveMatchesTheWebExportJournal() throws {
+    func testArchiveMatchesTheWebExportJournal() async throws {
         let url = try XCTUnwrap(Bundle.module.url(forResource: "journal-export", withExtension: "json"))
         let f = try JSONDecoder().decode(JSONValue.self, from: Data(contentsOf: url))
         let j = f["journal"]
@@ -13,12 +13,16 @@ final class ChapterExportTests: XCTestCase {
                                 labels: e["labels"].array.map { $0.string! }, createdAt: e["createdAt"].number!, updatedAt: e["updatedAt"].number!, attachments: e["attachments"].array, deleted: e["deleted"] == .bool(true))
         }
         let available = f["available"]
-        let archive = try ChapterExport.archive(journal: journal, entries: entries, now: f["now"].number!, generator: ("Mneme", "test"),
-            media: { _, att in available[att["id"].string ?? ""].array.isEmpty ? nil : Data(available[att["id"].string!].array.map { UInt8($0.number!) }) })
-        XCTAssertEqual(archive.filename, f["filename"].string)
+        var files: [ChapterExport.File] = [], progress: [JSONValue] = []
+        let summary = try await ChapterExport.archive(journal: journal, entries: entries, now: f["now"].number!, generator: ("Mneme", "test"),
+            media: { _, att in available[att["id"].string ?? ""].array.isEmpty ? nil : Data(available[att["id"].string!].array.map { UInt8($0.number!) }) },
+            progress: { progress.append(.object(["done": .number(Double($0.done)), "total": .number(Double($0.total)), "current": .string($0.current)])) },
+            emit: { files.append($0) })
+        XCTAssertEqual(progress, f["progress"].array, "progress steps")
+        XCTAssertEqual(summary.filename, f["filename"].string)
         guard case .object(let expected) = f["files"] else { return XCTFail("files") }
-        XCTAssertEqual(Set(archive.files.map(\.path)), Set(expected.keys))
-        for file in archive.files {
+        XCTAssertEqual(Set(files.map(\.path)), Set(expected.keys))
+        for file in files {
             let want = try XCTUnwrap(expected[file.path], file.path)
             if file.path.hasSuffix(".json") {
                 XCTAssertEqual(try JSONDecoder().decode(JSONValue.self, from: file.data), want, file.path)
@@ -28,9 +32,15 @@ final class ChapterExportTests: XCTestCase {
         for s in f["slugs"].array { XCTAssertEqual(ChapterExport.slugify(s["name"].string!), s["slug"].string, s["name"].string!) }
         // The real archive, unzipped by the web script (fflate) when CHAPTER_NATIVE_OUTPUT is set.
         let zipURL = FileManager.default.temporaryDirectory.appendingPathComponent("chapter-export-\(UUID().uuidString).zip")
-        let writer = try ChapterZipWriter(url: zipURL, fallbackMtime: f["now"].number!)
-        for file in archive.files { try writer.add(path: file.path, data: file.data, mtime: file.mtime) }
-        try writer.finish()
+        let bytes = f["available"]
+        let summary2 = try await ChapterExport.writeZip(to: zipURL, journal: journal, entries: entries, now: f["now"].number!, generator: ("Mneme", "test"),
+            media: { _, att in bytes[att["id"].string ?? ""].array.isEmpty ? nil : Data(bytes[att["id"].string!].array.map { UInt8($0.number!) }) }, progress: { _ in })
+        XCTAssertEqual(summary2, summary)
+        XCTAssertEqual(ChapterExport.filename(name: journal.name, now: f["now"].number!), f["filename"].string)
+        // A throwing media source aborts instead of writing an archive with gaps.
+        let aborted = FileManager.default.temporaryDirectory.appendingPathComponent("chapter-export-\(UUID().uuidString).zip")
+        do { _ = try await ChapterExport.writeZip(to: aborted, journal: journal, entries: entries, now: 0, generator: ("Mneme", "test"), media: { _, _ in throw CancellationError() }, progress: { _ in }); XCTFail("must abort") } catch is CancellationError {}
+        try? FileManager.default.removeItem(at: aborted)
         let zip = try Data(contentsOf: zipURL); try? FileManager.default.removeItem(at: zipURL)
         XCTAssertEqual(zip.suffix(22).prefix(4), Data([0x50, 0x4b, 0x05, 0x06]))
         if let out = ProcessInfo.processInfo.environment["CHAPTER_NATIVE_OUTPUT"] { try zip.write(to: URL(fileURLWithPath: out + ".journal-export.zip")) }

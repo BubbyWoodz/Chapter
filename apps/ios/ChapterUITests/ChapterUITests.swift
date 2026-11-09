@@ -294,6 +294,23 @@ final class ChapterUITests: XCTestCase {
         XCTAssertTrue(any.matching(NSPredicate(format:"label CONTAINS %@","Evening Z5")).firstMatch.waitForExistence(timeout:5))
         attach(app,name:"Actual native interview types after edit, delete and create")
     }
+    func testExportBuildsTheWebArchiveAndOffersItToShareLikeTheWeb() throws {
+        // Web ExportJournalSheet: pick a notebook with entries, build the plaintext archive, summary, then save it.
+        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture"];app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout:10));app.tabBars.buttons["Settings"].tap()
+        let open=app.buttons["settings.export"];reveal(open,in:app);open.tap()
+        XCTAssertTrue(app.navigationBars["Export a journal"].waitForExistence(timeout:5))
+        let pick=app.buttons["export.pick.public-notebook"];XCTAssertTrue(pick.waitForExistence(timeout:5));XCTAssertTrue(pick.label.contains("1 entry"),pick.label)
+        try audit(app);attach(app,name:"Actual native export picker like the web")
+        pick.tap()
+        XCTAssertTrue(app.staticTexts["export.done"].waitForExistence(timeout:30),"The archive is built on the device")
+        XCTAssertTrue(app.staticTexts["export.filename"].label.hasPrefix("mneme-public-notebook-"),app.staticTexts["export.filename"].label)
+        XCTAssertTrue(app.descendants(matching:.any)["export.sum.entries"].label.contains("1"))
+        XCTAssertTrue(app.buttons["export.share"].exists)
+        try audit(app);attach(app,name:"Actual native export summary with the share button")
+        app.buttons["export.again"].tap();XCTAssertTrue(app.buttons["export.pick.public-notebook"].waitForExistence(timeout:5))
+        app.buttons["export.close"].tap();XCTAssertTrue(app.buttons["settings.export"].waitForExistence(timeout:5))
+    }
     func testBadgesCelebrateOnceThenShowInTheGalleryLikeTheWeb() throws {
         // Web useBadges: newly earned badges celebrate one at a time; dismissing marks them seen.
         let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture","--chapter-still-captures","--chapter-media-fixture","--chapter-fixture-badges-unseen"];app.launch()

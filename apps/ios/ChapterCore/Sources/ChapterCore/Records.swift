@@ -2,7 +2,7 @@
 import Foundation
 
 // Preserve every unknown field and custom document node rather than flattening rich entries.
-public enum JSONValue: Codable, Equatable {
+public enum JSONValue: Codable, Equatable, Sendable {
     case object([String: JSONValue]), array([JSONValue]), string(String), number(Double), bool(Bool), null
     public init(from decoder: Decoder) throws {
         let c = try decoder.singleValueContainer()

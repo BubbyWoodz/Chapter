@@ -61,7 +61,7 @@ import ChapterCore
     init() {
         // Stale playback is regenerable, never an unsynced journal/outbox.
         if let root = try? EncryptedSnapshotStore.applicationDirectory() {
-            for name in ["Playback", "ImportStaging"] { try? FileManager.default.removeItem(at: root.appendingPathComponent(name, isDirectory: true)) }
+            for name in ["Playback", "ImportStaging", "Exports"] { try? FileManager.default.removeItem(at: root.appendingPathComponent(name, isDirectory: true)) }
         }
     }
     #if DEBUG
@@ -155,7 +155,7 @@ import ChapterCore
         } catch { if attempt == generation { message = error.localizedDescription } }
     }
     func lock() {
-        generation = UUID(); scheduledSync?.cancel(); scheduledSync = nil; backoff = SyncBackoff(); mediaErrors = [:]; mediaImport?.cancel(); mediaImport = nil; mediaFiles = nil; playbackFiles.forEach { try? FileManager.default.removeItem(at: $0) }; playbackFiles = []; relay?.cancel(); relay = nil; identity = nil; store = nil
+        generation = UUID(); scheduledSync?.cancel(); scheduledSync = nil; backoff = SyncBackoff(); mediaErrors = [:]; mediaImport?.cancel(); mediaImport = nil; mediaFiles = nil; playbackFiles.forEach { try? FileManager.default.removeItem(at: $0) }; playbackFiles = []; discardExports(); exportProgress = nil; relay?.cancel(); relay = nil; identity = nil; store = nil
         if let root = try? EncryptedSnapshotStore.applicationDirectory() { try? FileManager.default.removeItem(at: root.appendingPathComponent("ImportStaging", isDirectory: true)) }
         snapshot = VaultSnapshot(); seedForks = [:]; badgeQueue = []; badgeSeen = nil; badgeOwner = nil; lastCompletePullID = nil; appearanceInitialized = false; unlocked = false; syncing = false; connecting = false; message = nil
     }
@@ -575,6 +575,45 @@ import ChapterCore
             if staged && !commitAttempted { try? mediaFiles.discardUnpublished(id: id) }
             throw error
         }
+    }
+    /// Web ExportJournalSheet progress (`done` of `total`, and what is being added).
+    @Published private(set) var exportProgress: ChapterExport.Progress?
+    private static func exportsDirectory() throws -> URL { try EncryptedSnapshotStore.applicationDirectory().appendingPathComponent("Exports", isDirectory: true) }
+    /// The plaintext archive must not outlive its sheet or the unlocked session.
+    func discardExports() { if let root = try? Self.exportsDirectory() { try? FileManager.default.removeItem(at: root) } }
+    /// Web exportJournal for one notebook: the documented `mneme-journal-export` v1 zip,
+    /// built on this device. Media comes from the upload queue or the local cache, else the
+    /// relay (decrypted here); what can't be fetched is recorded as missing, like the web.
+    /// Locking the vault aborts the export and deletes the partial archive.
+    func exportJournal(_ journal: VaultRecord) async throws -> (URL, ChapterExport.Summary) {
+        guard identity != nil else { throw ChapterError.authentication }
+        let attempt = generation
+        discardExports()
+        let root = try Self.exportsDirectory(); try EncryptedMediaFiles.protectedDirectory(root)
+        let folder = root.appendingPathComponent(UUID().uuidString, isDirectory: true); try EncryptedMediaFiles.protectedDirectory(folder)
+        let b = journal.body, now = (Date().timeIntervalSince1970 * 1000).rounded(.down)
+        let meta = ChapterExport.Journal(id: journal.journalID, name: b["name"]?.string ?? "", subtitle: b["subtitle"]?.string ?? "", color: b["color"]?.string ?? "",
+                                         cover: b["cover"]?.string ?? "", createdAt: b["createdAt"]?.number, updatedAt: b["updatedAt"]?.number)
+        let file = folder.appendingPathComponent(ChapterExport.filename(name: meta.name, now: now))
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown"
+        exportProgress = ChapterExport.Progress(done: 0, total: 0, current: "")
+        defer { exportProgress = nil }
+        do {
+            let summary = try await ChapterExport.writeZip(to: file, journal: meta, entries: ChapterExport.entries(snapshot.records), now: now, generator: ("Chapter", version),
+                media: { _, att in try await self.exportMedia(att, attempt: attempt) },
+                progress: { p in Task { @MainActor in if (self.exportProgress?.done ?? -1) < p.done { self.exportProgress = p } } })
+            guard attempt == generation else { throw CancellationError() }
+            return (file, summary)
+        } catch { try? FileManager.default.removeItem(at: folder); throw error }
+    }
+    private func exportMedia(_ att: JSONValue, attempt: UUID) async throws -> Data? {
+        guard attempt == generation, identity != nil else { throw CancellationError() }
+        guard let media = VaultMedia(att), let url = try? await downloadMedia(media) else {
+            guard attempt == generation else { throw CancellationError() }
+            return nil
+        }
+        defer { discardPlayback(url) }
+        return try? Data(contentsOf: url)
     }
     func discardPlayback(_ file: URL) {
         guard playbackFiles.contains(file) else { return }

@@ -5,15 +5,17 @@ import Foundation
 /// `mneme-journal-export` v1 archive (manifest, one JSON file per entry, decrypted
 /// media, README). Everything happens on the device; the archive is plaintext.
 public enum ChapterExport {
-    public struct Journal { public let id, name, subtitle, color, cover: String; public let createdAt, updatedAt: Double?
+    public struct Journal: Sendable { public let id, name, subtitle, color, cover: String; public let createdAt, updatedAt: Double?
         public init(id: String, name: String, subtitle: String, color: String, cover: String, createdAt: Double?, updatedAt: Double?) {
             self.id = id; self.name = name; self.subtitle = subtitle; self.color = color; self.cover = cover; self.createdAt = createdAt; self.updatedAt = updatedAt } }
-    public struct Entry { public let id, journalId, title, bodyText: String; public let bodyJson: String?; public let labels: [String]; public let createdAt, updatedAt: Double; public let attachments: [JSONValue]; public let deleted: Bool
+    public struct Entry: Sendable { public let id, journalId, title, bodyText: String; public let bodyJson: String?; public let labels: [String]; public let createdAt, updatedAt: Double; public let attachments: [JSONValue]; public let deleted: Bool
         public init(id: String, journalId: String, title: String, bodyText: String, bodyJson: String?, labels: [String], createdAt: Double, updatedAt: Double, attachments: [JSONValue], deleted: Bool) {
             self.id = id; self.journalId = journalId; self.title = title; self.bodyText = bodyText; self.bodyJson = bodyJson; self.labels = labels
             self.createdAt = createdAt; self.updatedAt = updatedAt; self.attachments = attachments; self.deleted = deleted } }
     public struct File { public let path: String; public let data: Data; public let mtime: Double? }
-    public struct Archive { public let files: [File]; public let filename: String; public let manifest: JSONValue; public let missingMedia: Int }
+    public struct Summary: Equatable, Sendable { public let filename: String; public let entries, media, missingMedia: Int }
+    /// web ExportProgress: `done` of `total` steps (one per entry and per media reference).
+    public struct Progress: Equatable, Sendable { public let done, total: Int; public let current: String }
 
     public static func entries(_ records: [VaultRecord]) -> [Entry] {
         records.filter { $0.kind == "entry" }.map { r in
@@ -147,42 +149,69 @@ public enum ChapterExport {
         return try enc.encode(finite(v))
     }
 
-    /// `exportJournal`. `media` returns decrypted bytes or nil (recorded as missing, never fatal).
+    /// web `mneme-<slug>-<YYYY-MM-DD>.zip` (the UTC export date).
+    public static func filename(name: String, now: Double) -> String { "mneme-\(slugify(name))-\((iso(now) ?? "1970-01-01").prefix(10)).zip" }
+
+    /// The whole export written to `url` as a zip, off the caller's actor. `media` returning nil
+    /// records a missing file; throwing aborts (for example when the vault locks).
+    public static func writeZip(to url: URL, journal: Journal, entries: [Entry], now: Double, generator: (app: String, version: String),
+                                media: @escaping @Sendable (_ entryID: String, _ attachment: JSONValue) async throws -> Data?,
+                                progress: @escaping @Sendable (Progress) -> Void) async throws -> Summary {
+        let writer = try ChapterZipWriter(url: url, fallbackMtime: now)
+        let summary = try await archive(journal: journal, entries: entries, now: now, generator: generator, media: media, progress: progress) {
+            try writer.add(path: $0.path, data: $0.data, mtime: $0.mtime)
+        }
+        try writer.finish()
+        return summary
+    }
+
+    /// `exportJournal`, streamed: each file goes to `emit` as soon as it exists, so media is
+    /// held one file at a time. `media` returns decrypted bytes or nil (recorded as missing,
+    /// never fatal); `progress` mirrors the web's.
     public static func archive(journal: Journal, entries all: [Entry], now: Double, generator: (app: String, version: String),
-                               media: (_ entryID: String, _ attachment: JSONValue) -> Data?) throws -> Archive {
+                               media: (_ entryID: String, _ attachment: JSONValue) async throws -> Data?,
+                               progress: (Progress) -> Void = { _ in }, emit: (File) throws -> Void) async throws -> Summary {
         let entries = all.enumerated().filter { $0.element.journalId == journal.id && !$0.element.deleted }
             .sorted { $0.element.createdAt != $1.element.createdAt ? $0.element.createdAt < $1.element.createdAt : $0.offset < $1.offset }.map(\.element)
         let nowISO = iso(now) ?? "1970-01-01T00:00:00.000Z"
-        var files: [File] = [], refs: [JSONValue] = [], mediaList: [JSONValue] = [], missing: [JSONValue] = []
+        var refs: [JSONValue] = [], mediaList: [JSONValue] = [], missing: [JSONValue] = []
         var written: [String: JSONValue] = [:]
-        for entry in entries {
-            let parsed = parseDoc(entry), doc = parsed.jsonValue
-            let inline = docAttachments(doc)
+        let plan = entries.map { entry -> (Entry, JSValue, [JSONValue]) in
+            let parsed = parseDoc(entry)
+            let inline = docAttachments(parsed.jsonValue)
             let seen = Set(inline.compactMap { $0["id"].string })
             let legacy = entry.attachments.filter { a in if let id = a["id"].string, !id.isEmpty { return true }; return false }
-            let attachments = inline + legacy.filter { !seen.contains($0["id"].string ?? "") }
+            return (entry, parsed, inline + legacy.filter { !seen.contains($0["id"].string ?? "") })
+        }
+        let total = plan.count + plan.reduce(0) { $0 + $1.2.count }
+        var done = 0
+        func step(_ current: String) { done += 1; progress(Progress(done: done, total: total, current: current)) }
+        for (entry, parsed, attachments) in plan {
+            let doc = parsed.jsonValue
             let entryPath = "entries/\(safeID(entry.id, refs.count)).json"
             var entryMedia: [JSONValue] = []
             for (i, att) in attachments.enumerated() {
                 let path = "media/\(safeID(att["id"].string ?? "", i)).\(extensionFor(att))"
-                if let already = written[path] { entryMedia.append(already); continue }
-                guard let bytes = media(entry.id, att) else {
-                    missing.append(.object(["id": att["id"], "entryId": .string(entry.id), "reason": .string("unavailable")])); continue
+                let label = att["name"].string.flatMap { $0.isEmpty ? nil : $0 } ?? path
+                if let already = written[path] { entryMedia.append(already); step(label); continue }
+                guard let bytes = try await media(entry.id, att) else {
+                    missing.append(.object(["id": att["id"], "entryId": .string(entry.id), "reason": .string("unavailable")])); step(label); continue
                 }
                 let created: Double? = { if case .number(let n) = att["createdAt"] { return n }; return nil }()
-                files.append(File(path: path, data: bytes, mtime: created))
+                try emit(File(path: path, data: bytes, mtime: created))
                 var record: [String: JSONValue] = ["id": att["id"], "path": .string(path), "bytes": .number(Double(bytes.count)),
                                                    "createdAt": .string(iso(created) ?? iso(entry.createdAt) ?? nowISO), "entryId": .string(entry.id)]
                 for key in ["kind", "mime", "name", "durationMs", "width", "height"] { if case .object(let o) = att, let v = o[key] { record[key] = v } }
-                written[path] = .object(record); mediaList.append(.object(record)); entryMedia.append(.object(record))
+                written[path] = .object(record); mediaList.append(.object(record)); entryMedia.append(.object(record)); step(label)
             }
             let created = iso(entry.createdAt) ?? nowISO, updated = iso(entry.updatedAt) ?? iso(entry.createdAt) ?? nowISO
             let payload: JSONValue = .object(["id": .string(entry.id), "journalId": .string(entry.journalId), "title": .string(entry.title), "createdAt": .string(created),
                                               "updatedAt": .string(updated), "labels": .array(entry.labels.map(JSONValue.string)), "body": doc,
                                               "markdown": .string((try? ChapterMarkdown.docToMarkdown(parsed)) ?? entry.bodyText), "media": .array(entryMedia), "links": .array(docLinks(doc).map(JSONValue.string))])
-            files.append(File(path: entryPath, data: try json(payload), mtime: entry.updatedAt))
+            try emit(File(path: entryPath, data: try json(payload), mtime: entry.updatedAt))
             refs.append(.object(["id": .string(entry.id), "path": .string(entryPath), "title": .string(entry.title), "createdAt": .string(created), "updatedAt": .string(updated),
                                  "labels": .array(entry.labels.map(JSONValue.string)), "media": .array(entryMedia.map { $0["id"] })]))
+            step(entry.title)
         }
         var meta: [String: JSONValue] = ["id": .string(journal.id), "name": .string(journal.name)]
         if !journal.subtitle.isEmpty { meta["subtitle"] = .string(journal.subtitle) }
@@ -194,9 +223,9 @@ public enum ChapterExport {
             "generator": .object(["app": .string(generator.app), "version": .string(generator.version)]), "exportedAt": .string(nowISO), "journal": .object(meta),
             "counts": .object(["entries": .number(Double(refs.count)), "media": .number(Double(mediaList.count)), "missingMedia": .number(Double(missing.count))]),
             "entries": .array(refs), "media": .array(mediaList), "missingMedia": .array(missing)])
-        files.append(File(path: "mneme-export.json", data: try json(manifest), mtime: now))
-        files.append(File(path: "README.md", data: Data(readme(name: journal.name, exportedAt: nowISO, entries: refs.count, media: mediaList.count, missing: missing.count).utf8), mtime: now))
-        return Archive(files: files, filename: "mneme-\(slugify(journal.name))-\(nowISO.prefix(10)).zip", manifest: manifest, missingMedia: missing.count)
+        try emit(File(path: "mneme-export.json", data: try json(manifest), mtime: now))
+        try emit(File(path: "README.md", data: Data(readme(name: journal.name, exportedAt: nowISO, entries: refs.count, media: mediaList.count, missing: missing.count).utf8), mtime: now))
+        return Summary(filename: filename(name: journal.name, now: now), entries: refs.count, media: mediaList.count, missingMedia: missing.count)
     }
 
     static func readme(name: String, exportedAt: String, entries: Int, media: Int, missing: Int) -> String {
@@ -276,7 +305,10 @@ public final class ChapterZipWriter {
         offset += UInt64(local.count + data.count); central.append(c); count += 1
         guard offset < 0xFFFF_FFFF else { throw ChapterError.unsupported }
     }
+    deinit { if !finished { try? handle.close() } }
+    private var finished = false
     public func finish() throws {
+        finished = true
         var end = Data(); le(UInt32(0x06054b50), &end); le(UInt16(0), &end); le(UInt16(0), &end); le(UInt16(count), &end); le(UInt16(count), &end)
         le(UInt32(central.count), &end); le(UInt32(offset), &end); le(UInt16(0), &end)
         try handle.write(contentsOf: central); try handle.write(contentsOf: end); try handle.close()

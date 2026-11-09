@@ -47,11 +47,12 @@ function readArchive(zip: Uint8Array): Files {
 }
 
 export async function verifyExport(write: boolean): Promise<void> {
-  const result = await exportJournal('public-notebook', { journals: [journal], entries, mediaBlob: async (_e: string, att: { id: string }) => (available[att.id] ? new Blob([new Uint8Array(available[att.id])]) : null) } as never, undefined, { now: () => NOW, appVersion: 'test' });
+  const progress: { done: number; total: number; current: string }[] = [];
+  const result = await exportJournal('public-notebook', { journals: [journal], entries, mediaBlob: async (_e: string, att: { id: string }) => (available[att.id] ? new Blob([new Uint8Array(available[att.id])]) : null) } as never, (p) => progress.push({ ...p }), { now: () => NOW, appVersion: 'test' });
   const zip = new Uint8Array(await result.blob.arrayBuffer());
   const files = readArchive(zip);
   const slugs = ['Café Notes — été 2026', '日本語', '  --Hello__World--  ', 'x'.repeat(80), 'Ǆemal ﬁle'].map((name) => ({ name, slug: slugify(name) }));
-  const fixture = { now: NOW, journal, entries, available, filename: result.filename, files, slugs };
+  const fixture = { now: NOW, journal, entries, available, filename: result.filename, files, slugs, progress };
   const vecURL = new URL('../../ios/ChapterCore/Tests/ChapterCoreTests/Fixtures/journal-export.json', import.meta.url);
   if (write) writeFileSync(vecURL, JSON.stringify(fixture, null, 1) + '\n');
   else assert.deepEqual(JSON.parse(readFileSync(vecURL, 'utf8')), JSON.parse(JSON.stringify(fixture)), 'Native export vectors must equal the web exportJournal');

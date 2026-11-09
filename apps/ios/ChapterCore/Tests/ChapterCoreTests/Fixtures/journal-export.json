@@ -772,5 +772,87 @@
    "name": "Ǆemal ﬁle",
    "slug": "dzemal-file"
   }
+ ],
+ "progress": [
+  {
+   "done": 1,
+   "total": 16,
+   "current": "media/shared01.png"
+  },
+  {
+   "done": 2,
+   "total": 16,
+   "current": "media/gal02.heic"
+  },
+  {
+   "done": 3,
+   "total": 16,
+   "current": "media/map03.png"
+  },
+  {
+   "done": 4,
+   "total": 16,
+   "current": "media/clip04.mp4"
+  },
+  {
+   "done": 5,
+   "total": 16,
+   "current": "film.MOV"
+  },
+  {
+   "done": 6,
+   "total": 16,
+   "current": "notes.TAR"
+  },
+  {
+   "done": 7,
+   "total": 16,
+   "current": "First"
+  },
+  {
+   "done": 8,
+   "total": 16,
+   "current": "Malformed"
+  },
+  {
+   "done": 9,
+   "total": 16,
+   "current": "Number body"
+  },
+  {
+   "done": 10,
+   "total": 16,
+   "current": "CRLF text"
+  },
+  {
+   "done": 11,
+   "total": 16,
+   "current": "Serializer throws"
+  },
+  {
+   "done": 12,
+   "total": 16,
+   "current": "media/x9.txt"
+  },
+  {
+   "done": 13,
+   "total": 16,
+   "current": "Key order"
+  },
+  {
+   "done": 14,
+   "total": 16,
+   "current": "pic.png"
+  },
+  {
+   "done": 15,
+   "total": 16,
+   "current": "media/missing02.weba"
+  },
+  {
+   "done": 16,
+   "total": 16,
+   "current": "Second"
+  }
  ]
 }
