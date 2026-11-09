@@ -72,6 +72,18 @@ the exact revision; a failing strict accessibility audit remains a release block
   is treated as unproven until it passes again. No audit is waived; re-verification pending.
 
 <!-- Times are commit times in America/Los_Angeles; earlier labels this night ran ahead of the clock and were corrected. -->
+## Page tour passes on Apple; job time limit; film geometry — November 9, 2026, 8:40 AM PST
+
+- **Native 42649099502 finished as cancelled at 8:38 AM PST, during the first strict audit step.** That was the job's own 45-minute limit. On the Intel Mac, installing and the core tests alone take about 36 minutes. It was not a test failure. No audit or functional test result exists for this run.
+  - Fix (0eaba18, 8:40 AM PST): the job limit is now 120 minutes. Each step keeps its own limit, and every test and audit is unchanged.
+- **Before that, the 47-screen page tour passed: 6 tests, 0 failures, iPhone 16 Pro Simulator on iOS 18.5 (8:19–8:35 AM PST).** This is the first actual look at the app since e825899. Reviewing the pictures found three real problems, fixed in acbb6c8 (8:40 AM PST):
+  - The Settings "Not yet implemented" note still listed import/export, badges and translated text, and the reader footnote still listed selection formatting. Both notes now match what exists.
+  - The missing linked-entry screen showed white bands around a paper-coloured block. It now fills the screen and scrolls at large text.
+- **8a23328 (8:38 AM PST): film geometry core.**
+  - The web's letterbox fit and bitrate were inline in the encoder worker and the realtime fallback. They are now shared, unchanged, as `containFit` and `filmBitrate` in `video/timeline.ts`.
+  - `ChapterFilmTimeline.containFit` and `bitrate` port them and are checked on 200 fits and 16 bitrates from the web. That covers the 0, -0 and NaN fallbacks, half-pixel ties for negative sizes, and NaN in `Math.min`. All eight mutations were caught.
+- **Verification:** core suite 180 tests (3 skipped), vectors in UTC and Pacific time, tsc, 30 checks, go vet and Go tests.
+
 ## Native app builds on Apple — November 9, 2026, 8:33 AM PST
 
 - **Native 42649099502 (on 12620e4, `macos-15-intel`, Xcode 16.4): the app compiles on Apple for the first time since e825899.** The raw-string and public-init fixes in 03129ba were enough.
