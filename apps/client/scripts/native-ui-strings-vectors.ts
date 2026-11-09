@@ -54,7 +54,7 @@ export async function verifyUIStrings(write: boolean): Promise<void> {
     for (const file of readdirSync(appDir).filter(f => f.endsWith('.swift'))) {
       const text = readFileSync(new URL(file, appDir), 'utf8');
       for (const m of text.matchAll(/\bt\("([^"\\]+)"(?:\s*\+\s*\$0)?/g)) {
-        if (m[0].includes('+')) for (const id of m[1] === 'prefs.mode.' ? ['light', 'dark', 'system'] : m[1] === 'prefs.skin.' ? ['paper', 'modern', 'terminal', 'forest', 'blossom', 'lavender'] : m[1] === 'prefs.palette.' ? ['terracotta', 'moss', 'sea', 'twilight', 'plum', 'rose'] : [null]) { assert.ok(id, 'Unknown dynamic key prefix ' + m[1]); used.add(m[1] + id); }
+        if (m[0].includes('+')) for (const id of m[1] === 'prefs.mode.' ? ['light', 'dark', 'system'] : m[1] === 'prefs.skin.' ? ['paper', 'modern', 'terminal', 'forest', 'blossom', 'lavender'] : m[1] === 'prefs.palette.' ? ['terracotta', 'moss', 'sea', 'twilight', 'plum', 'rose'] : m[1] === 'journals.cover.' ? ['lines', 'dots', 'grid', 'plain', 'photo'] : [null]) { assert.ok(id, 'Unknown dynamic key prefix ' + m[1]); used.add(m[1] + id); }
         else used.add(m[1]);
       }
     }

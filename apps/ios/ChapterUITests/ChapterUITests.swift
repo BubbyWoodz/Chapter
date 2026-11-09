@@ -247,10 +247,12 @@ final class ChapterUITests: XCTestCase {
     }
     func testInterfaceTextUsesTheWebsCatalogsInGermanAndArabic() throws {
         // Wave 1: tabs, settings, appearance and shared actions use the web's own t() keys.
-        for (locale, calendar, notebooks, settings, language, dark) in [("de","Kalender","Notizbücher","Einstellungen","Sprache","Dunkel"),("ar","التقويم","الدفاتر","الإعدادات","اللغة","داكن")] {
+        for (locale, calendar, notebooks, settings, language, dark, days) in [("de","Kalender","Notizbücher","Einstellungen","Sprache","Dunkel","Tage geschrieben"),("ar","التقويم","الدفاتر","الإعدادات","اللغة","داكن","أيام التدوين")] {
             let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture","--chapter-fixture-locale="+locale];app.launch()
             let tab=app.tabBars.buttons[settings];XCTAssertTrue(tab.waitForExistence(timeout:10),locale+": settings tab from the web catalog")
             XCTAssertTrue(app.tabBars.buttons[calendar].exists);XCTAssertTrue(app.tabBars.buttons[notebooks].exists)
+            app.tabBars.buttons[calendar].tap();XCTAssertTrue(app.navigationBars[calendar].waitForExistence(timeout:5))
+            let stat=app.descendants(matching:.any).matching(NSPredicate(format:"label BEGINSWITH %@",days)).firstMatch;reveal(stat,in:app);XCTAssertTrue(stat.exists,locale+": calendar stat uses prefs.stat.days")
             tab.tap();XCTAssertTrue(app.navigationBars[settings].waitForExistence(timeout:5))
             XCTAssertTrue(app.staticTexts[language].exists || app.otherElements[language].exists,locale+": language section header")
             let mode=app.buttons["appearance.mode"];reveal(mode,in:app);mode.tap()

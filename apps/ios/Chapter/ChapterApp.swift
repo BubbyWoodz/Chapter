@@ -288,7 +288,7 @@ struct EntryDetail: View {
                         }
                         let backlinks=model.snapshot.backlinks(to:entry.id)
                         if !backlinks.isEmpty {
-                            Text("Linked from downloaded entries").font(.headline).accessibilityAddTraits(.isHeader)
+                            Text(model.t("editor.linkedFrom")).font(.headline).accessibilityAddTraits(.isHeader)
                             ForEach(backlinks) {source in
                                 NavigationLink {EntryDetail(entryID:source.id)} label:{Label(source.title,systemImage:"arrow.uturn.backward").frame(minHeight:44)}
                                     .accessibilityIdentifier("entry.backlink."+source.id)
@@ -402,7 +402,7 @@ struct EntryEditor: View {
                     LabeledContent("Labels",value:draft.labels)
                     Text("Labels are preserved while writing. Use the entry’s More → Title, date and labels form to edit individual labels, including labels containing commas.").font(.footnote)
                 }
-                Picker("Notebook", selection: $draft.journal) {
+                Picker(model.t("shell.compose.notebook"), selection: $draft.journal) {
                     if draft.journal == "default" || model.journals.isEmpty { Text("Journal").tag("default") }
                     if draft.journal != "default" && !model.journals.contains(where: { $0.journalID == draft.journal }) { Text("Unavailable notebook — choose another").tag(draft.journal) }
                     ForEach(model.journals) { Text($0.title).tag($0.journalID) }
@@ -475,7 +475,7 @@ struct EntryMetadataEditor: View {
             Form {
                 Text("Tap Save to apply metadata. Original rich content, attachments and other fields stay intact. Unsaved form changes are not autosaved; save before leaving or locking the app.").font(.footnote)
                 TextField("Title",text:$title).accessibilityIdentifier("metadata.title")
-                DatePicker("Entry date and time",selection:$date).accessibilityIdentifier("metadata.date")
+                DatePicker(model.t("editor.date.heading"),selection:$date).accessibilityIdentifier("metadata.date")
                 Section("Labels") {
                     if expected.editableEntryLabels != nil {
                         ForEach(labels) { label in
@@ -557,12 +557,12 @@ struct NotebookEditor: View {
             Form {
                 Section("Notebook") {
                     TextField("Name", text: $name).accessibilityIdentifier("notebook.name")
-                    TextField("Subtitle", text: $subtitle, axis: .vertical).accessibilityIdentifier("notebook.subtitle")
+                    TextField(model.t("journals.field.subtitle"), text: $subtitle, axis: .vertical).accessibilityIdentifier("notebook.subtitle")
                 }
                 Section("Original web appearance") {
                     TextField("Color (#RRGGBB)", text: $color).autocorrectionDisabled().textInputAutocapitalization(.never).accessibilityIdentifier("notebook.color")
-                    Picker("Cover pattern", selection: $cover) {
-                        ForEach(covers, id: \.self) { Text($0.capitalized).tag($0) }
+                    Picker(model.t("journals.field.cover"), selection: $cover) {
+                        ForEach(covers, id: \.self) { Text(model.t("journals.cover." + $0)).tag($0) }
                         if !covers.contains(cover) { Text("Existing: " + cover).tag(cover) }
                     }.accessibilityIdentifier("notebook.cover")
                     Text("These settings sync to the original web client. The notebook cover retains its original web pattern. Photo preserves the original cover style; this does not upload a cover image.").font(.footnote)
@@ -600,7 +600,7 @@ struct CalendarView: View {
                         .listRowBackground(Color.clear).listRowSeparator(.hidden)
                 } }
                 Section("On this device") { LabeledContent("Entries", value: "\(model.entries.count)")
-                    LabeledContent("Writing days", value: "\(Set(model.entries.map { Calendar.current.startOfDay(for: $0.date) }).count)") }
+                    LabeledContent(model.t("prefs.stat.days"), value: "\(Set(model.entries.map { Calendar.current.startOfDay(for: $0.date) }).count)") }
             }.modifier(ChapterScreenSurface()).navigationTitle(model.t("shell.nav.calendar"))
         }
     }
@@ -939,7 +939,7 @@ struct TemplatePicker: View {
     var body: some View {
         NavigationStack {
             Form {
-                Picker("Notebook", selection: $journal) { ForEach(model.journals) { Text($0.title).tag($0.journalID) } }.accessibilityIdentifier("template.notebook")
+                Picker(model.t("shell.compose.notebook"), selection: $journal) { ForEach(model.journals) { Text($0.title).tag($0.journalID) } }.accessibilityIdentifier("template.notebook")
                 Section {
                     if model.templates.isEmpty && model.builtinTemplates.isEmpty { Text("No templates. Create one to start entries with the same prompts.").foregroundStyle(.secondary).accessibilityIdentifier("template.empty") }
                     ForEach(model.templates) { row(.synced($0)) }
@@ -1014,7 +1014,7 @@ struct MoveEntryView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Picker("Notebook", selection: $notebookID) {
+                Picker(model.t("shell.compose.notebook"), selection: $notebookID) {
                     Text("Choose a notebook").tag("")
                     ForEach(model.journals) { notebook in Text(notebook.title).tag(notebook.journalID) }
                 }.accessibilityIdentifier("move.notebook")
