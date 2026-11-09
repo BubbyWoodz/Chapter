@@ -288,7 +288,12 @@ public final class ChapterZipWriter {
         guard let ms, ms.isFinite, abs(ms) <= 8.64e15 else { return nil }
         let p = Calendar(identifier: .gregorian).dateComponents([.year, .month, .day, .hour, .minute, .second], from: Date(timeIntervalSince1970: ms / 1000))
         guard let y = p.year, (1980...2099).contains(y) else { return nil }
-        return (UInt16((p.hour ?? 0) << 11 | (p.minute ?? 0) << 5 | (p.second ?? 0) / 2), UInt16((y - 1980) << 9 | (p.month ?? 1) << 5 | (p.day ?? 1)))
+        // Typed one part at a time: as a single expression it exceeds Xcode 16.4's type-checker budget.
+        let hour: Int = p.hour ?? 0, minute: Int = p.minute ?? 0, second: Int = p.second ?? 0
+        let month: Int = p.month ?? 1, day: Int = p.day ?? 1
+        let time: Int = (hour << 11) | (minute << 5) | (second / 2)
+        let date: Int = ((y - 1980) << 9) | (month << 5) | day
+        return (UInt16(time), UInt16(date))
     }
     private func le<T: FixedWidthInteger>(_ v: T, _ d: inout Data) { withUnsafeBytes(of: v.littleEndian) { d.append(contentsOf: $0) } }
     public func add(path: String, data: Data, mtime: Double?) throws {
