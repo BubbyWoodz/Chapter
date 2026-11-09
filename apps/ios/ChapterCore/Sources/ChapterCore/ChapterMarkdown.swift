@@ -6,7 +6,7 @@ import Foundation
 /// `JSON.stringify` writes array-index keys first, ascending. Strings are Swift
 /// strings, so a lone surrogate escape (`\ud800`) becomes U+FFFD, as everywhere else
 /// a vault record is decoded.
-public indirect enum JSValue: Equatable {
+public indirect enum JSValue: Equatable, Sendable {
     case object([(String, JSValue)]), array([JSValue]), string(String), number(Double), bool(Bool), null
     public static func == (a: JSValue, b: JSValue) -> Bool {
         switch (a, b) {

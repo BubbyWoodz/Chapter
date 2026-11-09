@@ -758,6 +758,7 @@ struct SettingsView: View {
     @EnvironmentObject private var model: VaultModel
     @State private var managingInterviews = false
     @State private var exporting = false
+    @State private var importingDayOne = false
     var body: some View {
         NavigationStack {
             Form {
@@ -775,6 +776,8 @@ struct SettingsView: View {
                 Section("Your data") {
                     Button { exporting = true } label: { Label(model.t("vault.export.title"), systemImage: "square.and.arrow.up") }
                         .frame(minHeight: 44).accessibilityIdentifier("settings.export")
+                    Button { importingDayOne = true } label: { Label(model.t("prefs.vault.import"), systemImage: "square.and.arrow.down") }
+                        .frame(minHeight: 44).accessibilityIdentifier("settings.import")
                 }
                 Section(model.t("prefs.assistant.section")) {
                     Button { managingInterviews = true } label: { Label(model.t("prefs.assistant.interviewTypes"), systemImage: "list.bullet") }
@@ -841,6 +844,7 @@ struct SettingsView: View {
             }.modifier(ChapterScreenSurface()).navigationTitle(model.t("common.settings"))
             .sheet(isPresented: $managingInterviews) { InterviewTypesView() }
             .sheet(isPresented: $exporting) { ExportJournalView() }
+            .sheet(isPresented: $importingDayOne) { ImportDayOneView() }
         }
     }
 }
@@ -1624,6 +1628,130 @@ struct InterviewTypeEditor: View {
 /// then hand it to the share sheet (Save to Files, AirDrop…). The web's wording about
 /// "downloads" doesn't fit iOS, so those three lines are native. The archive file is
 /// deleted when this sheet closes, when the vault locks, and on the next launch.
+/// Web ImportDayOneSheet: pick the Day One JSON export .zip, read it on this device, show what
+/// it holds, then write encrypted entries and media through the normal vault paths.
+struct ImportDayOneView: View {
+    @EnvironmentObject private var model: VaultModel
+    @Environment(\.dismiss) private var dismiss
+    private enum Step { case pick, reading, ready(DayOneArchive), working, done(ChapterDayOneImport.Summary), error(String) }
+    @State private var step: Step = .pick
+    @State private var picking = false
+    @State private var task: Task<Void, Never>?
+    private var busy: Bool {
+        switch step { case .reading, .working: return true; default: return false }
+    }
+    var body: some View {
+        let p = model.snapshot.appearance ?? .standard
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) { content(p) }.padding(16)
+            }
+            .modifier(ChapterScreenSurface()).navigationTitle(model.t("vault.import.title")).navigationBarTitleDisplayMode(.inline)
+            .toolbar { if !busy { ToolbarItem(placement: .cancellationAction) { Button(model.t("common.close")) { dismiss() }.accessibilityIdentifier("import.close") } } }
+        }
+        .interactiveDismissDisabled(busy)
+        .fileImporter(isPresented: $picking, allowedContentTypes: [.zip]) { result in
+            switch result {
+            case .success(let url): read(url)
+            case .failure(let error): step = .error(error.localizedDescription)
+            }
+        }
+        .onDisappear { task?.cancel() }
+    }
+    @ViewBuilder private func content(_ p: SharedAppearance) -> some View {
+        switch step {
+        case .pick:
+            Text(model.t("vault.import.pickBody")).font(.subheadline)
+            Button { picking = true } label: {
+                VStack(spacing: 8) {
+                    Image(systemName: "square.and.arrow.down").font(.title2).foregroundStyle(chapterToken("accent", preference: p)).accessibilityHidden(true)
+                    Text(model.t("vault.import.dropTitle")).font(.subheadline.weight(.semibold)).foregroundStyle(chapterToken("ink", preference: p)).multilineTextAlignment(.center)
+                    Text(model.t("vault.import.dropHint")).font(.footnote).foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, minHeight: 44).padding(.vertical, 24).padding(.horizontal, 16)
+                .background(chapterToken("paper", preference: p), in: RoundedRectangle(cornerRadius: 14))
+                .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(chapterToken("line", preference: p), style: StrokeStyle(lineWidth: 1.5, dash: [6, 4])))
+            }.buttonStyle(.plain).accessibilityElement(children: .combine).accessibilityAddTraits(.isButton).accessibilityIdentifier("import.choose")
+            #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("--chapter-dayone-fixture") {
+                Button("Use the public Day One test export") { useFixture() }.frame(minHeight: 44).accessibilityIdentifier("import.fixture")
+            }
+            #endif
+        case .reading:
+            ProgressView().frame(maxWidth: .infinity, minHeight: 44).accessibilityIdentifier("import.reading")
+        case .ready(let archive):
+            Text(model.t("vault.import.readyLead")).font(.subheadline)
+            summaryRow(model.t("vault.import.row.notebooks"), archive.journals.count, id: "row.notebooks", p)
+            summaryRow(model.t("vault.import.row.entries"), archive.entryCount, id: "row.entries", p)
+            summaryRow(model.t("vault.import.row.media"), archive.mediaCount, id: "row.media", p)
+            Text(model.t("vault.import.readyBody")).font(.footnote)
+            HStack {
+                Button(model.t("common.back")) { step = .pick }.buttonStyle(.bordered).frame(minHeight: 44).accessibilityIdentifier("import.back")
+                Spacer()
+                Button(model.tp("vault.import.cta", count: archive.entryCount)) { run(archive) }.buttonStyle(.borderedProminent).frame(minHeight: 44).accessibilityIdentifier("import.run")
+            }
+        case .working:
+            let progress = model.dayOneProgress
+            let current = progress?.current ?? ""
+            VStack(spacing: 10) {
+                ProgressView(value: Double(progress?.done ?? 0), total: Double(max(progress?.total ?? 0, 1)))
+                Text(model.t("vault.import.working")).font(.subheadline.weight(.semibold))
+                Text(current.isEmpty ? model.t("vault.import.encrypting") : model.t("vault.import.writing", ["title": current])).font(.footnote).multilineTextAlignment(.center)
+                Text(model.tp("vault.import.progress", count: progress?.total ?? 0, ["n": String(progress?.done ?? 0)])).font(.caption.monospaced()).foregroundStyle(.secondary)
+            }.frame(maxWidth: .infinity).accessibilityElement(children: .combine).accessibilityIdentifier("import.working")
+        case .done(let summary):
+            VStack(spacing: 6) {
+                Image(systemName: "checkmark.circle").font(.title).foregroundStyle(chapterToken("accent", preference: p)).accessibilityHidden(true)
+                Text(model.t("vault.import.done")).font(.subheadline.weight(.semibold)).accessibilityIdentifier("import.done")
+            }.frame(maxWidth: .infinity)
+            summaryRow(model.t("vault.import.sum.entries"), summary.entries, id: "sum.entries", p)
+            summaryRow(model.t("vault.import.sum.journals"), summary.journals, id: "sum.journals", p)
+            summaryRow(model.t("vault.import.sum.media"), summary.media, id: "sum.media", p)
+            if summary.skippedMedia > 0 { summaryRow(model.t("vault.import.sum.skipped"), summary.skippedMedia, id: "sum.skipped", p) }
+            Text(model.t("vault.import.doneBody")).font(.footnote)
+            HStack {
+                Spacer()
+                Button(model.t("common.done")) { dismiss() }.buttonStyle(.borderedProminent).frame(minHeight: 44).accessibilityIdentifier("import.finish")
+            }
+        case .error(let message):
+            Text(model.t("vault.import.error")).font(.subheadline)
+            Text(message).font(.caption.monospaced()).padding(10).frame(maxWidth: .infinity, alignment: .leading)
+                .background(chapterToken("paper", preference: p), in: RoundedRectangle(cornerRadius: 10)).accessibilityIdentifier("import.errorMessage")
+            HStack {
+                Button(model.t("common.close")) { dismiss() }.buttonStyle(.bordered).frame(minHeight: 44)
+                Spacer()
+                Button(model.t("vault.import.pickAnother")) { step = .pick }.buttonStyle(.borderedProminent).frame(minHeight: 44).accessibilityIdentifier("import.pickAnother")
+            }
+        }
+    }
+    private func summaryRow(_ label: String, _ value: Int, id: String, _ p: SharedAppearance) -> some View {
+        HStack { Text(label); Spacer(); Text(String(value)).font(.body.monospaced().weight(.semibold)) }
+            .font(.footnote).padding(.horizontal, 12).padding(.vertical, 8)
+            .background(chapterToken("paper", preference: p), in: RoundedRectangle(cornerRadius: 10))
+            .accessibilityElement(children: .combine).accessibilityIdentifier("import." + id)
+    }
+    private func read(_ url: URL) {
+        step = .reading
+        task = Task {
+            do { step = .ready(try await model.readDayOneArchive(url)) }
+            catch is CancellationError { step = .pick }
+            catch { step = .error(error.localizedDescription) }
+        }
+    }
+    private func run(_ archive: DayOneArchive) {
+        step = .working
+        task = Task {
+            do { step = .done(try await model.importDayOne(archive)) }
+            catch { step = .error(error.localizedDescription) }
+        }
+    }
+    #if DEBUG
+    private func useFixture() {
+        do { read(try model.publicDayOneFixture()) } catch { step = .error(error.localizedDescription) }
+    }
+    #endif
+}
+
 struct ExportJournalView: View {
     @EnvironmentObject private var model: VaultModel
     @Environment(\.dismiss) private var dismiss

@@ -8,12 +8,12 @@
 // corrupt media member fails at resolve time with the same "not a valid .zip" error.
 import Foundation
 
-public struct DayOneArchive {
+public struct DayOneArchive: Sendable {
     public typealias MomentKind = ChapterDayOne.MomentKind
-    public struct Journal { public let name: String; public let entries: [JSValue] }
-    public struct Moment { public let moment: JSValue; public let kind: MomentKind }
+    public struct Journal: Sendable { public let name: String; public let entries: [JSValue] }
+    public struct Moment: Sendable { public let moment: JSValue; public let kind: MomentKind }
     /// One resolved moment, ready for the media upload path. `mime` is the type a web Blob would carry.
-    public struct Resolved {
+    public struct Resolved: Sendable {
         public let identifier: JSValue?, kind: MomentKind, data: Data, mime: String, name: String
         public let width: JSValue?, height: JSValue?, durationMs: Double?
     }
@@ -50,6 +50,9 @@ public struct DayOneArchive {
     static func folder(_ k: MomentKind) -> String { switch k { case .image: return "photos"; case .video: return "videos"; case .audio: return "audios"; case .file: return "pdfs" } }
     static let kinds: [(String, MomentKind)] = [("photos", .image), ("videos", .video), ("audios", .audio), ("pdfAttachments", .file)]
     static let jsonLimit = 256 << 20
+
+    /// Parses off the caller's actor (the app calls this from the main actor).
+    public static func parse(_ zip: Data) async throws -> DayOneArchive { try DayOneArchive(zip) }
 
     public init(_ zip: Data) throws {
         guard let reader = try? ChapterZipReader(zip), reader.members.allSatisfy({ $0.method == 0 || $0.method == 8 }) else { throw ImportError.notZip }

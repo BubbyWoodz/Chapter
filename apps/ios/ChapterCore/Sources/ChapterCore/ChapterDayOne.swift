@@ -30,7 +30,7 @@ public enum ChapterDayOne {
     }
 
     // MARK: dayone.ts
-    public enum MomentKind: String { case image, video, audio, file }
+    public enum MomentKind: String, Sendable { case image, video, audio, file }
     static let momentURL = re("dayone-moment:/(?:/)?(?:(video|audio|pdfAttachment)/)?([A-Za-z0-9-]+)")
     public static func parseMomentURL(_ url: String) -> (kind: MomentKind, identifier: String)? {
         guard let m = match(momentURL, url), let id = m[2] else { return nil }

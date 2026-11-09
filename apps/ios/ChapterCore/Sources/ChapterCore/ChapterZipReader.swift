@@ -5,8 +5,8 @@ import Foundation
 /// deflated members, ZIP64, UTF-8 or Latin-1 names), one member at a time so a large
 /// Day One export can stay memory-mapped. Pure Swift (RFC 1951 inflate), so it behaves
 /// the same on iOS and in the Linux test build.
-public struct ChapterZipReader {
-    public struct Member { public let name: String; let method: UInt16; let offset: Int; let compressed: Int; public let size: Int; let crc: UInt32 }
+public struct ChapterZipReader: Sendable {
+    public struct Member: Sendable { public let name: String; let method: UInt16; let offset: Int; let compressed: Int; public let size: Int; let crc: UInt32 }
     public enum ZipError: Error, Equatable { case invalid, unsupported(UInt16), tooLarge, corrupt }
     let data: Data
     /// Members in central-directory order.

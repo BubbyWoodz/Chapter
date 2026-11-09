@@ -311,6 +311,31 @@ final class ChapterUITests: XCTestCase {
         app.buttons["export.again"].tap();XCTAssertTrue(app.buttons["export.pick.public-notebook"].waitForExistence(timeout:5))
         app.buttons["export.close"].tap();XCTAssertTrue(app.buttons["settings.export"].waitForExistence(timeout:5))
     }
+    func testDayOneImportReadsTheExportThenWritesEncryptedEntriesLikeTheWeb() throws {
+        // Web ImportDayOneSheet: pick → summary of the export → import → summary of what was written.
+        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture","--chapter-media-fixture","--chapter-dayone-fixture"];app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout:10));app.tabBars.buttons["Settings"].tap()
+        let open=app.buttons["settings.import"];reveal(open,in:app);open.tap()
+        XCTAssertTrue(app.navigationBars["Import from Day One"].waitForExistence(timeout:5))
+        XCTAssertTrue(app.buttons["import.choose"].exists)
+        try audit(app);attach(app,name:"Actual native Day One import picker like the web")
+        app.buttons["import.fixture"].tap()
+        let run=app.buttons["import.run"];XCTAssertTrue(run.waitForExistence(timeout:20),"The export is read on the device")
+        XCTAssertEqual(run.label,"Import 2 entries")
+        XCTAssertTrue(app.descendants(matching:.any)["import.row.notebooks"].label.contains("1"))
+        XCTAssertTrue(app.descendants(matching:.any)["import.row.media"].label.contains("2"))
+        try audit(app);attach(app,name:"Actual native Day One export summary like the web")
+        run.tap()
+        XCTAssertTrue(app.staticTexts["import.done"].waitForExistence(timeout:30),"Entries and media are encrypted on the device")
+        XCTAssertTrue(app.descendants(matching:.any)["import.sum.entries"].label.contains("2"))
+        XCTAssertTrue(app.descendants(matching:.any)["import.sum.journals"].label.contains("1"))
+        XCTAssertTrue(app.descendants(matching:.any)["import.sum.media"].label.contains("2"))
+        XCTAssertTrue(app.descendants(matching:.any)["import.sum.skipped"].label.contains("1"),"The photo missing from the export is reported, not fatal")
+        try audit(app);attach(app,name:"Actual native Day One import summary like the web")
+        app.buttons["import.finish"].tap();XCTAssertTrue(app.buttons["settings.import"].waitForExistence(timeout:5))
+        app.tabBars.buttons["Journal"].tap()
+        XCTAssertTrue(app.staticTexts["Public Lisbon"].waitForExistence(timeout:10),"The imported entry is in the journal")
+    }
     func testBadgesCelebrateOnceThenShowInTheGalleryLikeTheWeb() throws {
         // Web useBadges: newly earned badges celebrate one at a time; dismissing marks them seen.
         let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture","--chapter-still-captures","--chapter-media-fixture","--chapter-fixture-badges-unseen"];app.launch()

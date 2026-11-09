@@ -65,6 +65,18 @@ import ChapterCore
         }
     }
     #if DEBUG
+    /// A PUBLIC Day One JSON export built on the device for the import UI test: one notebook,
+    /// a two-photo gallery entry and an entry whose photo is missing from the export.
+    func publicDayOneFixture() throws -> URL {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("public-dayone-\(UUID().uuidString).zip")
+        let journal = #"{"metadata":{"version":"1.0"},"entries":[{"uuid":"PUBLIC1","creationDate":"2024-05-01T10:00:00Z","text":"# Public Lisbon\n\n![](dayone-moment://P1)\n![](dayone-moment://P2)\n\nWalked to the river.","tags":["public"],"photos":[{"identifier":"P1","md5":"p1","type":"png","width":2,"height":2},{"identifier":"P2","md5":"p2","type":"png"}]},{"uuid":"PUBLIC2","creationDate":"2024-05-02T10:00:00Z","text":"Public second day\n![](dayone-moment://GONE)","photos":[{"identifier":"GONE","md5":"gone","type":"jpeg"}]}]}"#
+        let writer = try ChapterZipWriter(url: url, fallbackMtime: Date().timeIntervalSince1970 * 1000)
+        try writer.add(path: "Public Day One trip.json", data: Data(journal.utf8), mtime: nil)
+        try writer.add(path: "photos/p1.png", data: Data("public photo one".utf8), mtime: nil)
+        try writer.add(path: "photos/p2.png", data: Data("public photo two".utf8), mtime: nil)
+        try writer.finish()
+        return url
+    }
     func loadPublicRichFixture() throws {
         guard ProcessInfo.processInfo.arguments.contains("--chapter-rich-fixture"), store == nil else { return }
         // Public fixtures always start in English, so a language chosen by one UI test never leaks into another.
@@ -502,8 +514,8 @@ import ChapterCore
         try commit(next); scheduleSync()
     }
     /// Web NewJournalSheet → newJournal: the chosen name, colour and cover; subtitle is t('journals.new').
-    @discardableResult func createJournal(name: String, subtitle: String = "", color: String = "#62564a", cover: String = "plain") throws -> String {
-        let clock = try nextClock(); let id = UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
+    @discardableResult func createJournal(name: String, subtitle: String = "", color: String = "#62564a", cover: String = "plain", journalID: String? = nil) throws -> String {
+        let clock = try nextClock(); let id = journalID ?? UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
         let body: [String: JSONValue] = ["kind": .string("journal"), "journalId": .string(id), "name": .string(name), "subtitle": .string(subtitle), "color": .string(color), "cover": .string(cover), "createdAt": .number(Double(clock)), "updatedAt": .number(Double(clock))]
         var next = snapshot; next.records.append(VaultRecord(id: UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased(), clock: clock, body: body, dirty: true))
         try commit(next); scheduleSync()
@@ -575,6 +587,62 @@ import ChapterCore
             if staged && !commitAttempted { try? mediaFiles.discardUnpublished(id: id) }
             throw error
         }
+    }
+    // MARK: Day One import (web ImportDayOne → parseDayOneArchive + importDayOne)
+    @Published private(set) var dayOneProgress: ChapterDayOneImport.Progress?
+    /// Reads the picked export off the main actor; the summary is shown before anything is written.
+    func readDayOneArchive(_ url: URL) async throws -> DayOneArchive {
+        guard identity != nil else { throw ChapterError.authentication }
+        let scoped = url.startAccessingSecurityScopedResource(); defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+        let data = try Data(contentsOf: url, options: .mappedIfSafe)
+        return try await DayOneArchive.parse(data)
+    }
+    /// Runs the import. Each entry is committed with its media in one encrypted write, so a
+    /// failure or lock part-way leaves only whole entries (the web keeps a half-written one).
+    func importDayOne(_ archive: DayOneArchive) async throws -> ChapterDayOneImport.Summary {
+        guard identity != nil, dayOneProgress == nil else { throw ChapterError.conflict }
+        let journals = snapshot.records.filter { $0.kind == "journal" && !$0.deleted }.map { (id: $0.journalID, name: $0.body["name"]?.string ?? "") }
+        let target = VaultDayOneTarget(model: self, attempt: generation, journals: journals)
+        dayOneProgress = ChapterDayOneImport.Progress(done: 0, total: archive.entryCount, current: "")
+        defer { dayOneProgress = nil }
+        do {
+            return try await ChapterDayOneImport.run(archive, into: target) { p in
+                Task { @MainActor in if (self.dayOneProgress?.done ?? Int.max) < p.done { self.dayOneProgress = p } }
+            }
+        } catch { await target.abandon(); throw error }
+    }
+    func importNotebook(id: String, name: String, subtitle: String, color: String, cover: String, attempt: UUID) throws {
+        guard attempt == generation else { throw CancellationError() }
+        try createJournal(name: name, subtitle: subtitle, color: color, cover: cover, journalID: id)
+    }
+    /// Encrypts one imported file into the upload queue's staging area (not yet published).
+    func stageImportMedia(_ data: Data, name: String, mime: String, attempt: UUID) async throws -> MediaUpload {
+        guard attempt == generation, let identity, let mediaFiles, mediaImport == nil else { throw CancellationError() }
+        let id = UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased(), key = identity.mediaKey
+        let task = Task.detached(priority: .userInitiated) { () throws -> MediaUpload in
+            let root = try EncryptedSnapshotStore.applicationDirectory().appendingPathComponent("ImportStaging", isDirectory: true) // removed on lock
+            try EncryptedMediaFiles.protectedDirectory(root)
+            let source = root.appendingPathComponent(id)
+            try data.write(to: source, options: [.atomic, .completeFileProtection])
+            defer { try? FileManager.default.removeItem(at: source) }
+            return try mediaFiles.stage(source: source, id: id, name: name, mime: mime, key: key)
+        }
+        mediaImport = task
+        defer { if attempt == generation { mediaImport = nil } }
+        let upload = try await task.value
+        guard attempt == generation else { try? mediaFiles.discardUnpublished(id: id); throw CancellationError() }
+        return upload
+    }
+    func commitImportedEntry(id: String, journalID: String, title: String?, bodyJSON: String, bodyText: String, labels: [String], createdAt: Double, uploads: [MediaUpload], attempt: UUID) throws {
+        guard attempt == generation, identity != nil else { throw CancellationError() }
+        let record = try VaultSnapshot.importedEntry(id: id, clock: try nextClock(), journalID: journalID, title: title, bodyJSON: bodyJSON, bodyText: bodyText, labels: labels, createdAt: createdAt)
+        var next = snapshot; try next.addImportedEntry(record, uploads: uploads)
+        try commit(next); scheduleSync()
+    }
+    /// Staged files of an entry that was never committed.
+    func discardImportUploads(_ uploads: [MediaUpload]) {
+        guard let mediaFiles else { return }
+        for upload in uploads where !(snapshot.mediaUploads ?? []).contains(where: { $0.id == upload.id }) { try? mediaFiles.discardUnpublished(id: upload.id) }
     }
     /// Web ExportJournalSheet progress (`done` of `total`, and what is being added).
     @Published private(set) var exportProgress: ChapterExport.Progress?
@@ -669,3 +737,52 @@ import ChapterCore
         succeeded = true; return file
     }
 }
+
+/// The app side of ChapterDayOneImport.run: entries are buffered until their final document
+/// arrives, then committed together with their staged media.
+final class VaultDayOneTarget: DayOneImportTarget {
+    struct Pending { let journalID: String; var uploads: [MediaUpload] = [] }
+    let model: VaultModel, attempt: UUID
+    let importJournals: [(id: String, name: String)]
+    private var pending: [String: Pending] = [:]
+    init(model: VaultModel, attempt: UUID, journals: [(id: String, name: String)]) { self.model = model; self.attempt = attempt; importJournals = journals }
+
+    func importNewJournal(id: String, name: String, subtitle: String, color: String, cover: String) async throws {
+        try await model.importNotebook(id: id, name: name, subtitle: subtitle, color: color, cover: cover, attempt: attempt)
+    }
+    func importCreateEntry(journalID: String, title: String?, labels: [String]) async throws -> String {
+        let id = UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
+        pending[id] = Pending(journalID: journalID)
+        return id
+    }
+    /// Web addMedia: empty files are refused; the attachment carries the importer's kind, the
+    /// Blob type (or the web's per-kind fallback) and createdAt. Files over the native media
+    /// limit are skipped like any file that can't be attached.
+    func importAddMedia(entryID: String, _ m: DayOneArchive.Resolved) async throws -> JSValue? {
+        guard pending[entryID] != nil else { throw ChapterError.conflict }
+        guard !m.data.isEmpty, m.data.count <= MediaLimits.maximumPlainBytes else { return nil }
+        let fallback = m.kind == .audio ? "audio/webm" : m.kind == .video ? "video/webm" : m.kind == .image ? "image/jpeg" : "application/octet-stream"
+        let mime = m.mime.isEmpty ? fallback : m.mime
+        let upload = try await model.stageImportMedia(m.data, name: m.name, mime: mime, attempt: attempt)
+        pending[entryID]?.uploads.append(upload)
+        var o: [(String, JSValue)] = [("id", .string(upload.id)), ("kind", .string(m.kind.rawValue)), ("mime", .string(mime)), ("bytes", .number(Double(m.data.count)))]
+        if let d = m.durationMs { o.append(("durationMs", d.isFinite ? .number(d) : .null)) }
+        o.append(("name", .string(m.name)))
+        if let w = m.width { o.append(("width", w)) }
+        if let h = m.height { o.append(("height", h)) }
+        o.append(("createdAt", .number((Date().timeIntervalSince1970 * 1000).rounded(.down))))
+        return .object(o)
+    }
+    func importUpdateEntry(id: String, title: String?, bodyJSON: String, bodyText: String, labels: [String], createdAt: Double) async throws {
+        guard let p = pending.removeValue(forKey: id) else { throw ChapterError.conflict }
+        do {
+            try await model.commitImportedEntry(id: id, journalID: p.journalID, title: title, bodyJSON: bodyJSON, bodyText: bodyText, labels: labels,
+                                                createdAt: createdAt, uploads: p.uploads, attempt: attempt)
+        } catch { await model.discardImportUploads(p.uploads); throw error }
+    }
+    func abandon() async {
+        let uploads = pending.values.flatMap(\.uploads); pending = [:]
+        await model.discardImportUploads(uploads)
+    }
+}
+

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import Foundation
 
-public struct MediaUpload: Codable, Identifiable, Equatable {
+public struct MediaUpload: Codable, Identifiable, Equatable, Sendable {
     public let id: String
     public let chunks: Int
     public let cipherBytes: Int64

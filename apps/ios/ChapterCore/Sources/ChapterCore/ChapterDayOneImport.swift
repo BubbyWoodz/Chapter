@@ -7,20 +7,22 @@
 // encrypted, queued paths. Like the web, a malformed record stops the import where it is.
 import Foundation
 
+/// Every write is async, so `run` stays off the main actor (inflating media there would stall
+/// the UI) while an app adapter forwards each call to its main-actor model.
 public protocol DayOneImportTarget: AnyObject {
-    /// Existing notebooks, in the app's order.
+    /// Existing notebooks, in the app's order, read once when the import starts.
     var importJournals: [(id: String, name: String)] { get }
-    func importNewJournal(id: String, name: String, subtitle: String, color: String, cover: String) throws
-    func importCreateEntry(journalID: String, title: String?, labels: [String]) throws -> String
+    func importNewJournal(id: String, name: String, subtitle: String, color: String, cover: String) async throws
+    func importCreateEntry(journalID: String, title: String?, labels: [String]) async throws -> String
     /// Encrypt and queue one file; returns the attachment's node attrs, or nil when it can't be attached.
     func importAddMedia(entryID: String, _ moment: DayOneArchive.Resolved) async throws -> JSValue?
     /// `createdAt` is epoch milliseconds; a nil title keeps the date-based default.
-    func importUpdateEntry(id: String, title: String?, bodyJSON: String, bodyText: String, labels: [String], createdAt: Double) throws
+    func importUpdateEntry(id: String, title: String?, bodyJSON: String, bodyText: String, labels: [String], createdAt: Double) async throws
 }
 
 public enum ChapterDayOneImport {
-    public struct Summary: Equatable { public var journals = 0, entries = 0, media = 0, skippedMedia = 0 }
-    public struct Progress: Equatable { public let done: Int, total: Int, current: String }
+    public struct Summary: Equatable, Sendable { public var journals = 0, entries = 0, media = 0, skippedMedia = 0 }
+    public struct Progress: Equatable, Sendable { public let done: Int, total: Int, current: String }
     public static let colors = ["#B0563A", "#4E8B85", "#6A6AA0", "#B08A2E", "#5A7BA6", "#6E8B5E", "#8E6A93", "#C06A4A"]
     public static let covers = ["lines", "dots", "grid", "plain"]
     public static let subtitle = "Imported from Day One"
@@ -29,23 +31,23 @@ public enum ChapterDayOneImport {
         _ archive: DayOneArchive, into target: DayOneImportTarget, timeZone: TimeZone = .current,
         now: () -> Double = { (Date().timeIntervalSince1970 * 1000).rounded(.down) },
         random: () -> Double = { Double.random(in: 0..<1) },
-        progress: (Progress) -> Void = { _ in }
+        progress: @Sendable (Progress) -> Void = { _ in }
     ) async throws -> Summary {
         var summary = Summary()
         let total = archive.entryCount
         var done = 0, created = 0
         var byName: [[UInt16]: String] = [:]
         for j in target.importJournals { byName[Array(jsLowercase(j.name).utf16)] = j.id }
-        func journalID(_ name: String) throws -> String {
+        func journalID(_ name: String) async throws -> String {
             let key = Array(jsLowercase(name).utf16)
             if let existing = byName[key], !existing.isEmpty { return existing }
             let id = "j-import-\(created)-\(base36(now()))\(base36((random() * 1e6).rounded(.down)))"
-            try target.importNewJournal(id: id, name: name, subtitle: subtitle, color: colors[created % colors.count], cover: covers[created % covers.count])
+            try await target.importNewJournal(id: id, name: name, subtitle: subtitle, color: colors[created % colors.count], cover: covers[created % covers.count])
             byName[key] = id; created += 1; summary.journals += 1
             return id
         }
         for journal in archive.journals {
-            let jid = try journalID(journal.name)
+            let jid = try await journalID(journal.name)
             for entry in journal.entries {
                 let text: String
                 switch try DayOneArchive.prop(entry, "text") {
@@ -60,12 +62,12 @@ public enum ChapterDayOneImport {
                 case .array(let tags)?: for case .string(let t) in tags { let v = ChapterDayOne.trim(t); if !v.isEmpty { labels.append(v) } }
                 default: throw DayOneArchive.ImportError.malformed // tags.filter is not a function
                 }
-                let entryID = try target.importCreateEntry(journalID: jid, title: title.isEmpty ? nil : title, labels: labels)
+                let entryID = try await target.importCreateEntry(journalID: jid, title: title.isEmpty ? nil : title, labels: labels)
                 let content = try await resolveMedia(body, entry, archive, target, entryID, &summary)
                 let doc = JSValue.object([("type", .string("doc")), ("content", .array(content.isEmpty ? [.object([("type", .string("paragraph"))])] : content))])
                 let json = doc.stringify()
                 let bodyText = try RichDocument(json: json).plainText
-                try target.importUpdateEntry(id: entryID, title: title.isEmpty ? nil : title, bodyJSON: json, bodyText: bodyText, labels: labels,
+                try await target.importUpdateEntry(id: entryID, title: title.isEmpty ? nil : title, bodyJSON: json, bodyText: bodyText, labels: labels,
                                              createdAt: parseDate(entry.get("creationDate"), timeZone: timeZone, now: now))
                 summary.entries += 1; done += 1
                 progress(Progress(done: done, total: total, current: title.isEmpty ? "Untitled entry" : title))
@@ -188,6 +190,37 @@ public enum ChapterDayOneImport {
         let before = offset(local - 86_400_000), after = offset(local + 86_400_000)
         let valid = Set([before, after]).map { local - $0 }.filter { offset($0) == local - $0 }
         return valid.min() ?? local - before
+    }
+}
+
+extension VaultSnapshot {
+    /// One imported entry, shaped like the web's createEntry + updateEntry result: the entry's
+    /// own fields only (no native plain-text marker, since the body is a rich web document).
+    public static func importedEntry(id: String, clock: Int64, journalID: String, title: String?, bodyJSON: String, bodyText: String,
+                                     labels: [String], createdAt: Double, timeZone: TimeZone = .current) throws -> VaultRecord {
+        try ProtocolNumbers.validate(clock)
+        guard !id.isEmpty, !journalID.isEmpty, createdAt.isFinite else { throw ChapterError.unsupported }
+        _ = try RichDocument(json: bodyJSON)
+        let body: [String: JSONValue] = [
+            "journalId": .string(journalID), "title": .string(title ?? EntryTemplates.defaultTitle(milliseconds: Double(clock), timeZone: timeZone)),
+            "bodyText": .string(bodyText), "bodyJson": .string(bodyJSON), "labels": .array(labels.map { .string($0) }),
+            "createdAt": .number(createdAt), "updatedAt": .number(Double(clock)),
+        ]
+        return VaultRecord(id: id, clock: clock, body: body, dirty: true)
+    }
+    /// Publishes an imported entry and its staged media in one write. Every staged upload must be
+    /// referenced by the document, so the outbox never holds a file no entry points to.
+    public mutating func addImportedEntry(_ record: VaultRecord, uploads: [MediaUpload]) throws {
+        guard record.kind == "entry", !record.deleted, !records.contains(where: { $0.id == record.id }),
+              records.contains(where: { $0.kind == "journal" && !$0.deleted && $0.journalID == record.journalID }) else { throw ChapterError.conflict }
+        let referenced = Set(record.mediaReferences.map(\.id))
+        var ids = Set((mediaUploads ?? []).map(\.id))
+        for upload in uploads {
+            try upload.validate()
+            guard referenced.contains(upload.id), ids.insert(upload.id).inserted else { throw ChapterError.conflict }
+        }
+        records.append(record)
+        if !uploads.isEmpty { mediaUploads = (mediaUploads ?? []) + uploads }
     }
 }
 
