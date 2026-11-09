@@ -50,7 +50,8 @@ final class EntryTemplateTests: XCTestCase {
         for key in ["bodyJson", "bodyText", "builtin", "future", "createdAt"] { XCTAssertEqual(renamed.body[key], synced.body[key], key) }
         XCTAssertEqual(Data(renamed.body["bodyText"]!.string!.utf8), Data("Cafe\u{0301}".utf8))
         XCTAssertEqual(try synced.renamingTemplate(expected: synced, name: "Weekly"), synced, "No-op rename must not advance the clock")
-        XCTAssertEqual(try synced.renamingTemplate(expected: synced, name: ""), try synced.renamingTemplate(expected: synced, name: "Untitled template"))
+        let fixed = Date(timeIntervalSince1970: 1773536400) // one instant for both, so only the name rule is compared
+        XCTAssertEqual(try synced.renamingTemplate(expected: synced, name: "", now: fixed), try synced.renamingTemplate(expected: synced, name: "Untitled template", now: fixed))
         var stale = synced; stale.body["name"] = .string("Other device")
         XCTAssertThrowsError(try stale.renamingTemplate(expected: synced, name: "x"), "Stale editor value must refuse, not overwrite")
         let deleted = try synced.deletingTemplate(expected: synced, now: Date(timeIntervalSince1970: 1773536400))
