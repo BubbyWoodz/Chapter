@@ -608,7 +608,7 @@ struct EntryMetadataEditor: View {
 }
 struct NotebookList: View {
     @EnvironmentObject private var model: VaultModel
-    @State private var name = ""
+    @State private var created: String?
     @State private var adding = false
     @State private var editing: VaultRecord?
     var body: some View {
@@ -629,12 +629,9 @@ struct NotebookList: View {
                 }.listRowBackground(chapterToken("surface",preference:model.snapshot.appearance ?? .standard))
             } }
                 .sheet(item: $editing) { NotebookEditor(journal: $0) }
-                .modifier(ChapterScreenSurface()).navigationTitle(model.t("shell.notebooks")).toolbar { Button { adding = true } label: { Label("New notebook", systemImage: "plus") } }
-                .alert("New notebook", isPresented: $adding) {
-                    TextField("Name", text: $name)
-                    Button(model.t("common.create")) { do { try model.createJournal(name: name); name = "" } catch { model.message = error.localizedDescription } }.disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
-                    Button(model.t("common.cancel"), role: .cancel) {}
-                }
+                .modifier(ChapterScreenSurface()).navigationTitle(model.t("shell.notebooks")).toolbar { Button { adding = true } label: { Label(model.t("journals.new"), systemImage: "plus") }.accessibilityIdentifier("notebook.new") }
+                .sheet(isPresented: $adding) { NewNotebookSheet { created = $0 } }
+                .navigationDestination(item: $created) { EntryDetail(entryID: $0) }
         }
     }
 }
@@ -663,12 +660,15 @@ struct NotebookEditor: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Notebook") {
-                    TextField("Name", text: $name).accessibilityIdentifier("notebook.name")
+                Section {
+                    HStack(spacing: 14) {
+                        NotebookCover(color: color.isEmpty ? JournalColorSwatches.colors[0] : color, pattern: cover).accessibilityHidden(true)
+                        TextField(model.t("journals.name.placeholder"), text: $name).accessibilityIdentifier("notebook.name")
+                    }
                     TextField(model.t("journals.field.subtitle"), text: $subtitle, axis: .vertical).accessibilityIdentifier("notebook.subtitle")
                 }
-                Section("Original web appearance") {
-                    TextField("Color (#RRGGBB)", text: $color).autocorrectionDisabled().textInputAutocapitalization(.never).accessibilityIdentifier("notebook.color")
+                Section(model.t("journals.field.colour")) { JournalColorSwatches(color: $color) }
+                Section {
                     Picker(model.t("journals.field.cover"), selection: $cover) {
                         ForEach(covers, id: \.self) { Text(model.t("journals.cover." + $0)).tag($0) }
                         if !covers.contains(cover) { Text("Existing: " + cover).tag(cover) }
@@ -682,15 +682,15 @@ struct NotebookEditor: View {
                     Text("Save or cancel notebook detail edits first. Deletion retains an encrypted local recovery, drafts and media; it is not secure erasure. Review the downloaded entry list before confirming.").font(.footnote)
                 }
                 if let error { Section { Text(error).accessibilityIdentifier("notebook.error") } }
-            }.modifier(ChapterScreenSurface()).navigationTitle("Edit notebook")
+            }.modifier(ChapterScreenSurface()).navigationTitle(model.t("journals.edit.title"))
                 .sheet(item:$deletionPlan,onDismiss:{ if deletionCompleted { dismiss() } }) { plan in
                     NotebookDeletionView(plan:plan,onDeleted:{deletionCompleted = true})
                 }
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) { Button(model.t("common.cancel")) { dismiss() } }
                     ToolbarItem(placement: .confirmationAction) {
-                        Button(model.t("common.save")) { do { try model.updateJournal(journal, name: name, subtitle: subtitle, color: color, cover: cover); dismiss() } catch { self.error = "Unable to save: " + error.localizedDescription + " Your edits are retained here. Cancel and reopen if this notebook changed on another device." } }
-                            .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        // Web EditJournalSheet: name.trim() || t('journals.untitled'), subtitle.trim().
+                        Button(model.t("journals.saveChanges")) { do { let n = name.trimmingCharacters(in: .whitespacesAndNewlines); try model.updateJournal(journal, name: n.isEmpty ? model.t("journals.untitled") : n, subtitle: subtitle.trimmingCharacters(in: .whitespacesAndNewlines), color: color, cover: cover); dismiss() } catch { self.error = "Unable to save: " + error.localizedDescription + " Your edits are retained here. Cancel and reopen if this notebook changed on another device." } }
                     }
                 }
         }
@@ -1287,5 +1287,81 @@ struct NotebookDeletionView: View {
             }.modifier(ChapterScreenSurface()).navigationTitle("Delete notebook")
             .toolbar { ToolbarItem(placement:.cancellationAction) { Button(model.t("common.cancel")) { dismiss() } } }
         }
+    }
+}
+
+/// Web StyleFields colour row: the eight JCOLORS swatches. A notebook's existing other
+/// colour stays selectable so opening and saving never rewrites it.
+struct JournalColorSwatches: View {
+    static let colors = ["#B0563A", "#4E8B85", "#6A6AA0", "#B08A2E", "#5A7BA6", "#6E8B5E", "#8E6A93", "#C06A4A"]
+    @EnvironmentObject private var model: VaultModel
+    @Binding var color: String
+    var body: some View {
+        let known = color.isEmpty || Self.colors.contains(where: { $0.caseInsensitiveCompare(color) == .orderedSame })
+        let choices = known ? Self.colors : Self.colors + [color]
+        let ink = chapterToken("ink", preference: model.snapshot.appearance ?? .standard)
+        HStack(spacing: 0) {
+            ForEach(Array(choices.enumerated()), id: \.offset) { index, hex in
+                let selected = hex.caseInsensitiveCompare(color) == .orderedSame
+                Button { color = hex } label: {
+                    Circle().fill(Color(chapterHex: hex)).frame(width: 30, height: 30)
+                        .overlay(Circle().inset(by: -3).stroke(selected ? ink : .clear, lineWidth: 2.5))
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                }.buttonStyle(.plain)
+                .accessibilityLabel(model.t("journals.field.colour") + " \(index + 1)").accessibilityValue(hex)
+                .accessibilityAddTraits(selected ? .isSelected : [])
+                .accessibilityIdentifier("notebook.color." + hex.replacingOccurrences(of: "#", with: "").lowercased())
+            }
+        }
+    }
+}
+
+/// Web NewJournalSheet: name, colour, cover and "Start from" a template.
+struct NewNotebookSheet: View {
+    @EnvironmentObject private var model: VaultModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var name = ""
+    @State private var color = JournalColorSwatches.colors[1]
+    @State private var cover = "lines"
+    @State private var template = "blank"
+    @State private var error: String?
+    let onEntry: (String) -> Void
+    private let covers = ["lines", "dots", "grid", "plain", "photo"]
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    HStack(spacing: 14) {
+                        NotebookCover(color: color, pattern: cover).accessibilityHidden(true)
+                        TextField(model.t("journals.name.placeholder"), text: $name).accessibilityIdentifier("notebook.new.name")
+                    }
+                }
+                Section(model.t("journals.field.colour")) { JournalColorSwatches(color: $color) }
+                Section {
+                    Picker(model.t("journals.field.cover"), selection: $cover) { ForEach(covers, id: \.self) { Text(model.t("journals.cover." + $0)).tag($0) } }.accessibilityIdentifier("notebook.new.cover")
+                    Picker(model.t("journals.field.startFrom"), selection: $template) {
+                        Text(model.t("journals.blank")).tag("blank")
+                        ForEach(model.templates) { Text(EntryTemplates.name($0).isEmpty ? model.t("journals.untitledTemplate") : EntryTemplates.name($0)).tag($0.id) }
+                        ForEach(model.builtinTemplates) { Text($0.name).tag($0.id) }
+                    }.accessibilityIdentifier("notebook.new.template")
+                }
+                if let error { Section { Text(error).accessibilityIdentifier("notebook.new.error") } }
+            }.modifier(ChapterScreenSurface()).navigationTitle(model.t("journals.new")).navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button(model.t("common.cancel")) { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) { Button(model.t("journals.create")) { create() }.accessibilityIdentifier("notebook.new.create") }
+            }
+        }
+    }
+    private func create() {
+        do {
+            // Web: name || t('journals.untitled'), subtitle t('journals.new'); a template opens its first entry.
+            let id = try model.createJournal(name: name.isEmpty ? model.t("journals.untitled") : name, subtitle: model.t("journals.new"), color: color, cover: cover)
+            var entry: VaultRecord?
+            if let synced = model.templates.first(where: { $0.id == template }) { entry = try model.newEntryFromTemplate(synced, journalID: id) }
+            else if let seed = model.builtinTemplates.first(where: { $0.id == template }) { entry = try model.newEntryFromBuiltin(seed, journalID: id) }
+            dismiss()
+            if let entry { onEntry(entry.id) }
+        } catch { self.error = error.localizedDescription }
     }
 }

@@ -269,6 +269,24 @@ final class ChapterUITests: XCTestCase {
         created.tap()
         XCTAssertTrue(app.staticTexts["One intention"].waitForExistence(timeout:5),"A native-created template starts an entry with its content")
     }
+    func testNewNotebookSheetMatchesTheWebNewJournalSheet() throws {
+        // Web NewJournalSheet: name, JCOLORS swatch, cover, "Start from" a template opening its first entry.
+        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture"];app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Notebooks"].waitForExistence(timeout:10));app.tabBars.buttons["Notebooks"].tap()
+        app.buttons["notebook.new"].tap();XCTAssertTrue(app.navigationBars["New journal"].waitForExistence(timeout:5))
+        XCTAssertTrue(app.buttons["notebook.color.4e8b85"].isSelected,"Web default colour is JCOLORS[1]")
+        try audit(app)
+        let name=app.textFields["notebook.new.name"];name.tap();name.typeText("Trips Q9")
+        app.buttons["notebook.color.6a6aa0"].tap();XCTAssertTrue(app.buttons["notebook.color.6a6aa0"].isSelected)
+        app.buttons["notebook.new.cover"].tap();app.buttons["Grid"].tap()
+        app.buttons["notebook.new.template"].tap();app.buttons["Three small things"].tap()
+        attach(app,name:"Actual native New journal sheet like the web")
+        app.buttons["notebook.new.create"].tap()
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","Three small things that made today better")).firstMatch.waitForExistence(timeout:5),"Start from opens the first entry from the template")
+        app.navigationBars.buttons["Notebooks"].tap()
+        XCTAssertTrue(app.staticTexts["Trips Q9"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["New journal"].exists,"Web subtitle t('journals.new')")
+        attach(app,name:"Actual native shelf with the new journal")
+    }
     func testInterfaceTextUsesTheWebsCatalogsInGermanAndArabic() throws {
         // Wave 1: tabs, settings, appearance and shared actions use the web's own t() keys.
         for (locale, calendar, notebooks, settings, language, dark, days) in [("de","Kalender","Notizbücher","Einstellungen","Sprache","Dunkel","Tage geschrieben"),("ar","التقويم","الدفاتر","الإعدادات","اللغة","داكن","أيام التدوين")] {
@@ -473,7 +491,7 @@ final class ChapterUITests: XCTestCase {
         XCTAssertTrue(edit.waitForExistence(timeout: 5)); edit.tap()
         let name = app.textFields["notebook.name"]
         XCTAssertTrue(name.waitForExistence(timeout: 5)); name.tap(); name.typeText(" RENAMED")
-        app.buttons["Save"].tap()
+        app.buttons["Save changes"].tap()
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "RENAMED")).firstMatch.waitForExistence(timeout: 5))
         XCTAssertFalse(app.staticTexts["notebook.error"].exists)
         XCTAssertTrue(app.staticTexts["Public subtitle"].exists)
@@ -709,8 +727,8 @@ final class ChapterPageCaptures: XCTestCase {
         app.buttons["notebook.cover"].tap();XCTAssertTrue(app.buttons["Grid"].waitForExistence(timeout:5));shot(app,"07 Original notebook cover pattern choices")
         app.buttons["Lines"].tap();let deletion=app.buttons["notebook.delete.prepare"];reveal(deletion,app);deletion.tap()
         XCTAssertTrue(app.navigationBars["Delete notebook"].waitForExistence(timeout:5));shot(app,"33 Actual notebook downloaded-set deletion review")
-        app.navigationBars["Delete notebook"].buttons["Cancel"].tap();app.navigationBars["Edit notebook"].buttons["Cancel"].tap()
-        app.buttons["New notebook"].tap();XCTAssertTrue(app.alerts["New notebook"].waitForExistence(timeout:5));shot(app,"08 Create notebook dialog");app.buttons["Cancel"].tap()
+        app.navigationBars["Delete notebook"].buttons["Cancel"].tap();app.navigationBars["Edit journal"].buttons["Cancel"].tap()
+        app.buttons["notebook.new"].tap();XCTAssertTrue(app.navigationBars["New journal"].waitForExistence(timeout:5));shot(app,"08 Create notebook sheet");app.navigationBars["New journal"].buttons["Cancel"].tap()
     }
     func testPlainWritingRecoverySettingsAndResumePages() throws {
         let app=launch();XCTAssertTrue(app.buttons["New entry"].waitForExistence(timeout:10));app.buttons["New entry"].tap()

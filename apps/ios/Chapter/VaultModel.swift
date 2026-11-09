@@ -425,11 +425,13 @@ import ChapterCore
         next.records[i] = try next.records[i].editingRichDocument(expected: raw) { try $0.toggleTask(at: path) }
         try commit(next); scheduleSync()
     }
-    func createJournal(name: String) throws {
+    /// Web NewJournalSheet → newJournal: the chosen name, colour and cover; subtitle is t('journals.new').
+    @discardableResult func createJournal(name: String, subtitle: String = "", color: String = "#62564a", cover: String = "plain") throws -> String {
         let clock = try nextClock(); let id = UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
-        let body: [String: JSONValue] = ["kind": .string("journal"), "journalId": .string(id), "name": .string(name), "subtitle": .string(""), "color": .string("#62564a"), "cover": .string("plain"), "createdAt": .number(Double(clock)), "updatedAt": .number(Double(clock))]
+        let body: [String: JSONValue] = ["kind": .string("journal"), "journalId": .string(id), "name": .string(name), "subtitle": .string(subtitle), "color": .string(color), "cover": .string(cover), "createdAt": .number(Double(clock)), "updatedAt": .number(Double(clock))]
         var next = snapshot; next.records.append(VaultRecord(id: UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased(), clock: clock, body: body, dirty: true))
         try commit(next); scheduleSync()
+        return id
     }
     func updateEntryMetadata(_ expected: VaultRecord, title: String? = nil, date: Date? = nil, labels: [String]? = nil) throws {
         var next = snapshot
