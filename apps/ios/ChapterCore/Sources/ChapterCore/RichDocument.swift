@@ -183,6 +183,7 @@ public struct RichDocument {
 public struct RichNode: Identifiable {
     public let value: JSONValue
     public let path: [Int]
+    public init(value: JSONValue, path: [Int]) { self.value = value; self.path = path }
     public var id: String { path.map(String.init).joined(separator: "/") }
     public var type: String { value["type"].string ?? "unknown" }
     public var text: String { value["text"].string ?? "" }

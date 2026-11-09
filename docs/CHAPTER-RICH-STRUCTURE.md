@@ -77,3 +77,12 @@ opaque future block retained PASSES in42528695109 (87.4s). Genuine after-move PN
 This is an actual screen interaction + encrypted commit contract, not a physical
 kill/relaunch device test. Overall job still fails independent production audits
 and card pixel measurement. Full structural/table/custom editing not complete.
+
+## Tables (November 9, 2026)
+
+`RichTableLayout` (ChapterCore) reproduces prosemirror-tables 1.8.5 `computeMap`
+exactly, including its problem reports, except `colwidth mismatch`, which comes
+from the width-repair pass and is intentionally not emulated. The fixture
+`Fixtures/rich-tables.json` is produced by `scripts/native-rich-vectors.ts` from
+the actual web schema and `TableMap.get`; CI fails if either side drifts. Tables
+remain read-only natively; their JSON is never rewritten by rendering.

@@ -5,6 +5,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { buildExtensions, docToText, docMediaIds, docEntryLinks } from '../src/editor/doc';
 import { decryptRecord } from '../src/sync/engine';
 import { normalizeEntryLabel } from '../src/labels';
+import { TableMap } from '@tiptap/pm/tables';
 const text = (text: string, marks?: JSONContent["marks"]): JSONContent => ({type:'text', text, ...(marks ? {marks} : {})});
 const p = (s: string): JSONContent => ({type:'paragraph', content:[text(s)]});
 const media = (id: string) => ({id, mime:'image/png', bytes:10, name:'Public photo'});
@@ -47,6 +48,32 @@ export function verifyRichFixture(write: boolean, identity: {dataKey:Uint8Array}
  const labelURL = new URL('../../ios/ChapterCore/Tests/ChapterCoreTests/Fixtures/entry-labels.json',import.meta.url);
  if (write) writeFileSync(labelURL,JSON.stringify(labelCases,null,2)+'\n');
  else assert.deepEqual(JSON.parse(readFileSync(labelURL,'utf8')),labelCases,'Native label fixtures must match the original LabelField normalization');
+ // Actual prosemirror-tables TableMap over the real web schema: native grid must match.
+ const cellNode = (type:string, text:string, attrs?:Record<string,unknown>) => ({type, ...(attrs?{attrs}:{}), content:[{type:'paragraph',content:[{type:'text',text}]}]});
+ const td = (t:string,a?:Record<string,unknown>) => cellNode('tableCell',t,a), th = (t:string,a?:Record<string,unknown>) => cellNode('tableHeader',t,a);
+ const row = (...cells:unknown[]) => ({type:'tableRow',content:cells});
+ const tables:Record<string,unknown> = {
+  simpleHeader: {type:'table',content:[row(th('A'),th('B')),row(td('1'),td('2'))]},
+  colspan: {type:'table',content:[row(th('Wide',{colspan:2,rowspan:1,colwidth:[120,80]})),row(td('1',{colspan:1,rowspan:1,colwidth:[120]}),td('2',{colspan:1,rowspan:1,colwidth:[80]}))]},
+  rowspan: {type:'table',content:[row(td('Tall',{colspan:1,rowspan:2,colwidth:null}),td('a')),row(td('b')),row(td('c'),td('d'))]},
+  mixed: {type:'table',content:[row(td('X',{colspan:2,rowspan:2}),td('r')),row(td('s')),row(td('p'),td('q'),td('t'))]},
+  missingAfterRowspan: {type:'table',content:[row(td('Down',{colspan:1,rowspan:2}),td('a')),row(td('b'),td('c'))]},
+  collision: {type:'table',content:[row(td('A'),td('B',{colspan:1,rowspan:2})),row(td('C',{colspan:2,rowspan:1}))]},
+  overlong: {type:'table',content:[row(td('Too tall',{colspan:1,rowspan:3}),td('a')),row(td('b'))]},
+  missing: {type:'table',content:[row(td('a'),td('b'),td('c')),row(td('d'))]},
+  conflictingWidths: {type:'table',content:[row(td('a',{colwidth:[100]}),td('b')),row(td('c',{colwidth:[140]}),td('d'))]},
+ };
+ const tableSchema = getSchema(buildExtensions(''));
+ const tableCases = Object.entries(tables).map(([name,json]) => {
+  const node = tableSchema.nodeFromJSON(json);
+  const map = TableMap.get(node);
+  const offsets:number[] = [];
+  node.forEach((r,rOff) => r.forEach((_c,cOff) => offsets.push(rOff+1+cOff)));
+  return {name, table:json, width:map.width, height:map.height, map:Array.from(map.map,(pos:number)=>offsets.indexOf(pos)+1), problems:(map.problems??[]).map((p:{type:string})=>p.type)};
+ });
+ const tableURL = new URL('../../ios/ChapterCore/Tests/ChapterCoreTests/Fixtures/rich-tables.json',import.meta.url);
+ if (write) writeFileSync(tableURL,JSON.stringify(tableCases,null,2)+'\n');
+ else assert.deepEqual(JSON.parse(readFileSync(tableURL,'utf8')),tableCases,'Native table fixtures must equal the actual prosemirror-tables TableMap');
  const viewSource = readFileSync(new URL('../../ios/Chapter/RichDocumentViews.swift',import.meta.url),'utf8');
  const publicFixture = /enum PublicRichFixture \{ static let json = #"(.+)"# \}/.exec(viewSource);
  assert(publicFixture, 'Debug public rich fixture missing');

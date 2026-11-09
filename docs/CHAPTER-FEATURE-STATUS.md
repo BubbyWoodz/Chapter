@@ -71,6 +71,21 @@ the exact revision; a failing strict accessibility audit remains a release block
   audit passed on dd19955 but failed on 869c075 with unchanged visible layout, so it
   is treated as unproven until it passes again. No audit is waived; re-verification pending.
 
+## Original tables rendered as the exact merged grid — November 9, 2026, 12:35 AM PST
+
+- New core `RichTableLayout` mirrors the actual prosemirror-tables `findWidth`/
+  `computeMap`: colspan, rowspan, collisions, overlong rowspans, missing and zero-
+  sized tables. 9 table cases are generated from the REAL web schema + `TableMap`
+  (`rich-tables.json`, verified on every CI run); native map/problems equal them.
+  3 new Foundation tests (29 total) PASS locally and catch 4/4 deliberate mutations.
+- Native rendering places each original cell over its exact rectangle using web
+  table styling (1pt `line` border, header `surface-2` + semibold, 7×10 padding,
+  UI face), honors agreed TipTap colwidth, and labels every cell with row/column/
+  span for VoiceOver. Fractional/zero/huge spans or non-cell children keep the
+  honest simplified fallback. Read-only: no table editing; `findBadColWidths`
+  width repair is not emulated (conflicting widths show natural widths).
+- New UI test for header/merged geometry pending Apple verification.
+
 ## Native entry-link authoring — November 9, 2026, 12:25 AM PST
 
 - More → Link to another entry: picker mirrors original web `[[` filtering/order/

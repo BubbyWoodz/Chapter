@@ -143,6 +143,19 @@ final class ChapterUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Linked entry is not downloaded"].waitForExistence(timeout:5));XCTAssertFalse(app.buttons["Sync your server"].exists)
         attach(app,name:"Actual native missing linked entry offline state, not fake navigation success")
     }
+    func testOriginalTableRendersExactMergedGridWithHeaderAndAccessibleCells() throws {
+        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture"];app.launch()
+        let entry=app.staticTexts["Public rich fixture"];XCTAssertTrue(entry.waitForExistence(timeout:10));entry.tap()
+        let header=app.descendants(matching:.any)["table.cell.0.0"];reveal(header,in:app);XCTAssertTrue(header.exists)
+        let merged=app.descendants(matching:.any)["table.cell.0.1"];XCTAssertTrue(merged.exists)
+        XCTAssertTrue(header.label.hasPrefix("Header, row 1, column 1"),header.label)
+        XCTAssertTrue(merged.label.contains("spans 1 rows and 2 columns"),merged.label)
+        XCTAssertFalse(app.descendants(matching:.any)["table.cell.0.2"].exists,"A colspan-2 cell must cover column 3, not create a phantom cell")
+        // The merged cell starts where the header ends and is wider (two tracks).
+        XCTAssertEqual(merged.frame.minX,header.frame.maxX,accuracy:1.5);XCTAssertGreaterThan(merged.frame.width,header.frame.width*0.9)
+        XCTAssertEqual(header.frame.width,160,accuracy:1.5,"Original TipTap colwidth must be honored")
+        attach(app,name:"Actual native original table with exact merged grid")
+    }
     func testNativeRichRenderingEditingAndTaskPersistence() throws {
         let app = XCUIApplication(); app.launchArguments = ["--chapter-rich-fixture"]; app.launch()
         let entry = app.staticTexts["Public rich fixture"]

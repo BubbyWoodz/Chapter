@@ -87,7 +87,25 @@ struct RichDocumentView: View {
         case "blockquote": return AnyView(HStack(alignment: .top) { Rectangle().fill(Color.secondary).frame(width: 3); children(node) }.fixedSize(horizontal: false, vertical: true).padding(.leading, 6))
         case "codeBlock": return AnyView(ScrollView(.horizontal) { Text(node.children.map(\.text).joined()).font(chapterFont(.mono,skin:model.snapshot.appearance?.skin ?? "paper",size:16)).textSelection(.enabled) }.padding().background(chapterToken("surface",preference:model.snapshot.appearance ?? .standard), in: RoundedRectangle(cornerRadius: 8)))
         case "horizontalRule": return AnyView(Divider().accessibilityLabel("Separator"))
-        case "table": return AnyView(ScrollView(.horizontal) { children(node) }.accessibilityLabel("Table; merged cell layout is simplified"))
+        case "table":
+            guard let grid = RichTableLayout(table: node) else { return AnyView(ScrollView(.horizontal) { children(node) }.accessibilityLabel("Table; this layout could not be read exactly and is simplified")) }
+            let preference = model.snapshot.appearance ?? .standard
+            return AnyView(ScrollView(.horizontal) {
+                RichTableGrid(layout: grid) {
+                    ForEach(Array(grid.cells.enumerated()), id: \.offset) { _, cell in
+                        let value = node.childAt(cell.path).map { RichNode(value: $0, path: cell.path) }
+                        VStack(alignment: .leading, spacing: 4) { if let value { ForEach(value.children) { render($0) } } }
+                            .font(chapterFont(.ui, skin: preference.skin, size: 15, relativeTo: .subheadline).weight(cell.header ? .semibold : .regular))
+                            .padding(.vertical, 7).padding(.horizontal, 10)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                            .background(cell.header ? chapterToken("surface-2", preference: preference) : Color.clear)
+                            .overlay(Rectangle().stroke(chapterToken("line", preference: preference), lineWidth: 1))
+                            .accessibilityElement(children: .contain)
+                            .accessibilityLabel((cell.header ? "Header, " : "") + "row \(cell.row + 1), column \(cell.column + 1)" + (cell.rowSpan > 1 || cell.columnSpan > 1 ? ", spans \(cell.rowSpan) rows and \(cell.columnSpan) columns" : ""))
+                            .accessibilityIdentifier("table.cell.\(cell.row).\(cell.column)")
+                    }
+                }
+            }.accessibilityElement(children: .contain).accessibilityLabel("Table, \(grid.height) rows, \(grid.width) columns"))
         case "tableRow": return AnyView(HStack(alignment: .top, spacing: 0) { ForEach(node.children) { render($0).frame(minWidth: 140, alignment: .leading) } })
         case "tableCell", "tableHeader": return AnyView(children(node).padding(10).background(chapterToken("surface",preference:model.snapshot.appearance ?? .standard)).border(Color.secondary.opacity(0.4)))
         case "blockMath": return AnyView(Text(node.value["attrs"]["latex"].string ?? "").font(chapterFont(.mono,skin:model.snapshot.appearance?.skin ?? "paper",size:16)).textSelection(.enabled).accessibilityLabel("LaTeX formula: " + (node.value["attrs"]["latex"].string ?? "")))
@@ -274,3 +292,44 @@ struct LinkedEntryDestination:View {
         }
     }
 }
+
+/// Places each original table cell over its exact prosemirror-tables rectangle.
+/// Column widths: agreed TipTap colwidth, else natural width within 96–280 pt.
+struct RichTableGrid: Layout {
+        let layout: RichTableLayout
+        func tracks(_ subviews: Subviews) -> (columns: [CGFloat], rows: [CGFloat]) {
+            var columns = layout.columnWidths.map { $0.map { CGFloat($0) } ?? 96 }
+            let fixed = layout.columnWidths.map { $0 != nil }
+            for (cell, view) in zip(layout.cells, subviews) where cell.columnSpan == 1 && cell.column < columns.count && !fixed[cell.column] {
+                columns[cell.column] = max(columns[cell.column], min(280, view.sizeThatFits(.unspecified).width))
+            }
+            for (cell, view) in zip(layout.cells, subviews) where cell.columnSpan > 1 {
+                let range = cell.column..<min(cell.column + cell.columnSpan, columns.count)
+                let have = range.reduce(0) { $0 + columns[$1] }, want = min(280 * CGFloat(range.count), view.sizeThatFits(.unspecified).width)
+                let free = range.filter { !fixed[$0] }
+                if want > have, !free.isEmpty { for c in free { columns[c] += (want - have) / CGFloat(free.count) } }
+            }
+            var rows = [CGFloat](repeating: 44, count: layout.height)
+            func width(_ cell: RichTableLayout.Cell) -> CGFloat { (cell.column..<min(cell.column + cell.columnSpan, columns.count)).reduce(0) { $0 + columns[$1] } }
+            for (cell, view) in zip(layout.cells, subviews) where cell.rowSpan == 1 && cell.row < rows.count {
+                rows[cell.row] = max(rows[cell.row], view.sizeThatFits(ProposedViewSize(width: width(cell), height: nil)).height)
+            }
+            for (cell, view) in zip(layout.cells, subviews) where cell.rowSpan > 1 {
+                let range = cell.row..<min(cell.row + cell.rowSpan, rows.count)
+                let have = range.reduce(0) { $0 + rows[$1] }, want = view.sizeThatFits(ProposedViewSize(width: width(cell), height: nil)).height
+                if want > have, let last = range.last { rows[last] += want - have }
+            }
+            return (columns, rows)
+        }
+        func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+            let t = tracks(subviews); return CGSize(width: t.columns.reduce(0, +), height: t.rows.reduce(0, +))
+        }
+        func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+            let t = tracks(subviews)
+            for (cell, view) in zip(layout.cells, subviews) {
+                let x = t.columns.prefix(cell.column).reduce(0, +), y = t.rows.prefix(cell.row).reduce(0, +)
+                let w = t.columns.dropFirst(cell.column).prefix(cell.columnSpan).reduce(0, +), h = t.rows.dropFirst(cell.row).prefix(cell.rowSpan).reduce(0, +)
+                view.place(at: CGPoint(x: bounds.minX + x, y: bounds.minY + y), anchor: .topLeading, proposal: ProposedViewSize(width: w, height: h))
+            }
+        }
+    }
