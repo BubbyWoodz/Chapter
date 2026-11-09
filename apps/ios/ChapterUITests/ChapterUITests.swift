@@ -223,6 +223,21 @@ final class ChapterUITests: XCTestCase {
         created.tap()
         XCTAssertTrue(app.staticTexts["One intention"].waitForExistence(timeout:5),"A native-created template starts an entry with its content")
     }
+    func testInterfaceTextUsesTheWebsCatalogsInGermanAndArabic() throws {
+        // Wave 1: tabs, settings, appearance and shared actions use the web's own t() keys.
+        for (locale, calendar, notebooks, settings, language, dark) in [("de","Kalender","Notizbücher","Einstellungen","Sprache","Dunkel"),("ar","التقويم","الدفاتر","الإعدادات","اللغة","داكن")] {
+            let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture","--chapter-fixture-locale="+locale];app.launch()
+            let tab=app.tabBars.buttons[settings];XCTAssertTrue(tab.waitForExistence(timeout:10),locale+": settings tab from the web catalog")
+            XCTAssertTrue(app.tabBars.buttons[calendar].exists);XCTAssertTrue(app.tabBars.buttons[notebooks].exists)
+            tab.tap();XCTAssertTrue(app.navigationBars[settings].waitForExistence(timeout:5))
+            XCTAssertTrue(app.staticTexts[language].exists || app.otherElements[language].exists,locale+": language section header")
+            let mode=app.buttons["appearance.mode"];reveal(mode,in:app);mode.tap()
+            XCTAssertTrue(app.buttons[dark].waitForExistence(timeout:5),locale+": appearance modes use prefs.mode.*");app.buttons[dark].tap()
+            attach(app,name:"Actual native settings in "+locale+" from the web catalogs")
+            try audit(app)
+            app.terminate()
+        }
+    }
     func testOriginalLanguageChoiceLocalizesBuiltinTemplatesLikeTheWeb() throws {
         let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture"];app.launch()
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout:10));app.tabBars.buttons["Settings"].tap()

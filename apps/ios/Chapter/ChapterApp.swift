@@ -130,9 +130,9 @@ struct ChapterTabs: View {
     var body: some View {
         TabView {
             EntryList().tabItem { Label("Journal", systemImage: "book") }
-            CalendarView().tabItem { Label("Calendar", systemImage: "calendar") }
-            NotebookList().tabItem { Label("Notebooks", systemImage: "books.vertical") }
-            SettingsView().tabItem { Label("Settings", systemImage: "gearshape") }
+            CalendarView().tabItem { Label(model.t("shell.nav.calendar"), systemImage: "calendar") }
+            NotebookList().tabItem { Label(model.t("shell.notebooks"), systemImage: "books.vertical") }
+            SettingsView().tabItem { Label(model.t("common.settings"), systemImage: "gearshape") }
         }.font(chapterFont(.ui,skin:model.snapshot.appearance?.skin ?? "paper"))
     }
 }
@@ -180,7 +180,7 @@ struct EntryList: View {
         .searchable(text:$query,prompt:"Search this device")
         .refreshable { await model.sync() }
         .toolbar {
-            ToolbarItem(placement:.topBarTrailing) { Button { compose=true } label: { Label("New entry",systemImage:"square.and.pencil") } }
+            ToolbarItem(placement:.topBarTrailing) { Button { compose=true } label: { Label(model.t("shell.newEntry"),systemImage:"square.and.pencil") } }
             if !model.journals.isEmpty {
                 ToolbarItem(placement:.topBarTrailing) { Button { templating=true } label: { Label("New from template",systemImage:"doc.on.doc") }.accessibilityIdentifier("journal.fromTemplate") }
             }
@@ -259,10 +259,10 @@ struct EntryDetail: View {
                         if showingActions {
                             VStack(alignment:.leading) {
                                 Button("Title, date and labels") { showingActions = false; editingMetadata = true }.frame(minHeight:44)
-                                Button("Move to notebook") { showingActions = false; moving = true }.frame(minHeight:44).disabled(model.journals.isEmpty)
+                                Button(model.t("journals.picker.heading")) { showingActions = false; moving = true }.frame(minHeight:44).disabled(model.journals.isEmpty)
                                 Button("Link to another entry") { showingActions = false; linking = true }.frame(minHeight:44)
                                     .disabled(entry.body["bodyJson"]?.string.flatMap({ try? RichDocument(json: $0) }) == nil).accessibilityIdentifier("entry.addLink")
-                                Button("Delete entry",role:.destructive) { showingActions = false; deletionExpected = entry; deleting = true }.frame(minHeight:44)
+                                Button(model.t("editor.delete.confirmLabel"),role:.destructive) { showingActions = false; deletionExpected = entry; deleting = true }.frame(minHeight:44)
                             }
                         }
                         if showingPlainEdit {
@@ -334,7 +334,7 @@ struct EntryDetail: View {
                 .sheet(isPresented: $linking) { EntryLinkPicker(entry: entry) }
                 .sheet(isPresented: $editingMetadata) { EntryMetadataEditor(entry: entry) }
                 .confirmationDialog("Delete this entry on all synced devices?", isPresented: $deleting, titleVisibility: .visible) {
-                    Button("Delete entry", role: .destructive) { do { guard let deletionExpected else { throw ChapterError.conflict }; try model.deleteEntry(deletionExpected); dismiss() } catch { model.message = error.localizedDescription } }
+                    Button(model.t("editor.delete.confirmLabel"), role: .destructive) { do { guard let deletionExpected else { throw ChapterError.conflict }; try model.deleteEntry(deletionExpected); dismiss() } catch { model.message = error.localizedDescription } }
                 } message: { Text("An encrypted recovery copy remains in Settings. Pending writing, rich drafts and attachment uploads are retained. This is not secure erasure; notebook/media purge is not implemented.") }
             } else { Text("This entry is no longer available.") }
         }.modifier(ChapterScreenSurface()).navigationTitle("Entry").navigationBarTitleDisplayMode(.inline).quickLookPreview($previewURL)
@@ -422,10 +422,10 @@ struct EntryEditor: View {
                         Button("Save as new entry") { copying = true }.disabled(!recoverySaved)
                     }
                 } else { Text(recoverySaved ? "Recovered writing is saved encrypted on this device. Tap Done to apply it." : draft.expected == nil ? "Start writing to save an encrypted draft." : "Saved encrypted on this device.").font(.footnote) }
-            }.modifier(ChapterScreenSurface()).navigationTitle(draft.expected == nil ? "New entry" : "Edit entry")
+            }.modifier(ChapterScreenSurface()).navigationTitle(draft.expected == nil ? model.t("editor.newEntry") : "Edit entry")
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() }.disabled(error != nil && !recoverySaved).accessibilityIdentifier("writing.close") }
-                ToolbarItem(placement: .confirmationAction) { Button("Done") { save(); if error == nil { dismiss() } } }
+                ToolbarItem(placement: .cancellationAction) { Button(model.t("common.close")) { dismiss() }.disabled(error != nil && !recoverySaved).accessibilityIdentifier("writing.close") }
+                ToolbarItem(placement: .confirmationAction) { Button(model.t("common.done")) { save(); if error == nil { dismiss() } } }
             }
             .onChange(of: draft.title) { _, _ in save() }.onChange(of: draft.text) { _, _ in save() }
             .onChange(of: draft.labels) { _, _ in save() }.onChange(of: draft.date) { _, _ in save() }
@@ -433,7 +433,7 @@ struct EntryEditor: View {
             .interactiveDismissDisabled(error != nil && !recoverySaved)
             .confirmationDialog("Save this writing as a new entry?", isPresented: $copying, titleVisibility: .visible) {
                 Button("Save new text entry") { save(asNew: true) }
-                Button("Cancel", role: .cancel) {}
+                Button(model.t("common.cancel"), role: .cancel) {}
             } message: { Text("The original entry and attachments remain unchanged. This creates a separate text entry with your title, date, labels and selected notebook; attachments are not duplicated.") }
         }
     }
@@ -489,8 +489,8 @@ struct EntryMetadataEditor: View {
                 if let error { Text(error).foregroundStyle(.red).accessibilityIdentifier("metadata.error") }
             }.modifier(ChapterScreenSurface()).navigationTitle("Entry details")
             .toolbar {
-                ToolbarItem(placement:.cancellationAction) { Button("Cancel") { if hasChanges { discarding = true } else { dismiss() } } }
-                ToolbarItem(placement:.confirmationAction) { Button("Save") { save() } }
+                ToolbarItem(placement:.cancellationAction) { Button(model.t("common.cancel")) { if hasChanges { discarding = true } else { dismiss() } } }
+                ToolbarItem(placement:.confirmationAction) { Button(model.t("common.save")) { save() } }
             }.interactiveDismissDisabled(hasChanges)
             .confirmationDialog("Discard unsaved metadata changes?",isPresented:$discarding,titleVisibility:.visible) {
                 Button("Discard changes",role:.destructive) { dismiss() }; Button("Keep editing",role:.cancel) {}
@@ -521,11 +521,11 @@ struct NotebookList: View {
                 }.listRowBackground(chapterToken("surface",preference:model.snapshot.appearance ?? .standard))
             } }
                 .sheet(item: $editing) { NotebookEditor(journal: $0) }
-                .modifier(ChapterScreenSurface()).navigationTitle("Notebooks").toolbar { Button { adding = true } label: { Label("New notebook", systemImage: "plus") } }
+                .modifier(ChapterScreenSurface()).navigationTitle(model.t("shell.notebooks")).toolbar { Button { adding = true } label: { Label("New notebook", systemImage: "plus") } }
                 .alert("New notebook", isPresented: $adding) {
                     TextField("Name", text: $name)
-                    Button("Create") { do { try model.createJournal(name: name); name = "" } catch { model.message = error.localizedDescription } }.disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
-                    Button("Cancel", role: .cancel) {}
+                    Button(model.t("common.create")) { do { try model.createJournal(name: name); name = "" } catch { model.message = error.localizedDescription } }.disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
+                    Button(model.t("common.cancel"), role: .cancel) {}
                 }
         }
     }
@@ -579,9 +579,9 @@ struct NotebookEditor: View {
                     NotebookDeletionView(plan:plan,onDeleted:{deletionCompleted = true})
                 }
                 .toolbar {
-                    ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                    ToolbarItem(placement: .cancellationAction) { Button(model.t("common.cancel")) { dismiss() } }
                     ToolbarItem(placement: .confirmationAction) {
-                        Button("Save") { do { try model.updateJournal(journal, name: name, subtitle: subtitle, color: color, cover: cover); dismiss() } catch { self.error = "Unable to save: " + error.localizedDescription + " Your edits are retained here. Cancel and reopen if this notebook changed on another device." } }
+                        Button(model.t("common.save")) { do { try model.updateJournal(journal, name: name, subtitle: subtitle, color: color, cover: cover); dismiss() } catch { self.error = "Unable to save: " + error.localizedDescription + " Your edits are retained here. Cancel and reopen if this notebook changed on another device." } }
                             .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     }
                 }
@@ -601,7 +601,7 @@ struct CalendarView: View {
                 } }
                 Section("On this device") { LabeledContent("Entries", value: "\(model.entries.count)")
                     LabeledContent("Writing days", value: "\(Set(model.entries.map { Calendar.current.startOfDay(for: $0.date) }).count)") }
-            }.modifier(ChapterScreenSurface()).navigationTitle("Calendar")
+            }.modifier(ChapterScreenSurface()).navigationTitle(model.t("shell.nav.calendar"))
         }
     }
 }
@@ -612,8 +612,8 @@ struct SettingsView: View {
             Form {
                 AppearanceSettings()
                 if let catalog = ChapterLocales.bundled {
-                    Section("Language") {
-                        Picker("Language", selection: Binding(get: { model.language?.id ?? "en" }, set: { model.setLanguage($0) })) {
+                    Section(model.t("prefs.language")) {
+                        Picker(model.t("prefs.language"), selection: Binding(get: { model.language?.id ?? "en" }, set: { model.setLanguage($0) })) {
                             ForEach(catalog.locales) { Text($0.name).tag($0.id) }
                         }.accessibilityIdentifier("settings.language")
                         Text("Device-only, like the web app, and never synced. Built-in templates, dates and layout direction follow it; other native text is still English.").font(.footnote)
@@ -677,7 +677,7 @@ struct SettingsView: View {
                     Text("Typing across several runs at once (each run is edited separately; formatting can span runs), exact custom media/interview card rendering, editing tables with merged cells, rich template body editing, camera/audio/video capture, large media and unsupported playback codecs, interviews/AI/transcription, import/export, maps, translated interface text, badges, reminders, vault deletion/rotation and operator tools. The web app remains available for these. This preview is not full parity or an independently audited secure product.")
                 }
                 Section("Open source") { NavigationLink("Original font licenses") { ChapterFontLicenses() }; Link("Source and AGPL-3.0 license", destination: URL(string: "https://github.com/BubbyWoodz/Chapter")!) }
-            }.modifier(ChapterScreenSurface()).navigationTitle("Settings")
+            }.modifier(ChapterScreenSurface()).navigationTitle(model.t("common.settings"))
         }
     }
 }
@@ -758,9 +758,9 @@ private struct AppearanceSettings: View {
     var body: some View {
         Section("Appearance — encrypted vault sync") {
             if !model.appearanceInitialized { Text("Complete a server sync before creating shared appearance settings on this device. Existing downloaded preferences remain editable offline.").font(.footnote) }
-            Picker("Mode",selection:binding(\.mode)) { ForEach(SharedAppearance.modes,id:\.self) { Text($0.capitalized).tag($0) } }.disabled(!model.appearanceInitialized).accessibilityIdentifier("appearance.mode")
-            Picker("Style",selection:binding(\.skin)) { ForEach(SharedAppearance.skins,id:\.self) { Text($0.capitalized).tag($0) } }.disabled(!model.appearanceInitialized).accessibilityIdentifier("appearance.skin")
-            Picker("Accent",selection:binding(\.palette)) { ForEach(SharedAppearance.palettes,id:\.self) { Text($0.capitalized).tag($0) } }.disabled(!model.appearanceInitialized).accessibilityIdentifier("appearance.palette")
+            Picker(model.t("prefs.mode"),selection:binding(\.mode)) { ForEach(SharedAppearance.modes,id:\.self) { Text(model.t("prefs.mode." + $0)).tag($0) } }.disabled(!model.appearanceInitialized).accessibilityIdentifier("appearance.mode")
+            Picker("Style",selection:binding(\.skin)) { ForEach(SharedAppearance.skins,id:\.self) { Text(model.t("prefs.skin." + $0)).tag($0) } }.disabled(!model.appearanceInitialized).accessibilityIdentifier("appearance.skin")
+            Picker(model.t("prefs.accent"),selection:binding(\.palette)) { ForEach(SharedAppearance.palettes,id:\.self) { Text(model.t("prefs.palette." + $0)).tag($0) } }.disabled(!model.appearanceInitialized).accessibilityIdentifier("appearance.palette")
             Text("Choices use the web app’s original colors and are saved inside encrypted vault settings. System mode follows each device. Offline edits queue for normal sync; AI stays disabled unless you explicitly enable it in the web app.").font(.footnote)
             if let error { Text(error).accessibilityIdentifier("appearance.error") }
         }
@@ -851,7 +851,7 @@ struct EntryLinkPicker: View {
                 if let error { Text(error).foregroundStyle(.red).accessibilityIdentifier("link.error") }
             }.modifier(ChapterScreenSurface()).navigationTitle("Link to entry").navigationBarTitleDisplayMode(.inline)
             .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search entry titles")
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button(model.t("common.cancel")) { dismiss() } } }
         }
     }
 }
@@ -883,7 +883,7 @@ struct TemplateInsertPicker: View {
                 } footer: { Text("Inserts the template's blocks at your cursor, like the web editor. Place the cursor in a top-level paragraph or heading.").font(.footnote) }
                 if let error { Text(error).foregroundStyle(.red).accessibilityIdentifier("template.insert.error") }
             }.modifier(ChapterScreenSurface()).navigationTitle("Insert template").navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button(model.t("common.cancel")) { dismiss() } } }
         }
     }
 }
@@ -922,8 +922,8 @@ struct TemplatePicker: View {
                 }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
             }.buttonStyle(.borderless).accessibilityIdentifier("template.use." + target.id).accessibilityHint("Starts a new entry with this template")
             Menu {
-                Button { renaming = target } label: { Label("Rename", systemImage: "pencil") }.accessibilityIdentifier("template.rename")
-                Button(role: .destructive) { armedDelete = target } label: { Label("Delete", systemImage: "trash") }.accessibilityIdentifier("template.delete")
+                Button { renaming = target } label: { Label(model.t("common.rename"), systemImage: "pencil") }.accessibilityIdentifier("template.rename")
+                Button(role: .destructive) { armedDelete = target } label: { Label(model.t("common.delete"), systemImage: "trash") }.accessibilityIdentifier("template.delete")
             } label: {
                 Image(systemName: "ellipsis.circle").imageScale(.large).frame(minWidth: 44, minHeight: 44)
             }.buttonStyle(.borderless).accessibilityLabel("Template actions for " + target.name).accessibilityIdentifier("template.actions." + target.id)
@@ -937,14 +937,14 @@ struct TemplatePicker: View {
                     if model.templates.isEmpty && model.builtinTemplates.isEmpty { Text("No templates. Create one to start entries with the same prompts.").foregroundStyle(.secondary).accessibilityIdentifier("template.empty") }
                     ForEach(model.templates) { row(.synced($0)) }
                     ForEach(model.builtinTemplates) { row(.seed($0)) }
-                } header: { Text("Templates") } footer: {
+                } header: { Text(model.t("templates.title")) } footer: {
                     Text("Starts a new entry with the template's exact content, like the web app. Built-in templates are the web app's own; renaming or deleting one syncs that change to your other devices. New templates made here have plain paragraphs; edit rich template content on the web.").font(.footnote)
                 }
                 if let error { Text(error).foregroundStyle(.red).accessibilityIdentifier("template.error") }
             }.modifier(ChapterScreenSurface()).navigationTitle("Start from template").navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .primaryAction) { Button { creating = true } label: { Label("New template", systemImage: "plus") }.accessibilityIdentifier("template.new") }
+                ToolbarItem(placement: .cancellationAction) { Button(model.t("common.cancel")) { dismiss() } }
+                ToolbarItem(placement: .primaryAction) { Button { creating = true } label: { Label(model.t("templates.new"), systemImage: "plus") }.accessibilityIdentifier("template.new") }
             }
             .sheet(isPresented: $creating) { TemplateEditor(initialName: "", isNew: true) { name, text in try model.createTemplate(name: name, text: text) } }
             .sheet(item: $renaming) { target in
@@ -953,7 +953,7 @@ struct TemplatePicker: View {
                 }
             }
             .confirmationDialog("Delete this template?", isPresented: Binding(get: { armedDelete != nil }, set: { if !$0 { armedDelete = nil } }), titleVisibility: .visible, presenting: armedDelete) { target in
-                Button("Delete template", role: .destructive) {
+                Button(model.t("templates.action.delete"), role: .destructive) {
                     do {
                         switch target { case .synced(let r): try model.deleteTemplate(r); case .seed(let s): try model.forkBuiltin(s, deleted: true) }
                         error = nil
@@ -967,6 +967,7 @@ struct TemplatePicker: View {
 /// and, for a new template, a plain body. Renaming keeps the stored body bytes.
 struct TemplateEditor: View {
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var model: VaultModel
     let isNew: Bool
     let save: (String, String) throws -> Void
     @State private var name: String
@@ -976,16 +977,16 @@ struct TemplateEditor: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Name") { TextField("Template name", text: $name).accessibilityIdentifier("template.name") }
+                Section("Name") { TextField(model.t("templates.name.placeholder"), text: $name).accessibilityIdentifier("template.name") }
                 if isNew {
                     Section { TextField("Prompts or starting text", text: $text, axis: .vertical).lineLimit(4...12).accessibilityIdentifier("template.body") } header: { Text("Body") } footer: { Text("Each line becomes a paragraph.") }
                 }
                 if let error { Text(error).foregroundStyle(.red).accessibilityIdentifier("template.editorError") }
-            }.modifier(ChapterScreenSurface()).navigationTitle(isNew ? "New template" : "Rename template").navigationBarTitleDisplayMode(.inline)
+            }.modifier(ChapterScreenSurface()).navigationTitle(isNew ? model.t("templates.new") : "Rename template").navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .cancellationAction) { Button(model.t("common.cancel")) { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
+                    Button(model.t("common.save")) {
                         do { try save(name, text); dismiss() } catch { self.error = "Template was not saved. " + error.localizedDescription }
                     }.accessibilityIdentifier("template.save")
                 }
@@ -1011,7 +1012,7 @@ struct MoveEntryView: View {
                 if let error { Text(error).foregroundStyle(.red).accessibilityIdentifier("move.error") }
             }.modifier(ChapterScreenSurface()).navigationTitle("Move entry")
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .cancellationAction) { Button(model.t("common.cancel")) { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Move") { do { try model.moveEntry(expected, notebookID: notebookID); dismiss() } catch { self.error = error.localizedDescription } }
                         .disabled(!model.journals.contains { $0.journalID == notebookID })
@@ -1132,7 +1133,7 @@ struct NotebookDeletionView: View {
                 }
                 if let error { Text(error).accessibilityIdentifier("notebook.delete.error") }
             }.modifier(ChapterScreenSurface()).navigationTitle("Delete notebook")
-            .toolbar { ToolbarItem(placement:.cancellationAction) { Button("Cancel") { dismiss() } } }
+            .toolbar { ToolbarItem(placement:.cancellationAction) { Button(model.t("common.cancel")) { dismiss() } } }
         }
     }
 }

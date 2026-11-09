@@ -3,7 +3,7 @@
 // and ports t()/tp()/fmtNumber. Vite SSR loads the real modules (no server, no
 // network); vectors come from the web functions in every locale.
 import assert from 'node:assert/strict';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createServer } from 'vite';
 
 const counts = [0, 1, 2, 3, 4, 5, 7, 11, 12, 21, 100, 101, 102, 111, 1000000, 1.5, 0.5];
@@ -48,6 +48,18 @@ export async function verifyUIStrings(write: boolean): Promise<void> {
       assert.deepEqual(JSON.parse(readFileSync(catalogURL, 'utf8')), catalog, 'Native interface catalogs must equal the web message catalogs');
       assert.deepEqual(JSON.parse(readFileSync(vectorURL, 'utf8')), JSON.parse(JSON.stringify(fixture)), 'Native string vectors must equal the web t/tp/fmtNumber');
     }
-    console.log(`Native interface text: ${keys.length} web keys in ${i18n.LOCALES.length} locales; t/tp/number/distance vectors equal the web.`);
+    // Every key the native app asks for must be a real web key (no invented strings).
+    const appDir = new URL('../../ios/Chapter/', import.meta.url);
+    const used = new Set<string>();
+    for (const file of readdirSync(appDir).filter(f => f.endsWith('.swift'))) {
+      const text = readFileSync(new URL(file, appDir), 'utf8');
+      for (const m of text.matchAll(/\bt\("([^"\\]+)"(?:\s*\+\s*\$0)?/g)) {
+        if (m[0].includes('+')) for (const id of m[1] === 'prefs.mode.' ? ['light', 'dark', 'system'] : m[1] === 'prefs.skin.' ? ['paper', 'modern', 'terminal', 'forest', 'blossom', 'lavender'] : m[1] === 'prefs.palette.' ? ['terracotta', 'moss', 'sea', 'twilight', 'plum', 'rose'] : [null]) { assert.ok(id, 'Unknown dynamic key prefix ' + m[1]); used.add(m[1] + id); }
+        else used.add(m[1]);
+      }
+    }
+    for (const key of used) assert.ok(key in en, 'Native app uses a key the web catalog lacks: ' + key);
+    assert.ok(used.size >= 30, 'Expected the native screens to use the web catalog');
+    console.log(`Native interface text: ${keys.length} web keys in ${i18n.LOCALES.length} locales; t/tp/number/distance vectors equal the web; ${used.size} keys used by native screens all exist.`);
   } finally { await vite.close(); }
 }

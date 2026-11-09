@@ -354,7 +354,7 @@ struct RichTableEditor: View {
             }
         }.modifier(ChapterScreenSurface()).navigationTitle("Edit table")
         .confirmationDialog("Delete this table?", isPresented: $confirmDelete, titleVisibility: .visible) {
-            Button("Delete table", role: .destructive) { if let rows { run(.deleteTable, rows: rows) } }.accessibilityIdentifier("table.confirmDelete")
+            Button(model.t("editorx.tool.deleteTable"), role: .destructive) { if let rows { run(.deleteTable, rows: rows) } }.accessibilityIdentifier("table.confirmDelete")
         } message: { Text("The table and its contents are removed from this entry.") }
     }
     private func run(_ command: RichTableCommand, rows: [[JSONValue]]) {
