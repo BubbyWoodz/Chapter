@@ -316,6 +316,18 @@ final class ChapterUITests: XCTestCase {
         XCTAssertEqual(editor.value as? String," heading");XCTAssertEqual(app.staticTexts["rich.format-summary"].label,"Formatting: Bold")
         attach(app,name:"Actual native run outside the selection keeps the original bold")
     }
+    func testMathIsTypesetWithTheWebsOwnKaTeXOffline() throws {
+        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture"];app.launch()
+        let entry=app.staticTexts["Public rich fixture"];XCTAssertTrue(entry.waitForExistence(timeout:10));entry.tap()
+        let inline=app.descendants(matching:.any)["math.inline"];reveal(inline,in:app)
+        let block=app.descendants(matching:.any)["math.block"];reveal(block,in:app)
+        // KaTeX's display fraction stacks a over b; unstyled or source text would be one line.
+        let deadline=Date().addingTimeInterval(10)
+        while block.frame.height<=34 && Date()<deadline { RunLoop.current.run(until:Date().addingTimeInterval(0.25)) }
+        XCTAssertGreaterThan(block.frame.height,34,"The display formula is typeset (KaTeX CSS and fonts loaded from the bundle)")
+        XCTAssertFalse(app.staticTexts["\\frac{a}{b}"].exists,"The LaTeX source is no longer shown in place of the formula")
+        attach(app,name:"Actual native KaTeX typesetting of the original inline and display formulas")
+    }
     func testFormatAcrossRunsAppliesOriginalToggleMarkOverSeveralRuns() throws {
         let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture"];app.launch()
         let entry=app.staticTexts["Public rich fixture"];XCTAssertTrue(entry.waitForExistence(timeout:10));entry.tap()

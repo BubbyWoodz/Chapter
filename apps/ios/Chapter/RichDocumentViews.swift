@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import SwiftUI
+import WebKit
 import ChapterCore
 
 struct RichDocumentView: View {
@@ -12,7 +13,7 @@ struct RichDocumentView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             render(document.node)
-            Text("Native rich preview: math is shown as LaTeX; merged-table layout and custom media/interview cards are simplified. Unknown nodes and formatting remain intact.").font(.footnote).foregroundStyle(.secondary)
+            Text("Native rich preview: math is typeset with the web’s own KaTeX; custom media and interview cards are simplified. Unknown nodes and formatting remain intact.").font(.footnote).foregroundStyle(.secondary)
         }
         .navigationDestination(item:$linkedEntry) { destination in LinkedEntryDestination(entryID:destination.id) }
         .environment(\.openURL, OpenURLAction { url in
@@ -73,6 +74,13 @@ struct RichDocumentView: View {
             let font: Font = node.type == "heading"
                 ? chapterFont(.heading,skin:model.snapshot.appearance?.skin ?? "paper",size:level == 1 ? 28:level == 2 ? 22:20,relativeTo:level == 1 ? .title:level == 2 ? .title2:.title3)
                 : chapterFont(.prose,skin:model.snapshot.appearance?.skin ?? "paper",size:18)
+            if RichMathHTML.containsInlineMath(node.value), ChapterMath.resourceDirectory != nil {
+                // Inline formulas sit in the line exactly as the web typesets them.
+                let level = Int(node.value["attrs"]["level"].number ?? 2)
+                return AnyView(ChapterMathView(bodyHTML: RichMathHTML.inline(node.value, entryLabel: { id in model.entries.first(where: { $0.id.utf8.elementsEqual(id.utf8) })?.title }, math: { KaTeXRenderer.shared.html($0, kind: $1) }),
+                                               block: false, heading: node.type == "heading" ? level : nil)
+                    .accessibilityAddTraits(node.type == "heading" ? .isHeader : []))
+            }
             let content = inline(node, font: font)
             return AnyView(Text(content.characters.isEmpty ? AttributedString(" ") : content).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading).accessibilityAddTraits(node.type == "heading" ? .isHeader : []))
         case "bulletList", "orderedList":
@@ -116,6 +124,9 @@ struct RichDocumentView: View {
             }.accessibilityElement(children: .contain).accessibilityLabel("Table, \(grid.height) rows, \(grid.width) columns"))
         case "tableRow": return AnyView(HStack(alignment: .top, spacing: 0) { ForEach(node.children) { render($0).frame(minWidth: 140, alignment: .leading) } })
         case "tableCell", "tableHeader": return AnyView(children(node).padding(10).background(chapterToken("surface",preference:model.snapshot.appearance ?? .standard)).border(Color.secondary.opacity(0.4)))
+        case "blockMath" where ChapterMath.resourceDirectory != nil && KaTeXRenderer.shared.html(node.value["attrs"]["latex"].string ?? "", kind: .block) != nil:
+            let latex = node.value["attrs"]["latex"].string ?? ""
+            return AnyView(ChapterMathView(bodyHTML: KaTeXRenderer.shared.html(latex, kind: .block) ?? "", block: true, heading: nil))
         case "blockMath": return AnyView(Text(node.value["attrs"]["latex"].string ?? "").font(chapterFont(.mono,skin:model.snapshot.appearance?.skin ?? "paper",size:16)).textSelection(.enabled).accessibilityLabel("LaTeX formula: " + (node.value["attrs"]["latex"].string ?? "")))
         case "mediaAttachment", "mediaGallery": return AnyView(Label(node.value["attrs"]["name"].string ?? "Encrypted media — use attachment preview below", systemImage: "paperclip").foregroundStyle(.secondary))
         case "locationMap": return AnyView(customChip(RichCustomBlockLabel.location(node.value["attrs"])).textSelection(.enabled).accessibilityIdentifier("custom.location"))
@@ -126,6 +137,91 @@ struct RichDocumentView: View {
             }
         })
         default: return AnyView(Text("Unsupported \(node.type) node — preserved unchanged").font(.footnote).foregroundStyle(.secondary))
+        }
+    }
+}
+
+/// Static KaTeX HTML in a WKWebView with JavaScript disabled, a non-persistent
+/// store and a no-network CSP. Only the page's own load is allowed; a tapped link
+/// is handed to the app's openURL (entry navigation or explicit confirmation).
+struct ChapterMathView: View {
+    @EnvironmentObject private var model: VaultModel
+    @Environment(\.openURL) private var openURL
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    let bodyHTML: String
+    let block: Bool
+    let heading: Int?
+    @State private var height: CGFloat = 28
+    var body: some View {
+        let preference = model.snapshot.appearance ?? .standard
+        let dark = preference.mode == "dark" || (preference.mode == "system" && colorScheme == .dark)
+        let tokens = AppearanceCatalog.tokens(preference, dark: dark)
+        let style: UIFont.TextStyle = heading == 1 ? .title1 : heading == 2 ? .title2 : heading != nil ? .title3 : .body
+        let base: CGFloat = heading == 1 ? 28 : heading == 2 ? 22 : heading != nil ? 20 : 18
+        let size = UIFontMetrics(forTextStyle: style).scaledValue(for: base, compatibleWith: UITraitCollection(preferredContentSizeCategory: UIContentSizeCategory(dynamicTypeSize)))
+        let role: ChapterFontRole = heading != nil ? .heading : .prose
+        let page = RichMathHTML.page(body: bodyHTML, fontFamily: ChapterTypeface.postscript(role, skin: preference.skin), fontSize: Double(size),
+                                     ink: tokens["ink"].string ?? "#1F1B16", paper: tokens["paper"].string ?? "#F4EEE2", link: tokens["ink"].string ?? "#1F1B16", block: block, heading: heading != nil)
+        StaticMathWebView(page: page, height: $height) { url in openURL(url) }
+            .frame(height: max(height, 24)).frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityIdentifier(block ? "math.block" : "math.inline")
+    }
+}
+private extension UIContentSizeCategory {
+    init(_ size: DynamicTypeSize) {
+        switch size {
+        case .xSmall: self = .extraSmall; case .small: self = .small; case .medium: self = .medium; case .large: self = .large
+        case .xLarge: self = .extraLarge; case .xxLarge: self = .extraExtraLarge; case .xxxLarge: self = .extraExtraExtraLarge
+        case .accessibility1: self = .accessibilityMedium; case .accessibility2: self = .accessibilityLarge; case .accessibility3: self = .accessibilityExtraLarge
+        case .accessibility4: self = .accessibilityExtraExtraLarge; case .accessibility5: self = .accessibilityExtraExtraExtraLarge
+        @unknown default: self = .large
+        }
+    }
+}
+private struct StaticMathWebView: UIViewRepresentable {
+    let page: String
+    @Binding var height: CGFloat
+    let onLink: (URL) -> Void
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+    func makeUIView(context: Context) -> WKWebView {
+        let config = WKWebViewConfiguration()
+        config.websiteDataStore = .nonPersistent()
+        config.defaultWebpagePreferences.allowsContentJavaScript = false
+        config.preferences.javaScriptCanOpenWindowsAutomatically = false
+        config.dataDetectorTypes = []
+        config.allowsInlineMediaPlayback = false
+        let view = WKWebView(frame: .zero, configuration: config)
+        view.isOpaque = false; view.backgroundColor = .clear; view.scrollView.backgroundColor = .clear
+        view.scrollView.isScrollEnabled = false; view.scrollView.bounces = false
+        view.navigationDelegate = context.coordinator
+        context.coordinator.observe(view)
+        return view
+    }
+    func updateUIView(_ view: WKWebView, context: Context) {
+        context.coordinator.parent = self
+        guard context.coordinator.loaded != page, let base = ChapterMath.resourceDirectory else { return }
+        context.coordinator.loaded = page
+        view.loadHTMLString(page, baseURL: base)
+    }
+    final class Coordinator: NSObject, WKNavigationDelegate {
+        var parent: StaticMathWebView
+        var loaded: String?
+        private var observation: NSKeyValueObservation?
+        init(_ parent: StaticMathWebView) { self.parent = parent }
+        func observe(_ view: WKWebView) {
+            observation = view.scrollView.observe(\.contentSize, options: [.new]) { [weak self] scroll, _ in
+                let next = ceil(scroll.contentSize.height)
+                DispatchQueue.main.async { if let self, next > 0, abs(next - self.parent.height) > 0.5 { self.parent.height = next } }
+            }
+        }
+        @MainActor
+        func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction) async -> WKNavigationActionPolicy {
+            if action.navigationType == .linkActivated, let url = action.request.url { parent.onLink(url); return .cancel }
+            // Only this view's own static page (the bundled KaTeX directory as base).
+            if action.navigationType == .other, action.targetFrame?.isMainFrame == true, let url = action.request.url,
+               url.isFileURL, url.standardizedFileURL.path == ChapterMath.resourceDirectory?.standardizedFileURL.path { return .allow }
+            return .cancel
         }
     }
 }

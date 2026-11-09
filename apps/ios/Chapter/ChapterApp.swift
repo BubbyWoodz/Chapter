@@ -674,7 +674,7 @@ struct SettingsView: View {
                     Button("Lock vault", role: .destructive) { model.lock() }
                 }
                 Section("Not yet implemented") {
-                    Text("Typing across several runs at once (each run is edited separately; formatting can span runs), exact custom-node/math rendering, editing tables with merged cells, rich template body editing, camera/audio/video capture, large media and unsupported playback codecs, interviews/AI/transcription, import/export, maps, translated interface text, badges, reminders, vault deletion/rotation and operator tools. The web app remains available for these. This preview is not full parity or an independently audited secure product.")
+                    Text("Typing across several runs at once (each run is edited separately; formatting can span runs), exact custom media/interview card rendering, editing tables with merged cells, rich template body editing, camera/audio/video capture, large media and unsupported playback codecs, interviews/AI/transcription, import/export, maps, translated interface text, badges, reminders, vault deletion/rotation and operator tools. The web app remains available for these. This preview is not full parity or an independently audited secure product.")
                 }
                 Section("Open source") { NavigationLink("Original font licenses") { ChapterFontLicenses() }; Link("Source and AGPL-3.0 license", destination: URL(string: "https://github.com/BubbyWoodz/Chapter")!) }
             }.modifier(ChapterScreenSurface()).navigationTitle("Settings")
