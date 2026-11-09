@@ -15,7 +15,10 @@ public enum ChapterExport {
     public struct File { public let path: String; public let data: Data; public let mtime: Double? }
     public struct Summary: Equatable, Sendable { public let filename: String; public let entries, media, missingMedia: Int }
     /// web ExportProgress: `done` of `total` steps (one per entry and per media reference).
-    public struct Progress: Equatable, Sendable { public let done, total: Int; public let current: String }
+    public struct Progress: Equatable, Sendable {
+        public let done, total: Int; public let current: String
+        public init(done: Int, total: Int, current: String) { self.done = done; self.total = total; self.current = current }
+    }
 
     public static func entries(_ records: [VaultRecord]) -> [Entry] {
         records.filter { $0.kind == "entry" }.map { r in

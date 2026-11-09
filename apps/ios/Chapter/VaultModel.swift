@@ -69,7 +69,7 @@ import ChapterCore
     /// a two-photo gallery entry and an entry whose photo is missing from the export.
     func publicDayOneFixture() throws -> URL {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("public-dayone-\(UUID().uuidString).zip")
-        let journal = #"{"metadata":{"version":"1.0"},"entries":[{"uuid":"PUBLIC1","creationDate":"2024-05-01T10:00:00Z","text":"# Public Lisbon\n\n![](dayone-moment://P1)\n![](dayone-moment://P2)\n\nWalked to the river.","tags":["public"],"photos":[{"identifier":"P1","md5":"p1","type":"png","width":2,"height":2},{"identifier":"P2","md5":"p2","type":"png"}]},{"uuid":"PUBLIC2","creationDate":"2024-05-02T10:00:00Z","text":"Public second day\n![](dayone-moment://GONE)","photos":[{"identifier":"GONE","md5":"gone","type":"jpeg"}]}]}"#
+        let journal = ##"{"metadata":{"version":"1.0"},"entries":[{"uuid":"PUBLIC1","creationDate":"2024-05-01T10:00:00Z","text":"# Public Lisbon\n\n![](dayone-moment://P1)\n![](dayone-moment://P2)\n\nWalked to the river.","tags":["public"],"photos":[{"identifier":"P1","md5":"p1","type":"png","width":2,"height":2},{"identifier":"P2","md5":"p2","type":"png"}]},{"uuid":"PUBLIC2","creationDate":"2024-05-02T10:00:00Z","text":"Public second day\n![](dayone-moment://GONE)","photos":[{"identifier":"GONE","md5":"gone","type":"jpeg"}]}]}"##
         let writer = try ChapterZipWriter(url: url, fallbackMtime: Date().timeIntervalSince1970 * 1000)
         try writer.add(path: "Public Day One trip.json", data: Data(journal.utf8), mtime: nil)
         try writer.add(path: "photos/p1.png", data: Data("public photo one".utf8), mtime: nil)

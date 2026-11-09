@@ -22,7 +22,10 @@ public protocol DayOneImportTarget: AnyObject {
 
 public enum ChapterDayOneImport {
     public struct Summary: Equatable, Sendable { public var journals = 0, entries = 0, media = 0, skippedMedia = 0 }
-    public struct Progress: Equatable, Sendable { public let done: Int, total: Int, current: String }
+    public struct Progress: Equatable, Sendable {
+        public let done: Int, total: Int, current: String
+        public init(done: Int, total: Int, current: String) { self.done = done; self.total = total; self.current = current }
+    }
     public static let colors = ["#B0563A", "#4E8B85", "#6A6AA0", "#B08A2E", "#5A7BA6", "#6E8B5E", "#8E6A93", "#C06A4A"]
     public static let covers = ["lines", "dots", "grid", "plain"]
     public static let subtitle = "Imported from Day One"
