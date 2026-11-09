@@ -312,7 +312,8 @@ export function PreferencesSheet({ desk, theme, onClose, initialTab, ownerId, st
   /** Interview-types manager — reached from Preferences on both desktop and mobile; null when assistant is off. */
   onInterviewTypes?: (() => void) | null;
 }): VNode {
-  const { entries, vaultMethod, interviewTypes } = useAppData();
+  const { entries, vaultMethod, interviewTypes,aiRecoveries,aiPersistenceError,reloadAiSettings,restoreAiRecovery } = useAppData();
+  const [recoveryMessage,setRecoveryMessage]=useState<string|null>(null);
   const i18n = useI18n();
   const [tab, setTab] = useState<TabId>(initialTab ?? 'appearance');
   // Vault rows hand off to full-screen sheets — close this overlay first.
@@ -347,6 +348,17 @@ export function PreferencesSheet({ desk, theme, onClose, initialTab, ownerId, st
 
   const appearance = (
     <div>
+      <p role="status" style={{color:"var(--ink-2)",fontSize:13}}>{theme.syncMessage}</p>
+      {aiPersistenceError && <div role="alert"><p>{aiPersistenceError}</p><button onClick={()=>{void reloadAiSettings().then(()=>setRecoveryMessage('Saved settings reloaded. Review the current choice and retry your edit.'),()=>setRecoveryMessage('Reload failed. Encrypted data is retained.'));}}>Reload saved settings</button></div>}
+      {recoveryMessage && <p role="status">{recoveryMessage}</p>}
+      {aiRecoveries.length>0 && <details><summary>Recovered encrypted settings ({aiRecoveries.length})</summary>
+        <p>Conflicting versions are retained on this device. Restoring keeps the current version as another recovery copy. Theme restore preserves current assistant credentials; assistant restore stays disabled and preserves the current theme. No API key is displayed here.</p>
+        {aiRecoveries.map((row,index)=><div key={index} style={{marginBlock:12}}>
+          <span>Saved configuration {index+1}{row.deleted?' (cleared)':''}</span>
+          {row.settings?.chapterAppearance && <button onClick={()=>{void restoreAiRecovery(row,'appearance').then(()=>setRecoveryMessage('Recovered appearance saved; pending normal vault sync.'),()=>setRecoveryMessage('Recovery failed; every version is retained.'));}}>Restore theme</button>}
+          {row.settings && <button onClick={()=>{void restoreAiRecovery(row,'assistant').then(()=>setRecoveryMessage('Recovered assistant configuration saved, disabled. Enable it explicitly in assistant settings if wanted.'),()=>setRecoveryMessage('Recovery failed; every version is retained.'));}}>Restore assistant configuration, disabled</button>}
+        </div>)}
+      </details>}
       <SectionLabel first>{t('prefs.language')}</SectionLabel>
       <div style={{ display: 'grid', gridTemplateColumns: desk ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)', gap: 8 }}>
         {i18n.locales.map((l) => {

@@ -1,0 +1,87 @@
+name: Chapter installable server and native live relay
+on:
+  pull_request:
+    paths: ['server/**', 'deploy/chapter/**', 'deploy/web/**', 'apps/client/**', 'apps/ios/ChapterCore/**', '.github/workflows/chapter-server.yml']
+permissions:
+  contents: read
+jobs:
+  package-and-clean-stack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CHAPTER_VERSION: ${{ github.sha }}
+      CHAPTER_PROJECT: chapter-ci
+      REQUIRE_APPROVAL: 'false' # Public fixture-only override. Installed default is true.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Packaging regression and private fresh configuration
+        run: |
+          python3 deploy/chapter/test-packaging.py
+          ./deploy/chapter/init.sh
+          ./deploy/chapter/chapter.sh config --quiet
+      - name: Build Chapter-owned images from source (no registry publication)
+        run: ./deploy/chapter/chapter.sh build
+      - name: Start disposable complete server stack
+        run: ./deploy/chapter/chapter.sh up -d --no-build --wait --wait-timeout 180
+      - name: Test trusted HTTPS web crypto, PostgreSQL and actual S3 media
+        run: |
+          ./deploy/chapter/chapter.sh cp web:/data/caddy/pki/authorities/local/root.crt "$RUNNER_TEMP/chapter-root.pem"
+          NODE_EXTRA_CA_CERTS="$RUNNER_TEMP/chapter-root.pem" RELAY_URL=https://localhost:8443/mneme CHAPTER_STACK_SMOKE=1 pnpm --filter client exec tsx scripts/chapter-stack-smoke.ts
+          ./deploy/chapter/chapter.sh exec -T server /journald backup --out /backups/chapter-ci.tar.gz
+          ./deploy/chapter/chapter.sh cp server:/backups/chapter-ci.tar.gz "$RUNNER_TEMP/fixture-backup.tar.gz"
+      - name: Restore archive to a distinct empty stack and verify unchanged ciphertext
+        run: |
+          export CHAPTER_PROJECT=chapter-restore-ci CHAPTER_HTTPS_PORT=8444
+          ./deploy/chapter/chapter.sh up -d --no-build --wait --wait-timeout 180
+          ./deploy/chapter/chapter.sh stop web server
+          ./deploy/chapter/chapter.sh run --rm --no-deps -v "$RUNNER_TEMP/fixture-backup.tar.gz:/fixture/archive.tar.gz:ro" server restore /fixture/archive.tar.gz --yes
+          ./deploy/chapter/chapter.sh up -d --no-build --wait --wait-timeout 180
+          ./deploy/chapter/chapter.sh cp web:/data/caddy/pki/authorities/local/root.crt "$RUNNER_TEMP/restore-root.pem"
+          NODE_EXTRA_CA_CERTS="$RUNNER_TEMP/restore-root.pem" RELAY_URL=https://localhost:8444/mneme CHAPTER_STACK_SMOKE=1 CHAPTER_STACK_RESTORE=1 pnpm --filter client exec tsx scripts/chapter-stack-smoke.ts
+      - name: Export installable Linux amd64 images, exact source and checksums
+        run: |
+          mkdir -p "$RUNNER_TEMP/Chapter-server-package"
+          cd "$RUNNER_TEMP/Chapter-server-package"
+          docker save "chapter-server:$CHAPTER_VERSION" "chapter-web:$CHAPTER_VERSION" "chapter-objectstore:$CHAPTER_VERSION" postgres:17 | gzip > Chapter-server-linux-amd64-images.tar.gz
+          git -C "$GITHUB_WORKSPACE" archive --format=tar.gz HEAD > Chapter-server-source.tar.gz
+          docker image inspect "chapter-server:$CHAPTER_VERSION" "chapter-web:$CHAPTER_VERSION" "chapter-objectstore:$CHAPTER_VERSION" postgres:17 --format '{{json .Id}} {{json .RepoTags}} {{json .RepoDigests}} {{json .Architecture}}' > image-provenance.txt
+          printf '%s\n' "$CHAPTER_VERSION" > SOURCE_COMMIT
+          sha256sum *.tar.gz > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Chapter-server-linux-amd64
+          path: ${{ runner.temp }}/Chapter-server-package
+          retention-days: 7
+      - name: Stop only this job's disposable stacks; preserve no user data changes
+        if: always()
+        run: |
+          ./deploy/chapter/chapter.sh down || true
+          CHAPTER_PROJECT=chapter-restore-ci ./deploy/chapter/chapter.sh down || true
+
+  native-live-relay:
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: server/go.mod
+          cache-dependency-path: server/go.sum
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Install isolated test database binaries (no external deployment)
+        run: brew list postgresql@17 >/dev/null 2>&1 || brew install postgresql@17
+      - name: Real native URLSession + TLS relay/Postgres + web reverse decoder
+        run: ./deploy/chapter/native-live-ci.sh
+        env:
+          CHAPTER_NATIVE_OUTPUT: ${{ runner.temp }}/chapter-live-output.json

@@ -38,7 +38,7 @@ import {
   type VideoCodec,
   type VideoSample,
 } from 'mediabunny';
-import { CARD_SECONDS, FILM_FPS, planTimeline, canonicalSize } from './timeline';
+import { CARD_SECONDS, FILM_FPS, planTimeline, canonicalSize, containFit, filmBitrate } from './timeline';
 import { chunkFrames, downmixToMono, fitLength, resampleLinear, silence } from './audiomix';
 import type { FromWorker, ToWorker } from './filmProtocol';
 
@@ -73,7 +73,7 @@ function checkCanceled(): void {
  * re-encode without exhausting a mid-range phone.
  */
 function bitrateFor(width: number, height: number): number {
-  return Math.round(Math.min(6_000_000, Math.max(1_000_000, width * height * FILM_FPS * 0.09)));
+  return filmBitrate(width, height, FILM_FPS);
 }
 
 // ── probe ───────────────────────────────────────────────────
@@ -163,14 +163,10 @@ function paint(
   width: number,
   height: number,
 ): void {
-  const sw = sample.displayWidth || width;
-  const sh = sample.displayHeight || height;
-  const scale = Math.min(width / sw, height / sh);
-  const dw = Math.round(sw * scale);
-  const dh = Math.round(sh * scale);
+  const fit = containFit(sample.displayWidth, sample.displayHeight, width, height);
   c2d.fillStyle = '#000';
   c2d.fillRect(0, 0, width, height);
-  sample.draw(c2d, Math.round((width - dw) / 2), Math.round((height - dh) / 2), dw, dh);
+  sample.draw(c2d, fit.x, fit.y, fit.width, fit.height);
 }
 
 // ── encode ──────────────────────────────────────────────────

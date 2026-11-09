@@ -1,0 +1,102 @@
+# Separate NEW-install profile. Never silently adopts/renames existing Mneme volumes.
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: journal
+      POSTGRES_DB: journal
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?run init.sh}
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U journal]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+  objectstore:
+    image: chapter-objectstore:${CHAPTER_VERSION:-source}
+    pull_policy: never
+    build:
+      context: ${CHAPTER_SOURCE_DIR:?use chapter.sh}
+      dockerfile: deploy/chapter/objectstore.Dockerfile
+    restart: unless-stopped
+    command: [server, /data]
+    environment:
+      MINIO_UPDATE: "off"
+      MINIO_ROOT_USER: chapter
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:?run init.sh}
+    volumes: [media:/data]
+    healthcheck:
+      test: [CMD, curl, --fail, --silent, http://localhost:9000/minio/health/live]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+  server:
+    image: chapter-server:${CHAPTER_VERSION:-source}
+    pull_policy: never
+    build:
+      context: ${CHAPTER_SOURCE_DIR:?use chapter.sh}
+      dockerfile: server/Dockerfile
+      args:
+        VERSION: chapter-${CHAPTER_VERSION:-source}
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://journal:${POSTGRES_PASSWORD}@postgres:5432/journal?sslmode=disable
+      S3_ENDPOINT: http://objectstore:9000
+      S3_ACCESS_KEY: chapter
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      S3_BUCKET: journal-media
+      LISTEN_ADDR: :8080
+      ADMIN_TOKEN: ${ADMIN_TOKEN:?run init.sh}
+      REQUIRE_APPROVAL: ${REQUIRE_APPROVAL:-true}
+      CORS_ORIGINS: ""
+      UPDATE_CHECK: "off"
+      UPDATE_SPOOL_DIR: ""
+      TRUST_PROXY_HEADERS: "true"
+      QUOTA_BYTES_PER_OWNER: ${QUOTA_BYTES_PER_OWNER:-10737418240}
+      BACKUP_DIR: /backups
+      BACKUP_INTERVAL: 24h
+      BACKUP_KEEP: "14"
+    volumes: [backups:/backups]
+    healthcheck:
+      test: [CMD, /journald, healthcheck]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+      start_period: 15s
+    depends_on:
+      postgres: {condition: service_healthy}
+      objectstore: {condition: service_healthy}
+  web:
+    image: chapter-web:${CHAPTER_VERSION:-source}
+    pull_policy: never
+    build:
+      context: ${CHAPTER_SOURCE_DIR:?use chapter.sh}
+      dockerfile: deploy/web/Dockerfile
+    restart: unless-stopped
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-localhost}
+      DEFAULT_SNI: ${DEFAULT_SNI:-localhost}
+      WHISPER_MODEL: deepdml/faster-whisper-large-v3-turbo-ct2
+    ports:
+      - ${CHAPTER_BIND:-127.0.0.1}:${CHAPTER_HTTPS_PORT:-8443}:443
+    volumes: [tlsdata:/data, tlsconfig:/config]
+    depends_on:
+      server: {condition: service_healthy}
+  # Opt in; no model is downloaded by the default install.
+  whisper:
+    profiles: [speech]
+    image: ghcr.io/speaches-ai/speaches:0.8.2-cpu
+    restart: unless-stopped
+    environment:
+      HF_HUB_DISABLE_PROGRESS_BARS: "1"
+      WHISPER__COMPUTE_TYPE: int8
+    volumes: [speechmodels:/home/ubuntu/.cache/huggingface/hub]
+volumes:
+  pgdata:
+  media:
+  backups:
+  tlsdata:
+  tlsconfig:
+  speechmodels:

@@ -498,19 +498,18 @@ export function toPushAiSettings(dataKey: Uint8Array, rec: AiSettingsRecord): Pu
   return toPush(aiSettingsCodec, dataKey, rec);
 }
 
-/**
- * Push the AI-settings singleton. Like the sibling pushers, any per-record
- * answer settles the record — applied, or rejected because the relay already
- * holds this clock or newer (the next pull brings the newer copy here). The
- * caller retires the queued record either way, so there is nothing to return.
+/** Push original settings ciphertext; only a matching applied=true is an acknowledgement.
+ * A stale rejection keeps the durable outbox dirty until pull can preserve its losing copy.
  */
 export async function pushAiSettings(
   relay: RelayClient,
   token: string,
   dataKey: Uint8Array,
   rec: AiSettingsRecord,
-): Promise<void> {
-  await relay.push(token, [toPushAiSettings(dataKey, rec)]);
+): Promise<boolean> {
+  const response=await relay.push(token, [toPushAiSettings(dataKey, rec)]);
+  if(!Array.isArray(response.results)||response.results.length!==1||response.results[0]?.entry_id!==rec.recordId||typeof response.results[0]?.applied!=='boolean')throw new Error('Invalid settings acknowledgement');
+  return response.results[0].applied;
 }
 
 export interface PullResult {

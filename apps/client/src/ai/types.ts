@@ -79,6 +79,8 @@ export interface TranscriptionSettings {
 
 /** Decrypted settings — in memory only while the vault is unlocked. */
 export interface AiSettings {
+  /** Encrypted shared appearance extension; unknown versions are preserved. */
+  chapterAppearance?: unknown;
   v: 1;
   enabled: boolean;
   backend: AiBackend;

@@ -21,3 +21,13 @@ dist/
 
 # Tauri
 /apps/desktop/src-tauri/target/
+
+# Native local builds and per-developer Xcode state
+apps/ios/**/.build/
+apps/ios/**/.swiftpm/
+apps/ios/**/xcuserdata/
+apps/ios/**/DerivedData/
+apps/ios/**/*.xcuserstate
+
+# Private Chapter installation configuration
+.env.chapter

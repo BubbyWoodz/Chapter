@@ -66,7 +66,7 @@ export function mathExtension(handle?: MathHandle): AnyExtension {
  * dimensions, and `strict: 'ignore'` keeps unusual-but-harmless input rendering
  * instead of erroring — content already in someone's journal must keep opening.
  */
-const KATEX_OPTIONS = {
+export const KATEX_OPTIONS = {
   throwOnError: false,
   trust: false,
   strict: 'ignore',

@@ -154,7 +154,8 @@ class ArchiveWriter {
   private settle!: () => void;
   private zip: Zip;
 
-  constructor() {
+  /** `fallbackMtime`: the zip time for a file whose own time a zip can't hold (see `add`). */
+  constructor(private fallbackMtime: number) {
     this.done = new Promise((resolve) => {
       this.settle = resolve;
     });
@@ -170,7 +171,18 @@ class ArchiveWriter {
     if (this.failure) throw this.failure;
     const file = compress ? new ZipDeflate(path, { level: 6 }) : new ZipPassThrough(path);
     // A sane timestamp makes the archive self-describing in any zip tool.
-    if (typeof mtime === 'number' && Number.isFinite(mtime)) file.mtime = new Date(mtime);
+    if (typeof mtime === 'number' && Number.isFinite(mtime)) {
+      // A zip timestamp holds 1980–2099 only, and fflate throws on anything else,
+      // which used to fail the whole export. For example, media with no saved date
+      // is coerced to 0 (1970). Such a file gets the export time instead. The
+      // manifest's own dates are unaffected.
+      const inZipRange = (t: number): boolean => {
+        const y = new Date(t).getFullYear();
+        return y >= 1980 && y <= 2099;
+      };
+      if (inZipRange(mtime)) file.mtime = new Date(mtime);
+      else if (inZipRange(this.fallbackMtime)) file.mtime = new Date(this.fallbackMtime);
+    }
     this.zip.add(file);
     file.push(data, true);
   }
@@ -233,7 +245,7 @@ export async function exportJournal(
     onProgress?.({ done, total, current });
   };
 
-  const writer = new ArchiveWriter();
+  const writer = new ArchiveWriter(now());
   const entryRefs: ExportEntryRef[] = [];
   const media: ExportMedia[] = [];
   const missing: ExportMissingMedia[] = [];

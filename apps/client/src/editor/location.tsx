@@ -82,7 +82,7 @@ export function insertLocation(editor: Editor, data: LocationData): void {
     .run();
 }
 
-function fmtDistance(km: number): string {
+export function fmtDistance(km: number): string {
   if (km < 1) return t('editorx.location.distanceM', { n: fmtNumber(Math.round(km * 1000)) });
   if (km < 10)
     return t('editorx.location.distanceKm', {

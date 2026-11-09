@@ -569,3 +569,16 @@ client integration script:
 ```bash
 pnpm --filter client exec tsx scripts/integration.ts
 ```
+
+## Chapter additive native discovery
+
+`GET /v1/info` (no authentication) returns public protocol facts only:
+`protocol: 1`, `record_envelope: 1`, `owner_authorized_registration: true`,
+`require_approval`, `max_push_entries: 500`, `max_media_chunk_bytes: 2097152`,
+`conflict_resolution: "wall-clock-last-write-wins"`.
+
+It makes no claims about reverse-proxy-only services (for example `/whisper`),
+server identity, client minimum versions or deployment prefixes. Native clients
+must still authenticate and use their configured URL/prefix. This endpoint does
+not change any existing auth, record or media framing. Never treat reachability
+or this public response as proof of vault access.

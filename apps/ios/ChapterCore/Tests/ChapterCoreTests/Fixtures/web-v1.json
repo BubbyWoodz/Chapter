@@ -1,0 +1,17 @@
+{
+  "phrase": "legal winner thank year wave sausage worth useful legal winner thank yellow",
+  "seed": "878386efb78845b3355bd15ea4d39ef97d179cb712b77d5c12b6be415fffeffe5f377ba02bf3f8544ab800b955e51fbff09828f682052a20faa6addbbddfb096",
+  "dataKey": "eee1f4a9449984a5e076dc4150bbbd36f831722b153cfaa3cb923daad89c6ddf",
+  "mediaKey": "b41b5d40e878b9920d260cfd9b448ea258842e89e373f18f87bbff5ca9af0c28",
+  "ownerId": "uTfd3b1JJNrAoOG-MguEFe8yqPom5moSIiPoTTQ43bg",
+  "ownerPublic": "0e5ed7ed7657c93535c68390f9f7f925cad890f4689c1f41e008be22c2333a18",
+  "ownerSigningPublic": "61a9695605b68b10adc54fd3cb17c8e3018efddea23b4e13bfda6366f6c9ff16",
+  "devicePublic": "23548ea457780cddecb29256b15a347d0a577e0ff42955d4e9a0632d70ee31fc",
+  "signature": "xbbKnqgSyNJ73lvpAwhosD9U6W56DPrzlzLd1J/T2x2WZsHSSm/d6s1aNFPc8+svOFDCEiYt1kTu020x3fJrAg==",
+  "ownerSignature": "sWjOYSXV+FsZB9R3dz4eHQNEuGv76eDNGpDJusZ50XDtl5nXyJ3cj97lic0tSsKytJsab+sgpL8RaUBSJkMsCQ==",
+  "recordId": "0123456789abcdef0123456789abcdef",
+  "body": "{\"journalId\":\"notebook\",\"title\":\"Public test 📝\",\"bodyText\":\"Offline interop\",\"bodyJson\":\"{\\\"type\\\":\\\"doc\\\",\\\"content\\\":[]}\",\"labels\":[\"test\"],\"createdAt\":1700000000000,\"updatedAt\":1700000000001,\"unknownFuture\":{\"preserve\":true}}",
+  "record": "AQcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHB0d6aD5e+mGxhryVJ1qKts6gTtGKFlZ215tEtKznjahEpz/hj+PdE/eEdAFZMZpFp7MroXHvCE/BkpDC7GeGtF5cyPEqUCOvkL0ekzQyVmKecQvil4b4MXKGVpi+kQenqq3Q+k6x+xzy/8H93+/wNbTadDdGcSHmBGlGfNg0N44DyczCW8c+fUYSEUwm8tGDoAQTd9zlCBef+6nmWibAkOVvEuPuyNRY7N2MJoT8WcgFgp/GYW30xBgGz3IIjVyM0vdpJdn2It+RJ4ab2xIfxUKBQIB4FKFCkM5qj47SAwrIxhGLni0QknfVwgxFObuxQ3aIJlFkHGw=",
+  "legacy": "AQcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHB0d6aD5e+mGxhryVJ1qKts6gTtGKFlZ215tEtKznjahEpz/hj+PdE/eEdAFZMZpFp7MroXHvCE/BkpDC7GeGtF5cyPEqUCOvkL0ekzQyVmKecQvil4b4MXKGVpi+kQenqq3Q+k6x+xzy/8H93+/wNbTadDdGcSHmBGlGfNg0N44DyczCW8c+fUYSEUwm8tGDoAQTd9zlCBef+6nmWibAkOVvEuPuyNRY7N2MJoT8WcgFgp/GYW30xBgGz3IIjVyM0vdpJdn2It+RJ4ab2xIfxUKBQIB4FKFCkM5qj47SAwrIxhGLni0QkneOloz6ODFpZzDwS4VWU7k=",
+  "media": "AQcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHB82c4uXMqoNUpcr+vWgw7IMmcDm+oZf4PAVUUskbRtjQ6Ow="
+}

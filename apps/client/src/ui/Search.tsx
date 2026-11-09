@@ -13,6 +13,7 @@ import { SheetBackdrop, Z } from './Sheet';
 import { useAppData } from '../state/data';
 import { search, normalize, type Hit } from '../search/core';
 import { t, monthName, fmtDate, type MessageKey } from '../i18n';
+import type { JournalEntry } from '../sync/engine';
 
 /** Render text with the query tokens emphasized. */
 function Highlight({ text, tokens }: { text: string; tokens: string[] }): VNode {
@@ -42,7 +43,7 @@ const EN_MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july
 // (long or short) or in English — to their English long name, so the English
 // date haystack search/core builds still matches. Returns null when the query
 // carries no month word, so "märz 9" or "9 giu" reach the same entries as "jun 9".
-function toEnglishMonths(q: string): string | null {
+export function toEnglishMonths(q: string): string | null {
   const out = q.split(' ').map((tok) => {
     const c = tok.replace(/\.$/, '');
     if (c.length < 3) return tok;
@@ -58,6 +59,29 @@ function toEnglishMonths(q: string): string | null {
   return joined === q ? null : joined;
 }
 
+/**
+ * The sheet's results: the query as typed, unioned with a month-translated pass;
+ * an empty query offers the 8 most recently touched entries. Exported so the
+ * native app's port is checked against this exact behaviour.
+ */
+export function searchHits(entries: JournalEntry[], query: string): Hit[] {
+  const tokens = normalize(query).split(' ').filter(Boolean);
+  if (tokens.length > 0) {
+    // Match on the query as typed (title/content/labels + English dates), then
+    // union in a month-translated pass so locale month spellings hit dates too.
+    const base = search(entries, query);
+    const alt = toEnglishMonths(normalize(query));
+    if (!alt) return base;
+    const seen = new Set(base.map((h) => h.entry.id));
+    return [...base, ...search(entries, alt).filter((h) => !seen.has(h.entry.id))];
+  }
+  // Empty query: offer the most recently touched entries as a starting point.
+  return [...entries]
+    .sort((a, b) => b.updatedAt - a.updatedAt)
+    .slice(0, 8)
+    .map((e): Hit => ({ entry: e, field: 'content' }));
+}
+
 export function SearchSheet({ desk, onClose, onOpen }: {
   desk: boolean;
   onClose: () => void;
@@ -69,22 +93,7 @@ export function SearchSheet({ desk, onClose, onOpen }: {
   const listRef = useRef<HTMLDivElement>(null);
 
   const tokens = normalize(query).split(' ').filter(Boolean);
-  const hits = useMemo(() => {
-    if (tokens.length > 0) {
-      // Match on the query as typed (title/content/labels + English dates), then
-      // union in a month-translated pass so locale month spellings hit dates too.
-      const base = search(entries, query);
-      const alt = toEnglishMonths(normalize(query));
-      if (!alt) return base;
-      const seen = new Set(base.map((h) => h.entry.id));
-      return [...base, ...search(entries, alt).filter((h) => !seen.has(h.entry.id))];
-    }
-    // Empty query: offer the most recently touched entries as a starting point.
-    return [...entries]
-      .sort((a, b) => b.updatedAt - a.updatedAt)
-      .slice(0, 8)
-      .map((e): Hit => ({ entry: e, field: 'content' }));
-  }, [entries, query]);
+  const hits = useMemo(() => searchHits(entries, query), [entries, query]);
   const active = Math.min(index, Math.max(0, hits.length - 1));
 
   const pick = (h: Hit | undefined): void => {

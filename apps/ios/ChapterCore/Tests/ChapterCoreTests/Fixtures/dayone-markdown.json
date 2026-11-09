@@ -1,0 +1,2289 @@
+{
+ "cases": [
+  {
+   "md": "# Trip to Lisbon\n\nWe landed at **noon** and walked to the *river*.\n\n![](dayone-moment://3F2A1B)\n![](dayone-moment://9C8D7E)\n\nDinner at [Taberna](https://example.com/t?a=1_b).",
+   "blocks": [
+    {
+     "type": "heading",
+     "attrs": {
+      "level": 1
+     },
+     "content": [
+      {
+       "type": "text",
+       "text": "Trip to Lisbon"
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "text": "We landed at "
+      },
+      {
+       "type": "text",
+       "text": "noon",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ]
+      },
+      {
+       "type": "text",
+       "text": " and walked to the "
+      },
+      {
+       "type": "text",
+       "text": "river",
+       "marks": [
+        {
+         "type": "italic"
+        }
+       ]
+      },
+      {
+       "type": "text",
+       "text": "."
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "hardBreak"
+      }
+     ]
+    },
+    {
+     "type": "__dayoneMedia",
+     "attrs": {
+      "identifier": "3F2A1B",
+      "kind": "image"
+     }
+    },
+    {
+     "type": "__dayoneMedia",
+     "attrs": {
+      "identifier": "9C8D7E",
+      "kind": "image"
+     }
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "text": "Dinner at "
+      },
+      {
+       "type": "text",
+       "text": "Taberna",
+       "marks": [
+        {
+         "type": "link",
+         "attrs": {
+          "href": "https://example.com/t?a=1_b"
+         }
+        }
+       ]
+      },
+      {
+       "type": "text",
+       "text": "."
+      }
+     ]
+    }
+   ],
+   "split": {
+    "title": "Trip to Lisbon",
+    "body": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "We landed at "
+       },
+       {
+        "type": "text",
+        "text": "noon",
+        "marks": [
+         {
+          "type": "bold"
+         }
+        ]
+       },
+       {
+        "type": "text",
+        "text": " and walked to the "
+       },
+       {
+        "type": "text",
+        "text": "river",
+        "marks": [
+         {
+          "type": "italic"
+         }
+        ]
+       },
+       {
+        "type": "text",
+        "text": "."
+       }
+      ]
+     },
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "hardBreak"
+       }
+      ]
+     },
+     {
+      "type": "__dayoneMedia",
+      "attrs": {
+       "identifier": "3F2A1B",
+       "kind": "image"
+      }
+     },
+     {
+      "type": "__dayoneMedia",
+      "attrs": {
+       "identifier": "9C8D7E",
+       "kind": "image"
+      }
+     },
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "Dinner at "
+       },
+       {
+        "type": "text",
+        "text": "Taberna",
+        "marks": [
+         {
+          "type": "link",
+          "attrs": {
+           "href": "https://example.com/t?a=1_b"
+          }
+         }
+        ]
+       },
+       {
+        "type": "text",
+        "text": "."
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "md": "First line is the title\nsecond line stays in the body\nthird too",
+   "blocks": [
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "text": "First line is the title"
+      },
+      {
+       "type": "hardBreak"
+      },
+      {
+       "type": "text",
+       "text": "second line stays in the body"
+      },
+      {
+       "type": "hardBreak"
+      },
+      {
+       "type": "text",
+       "text": "third too"
+      }
+     ]
+    }
+   ],
+   "split": {
+    "title": "First line is the title",
+    "body": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "second line stays in the body"
+       },
+       {
+        "type": "hardBreak"
+       },
+       {
+        "type": "text",
+        "text": "third too"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "md": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+   "blocks": [
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "text": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      }
+     ]
+    }
+   ],
+   "split": {
+    "title": "",
+    "body": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "md": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB\nrest",
+   "blocks": [
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "text": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+      },
+      {
+       "type": "hardBreak"
+      },
+      {
+       "type": "text",
+       "text": "rest"
+      }
+     ]
+    }
+   ],
+   "split": {
+    "title": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+    "body": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "rest"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "md": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\nemoji title cut inside a pair",
+   "blocks": [
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+      },
+      {
+       "type": "hardBreak"
+      },
+      {
+       "type": "text",
+       "text": "emoji title cut inside a pair"
+      }
+     ]
+    }
+   ],
+   "split": {
+    "title": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+    "body": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "emoji title cut inside a pair"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "md": "   \n\n## Spaced heading   \n\n- one\n- two\n* three\n+ four\n\n1. first\n2) second\n\n- [ ] todo\n- [x] done\n- [X] DONE\n- plain after tasks",
+   "blocks": [
+    {
+     "type": "heading",
+     "attrs": {
+      "level": 2
+     },
+     "content": [
+      {
+       "type": "text",
+       "text": "Spaced heading"
+      }
+     ]
+    },
+    {
+     "type": "bulletList",
+     "content": [
+      {
+       "type": "listItem",
+       "content": [
+        {
+         "type": "paragraph",
+         "content": [
+          {
+           "type": "text",
+           "text": "one"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "type": "listItem",
+       "content": [
+        {
+         "type": "paragraph",
+         "content": [
+          {
+           "type": "text",
+           "text": "two"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "type": "listItem",
+       "content": [
+        {
+         "type": "paragraph",
+         "content": [
+          {
+           "type": "text",
+           "text": "three"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "type": "listItem",
+       "content": [
+        {
+         "type": "paragraph",
+         "content": [
+          {
+           "type": "text",
+           "text": "four"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "orderedList",
+     "content": [
+      {
+       "type": "listItem",
+       "content": [
+        {
+         "type": "paragraph",
+         "content": [
+          {
+           "type": "text",
+           "text": "first"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "type": "listItem",
+       "content": [
+        {
+         "type": "paragraph",
+         "content": [
+          {
+           "type": "text",
+           "text": "second"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "taskList",
+     "content": [
+      {
+       "type": "taskItem",
+       "attrs": {
+        "checked": false
+       },
+       "content": [
+        {
+         "type": "paragraph",
+         "content": [
+          {
+           "type": "text",
+           "text": "todo"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "type": "taskItem",
+       "attrs": {
+        "checked": true
+       },
+       "content": [
+        {
+         "type": "paragraph",
+         "content": [
+          {
+           "type": "text",
+           "text": "done"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "type": "taskItem",
+       "attrs": {
+        "checked": true
+       },
+       "content": [
+        {
+         "type": "paragraph",
+         "content": [
+          {
+           "type": "text",
+           "text": "DONE"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "bulletList",
+     "content": [
+      {
+       "type": "listItem",
+       "content": [
+        {
+         "type": "paragraph",
+         "content": [
+          {
+           "type": "text",
+           "text": "plain after tasks"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "split": {
+    "title": "Spaced heading",
+    "body": [
+     {
+      "type": "bulletList",
+      "content": [
+       {
+        "type": "listItem",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "one"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "listItem",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "two"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "listItem",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "three"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "listItem",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "four"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "orderedList",
+      "content": [
+       {
+        "type": "listItem",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "first"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "listItem",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "second"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "taskList",
+      "content": [
+       {
+        "type": "taskItem",
+        "attrs": {
+         "checked": false
+        },
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "todo"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "taskItem",
+        "attrs": {
+         "checked": true
+        },
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "done"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "taskItem",
+        "attrs": {
+         "checked": true
+        },
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "DONE"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "bulletList",
+      "content": [
+       {
+        "type": "listItem",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "plain after tasks"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "md": "> quoted **bold**\n> second\n>\n> third\n\nafter",
+   "blocks": [
+    {
+     "type": "blockquote",
+     "content": [
+      {
+       "type": "paragraph",
+       "content": [
+        {
+         "type": "text",
+         "text": "quoted "
+        },
+        {
+         "type": "text",
+         "text": "bold",
+         "marks": [
+          {
+           "type": "bold"
+          }
+         ]
+        },
+        {
+         "type": "hardBreak"
+        },
+        {
+         "type": "text",
+         "text": "second"
+        }
+       ]
+      },
+      {
+       "type": "paragraph",
+       "content": [
+        {
+         "type": "text",
+         "text": "third"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "text": "after"
+      }
+     ]
+    }
+   ],
+   "split": {
+    "title": "",
+    "body": [
+     {
+      "type": "blockquote",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "quoted "
+         },
+         {
+          "type": "text",
+          "text": "bold",
+          "marks": [
+           {
+            "type": "bold"
+           }
+          ]
+         },
+         {
+          "type": "hardBreak"
+         },
+         {
+          "type": "text",
+          "text": "second"
+         }
+        ]
+       },
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "third"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "after"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "md": "```js\nconst a = 1;\n\n```\n```\nno lang\n```\n```unterminated\nline",
+   "blocks": [
+    {
+     "type": "codeBlock",
+     "attrs": {
+      "language": "js"
+     },
+     "content": [
+      {
+       "type": "text",
+       "text": "const a = 1;\n"
+      }
+     ]
+    },
+    {
+     "type": "codeBlock",
+     "attrs": {
+      "language": null
+     },
+     "content": [
+      {
+       "type": "text",
+       "text": "no lang"
+      }
+     ]
+    },
+    {
+     "type": "codeBlock",
+     "attrs": {
+      "language": "unterminated"
+     },
+     "content": [
+      {
+       "type": "text",
+       "text": "line"
+      }
+     ]
+    }
+   ],
+   "split": {
+    "title": "",
+    "body": [
+     {
+      "type": "codeBlock",
+      "attrs": {
+       "language": "js"
+      },
+      "content": [
+       {
+        "type": "text",
+        "text": "const a = 1;\n"
+       }
+      ]
+     },
+     {
+      "type": "codeBlock",
+      "attrs": {
+       "language": null
+      },
+      "content": [
+       {
+        "type": "text",
+        "text": "no lang"
+       }
+      ]
+     },
+     {
+      "type": "codeBlock",
+      "attrs": {
+       "language": "unterminated"
+      },
+      "content": [
+       {
+        "type": "text",
+        "text": "line"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "md": "---\n***\n___\n- - -\nText",
+   "blocks": [
+    {
+     "type": "horizontalRule"
+    },
+    {
+     "type": "horizontalRule"
+    },
+    {
+     "type": "horizontalRule"
+    },
+    {
+     "type": "bulletList",
+     "content": [
+      {
+       "type": "listItem",
+       "content": [
+        {
+         "type": "paragraph",
+         "content": [
+          {
+           "type": "text",
+           "text": "- -"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "text": "Text"
+      }
+     ]
+    }
+   ],
+   "split": {
+    "title": "",
+    "body": [
+     {
+      "type": "horizontalRule"
+     },
+     {
+      "type": "horizontalRule"
+     },
+     {
+      "type": "horizontalRule"
+     },
+     {
+      "type": "bulletList",
+      "content": [
+       {
+        "type": "listItem",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "- -"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "Text"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "md": "Escapes: \\*not italic\\* and \\`tick and \\\\ backslash\\",
+   "blocks": [
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "text": "Escapes: *not italic* and `tick and \\ backslash\\"
+      }
+     ]
+    }
+   ],
+   "split": {
+    "title": "Escapes: *not italic* and `tick and \\ backslash\\",
+    "body": []
+   }
+  },
+  {
+   "md": "Code `a*b*c` and `unclosed and **bold *in* bold** and __under__ and _it_ and *it2*",
+   "blocks": [
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "text": "Code "
+      },
+      {
+       "type": "text",
+       "text": "a*b*c",
+       "marks": [
+        {
+         "type": "code"
+        }
+       ]
+      },
+      {
+       "type": "text",
+       "text": " and `unclosed and "
+      },
+      {
+       "type": "text",
+       "text": "bold ",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ]
+      },
+      {
+       "type": "text",
+       "text": "in",
+       "marks": [
+        {
+         "type": "bold"
+        },
+        {
+         "type": "italic"
+        }
+       ]
+      },
+      {
+       "type": "text",
+       "text": " bold",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ]
+      },
+      {
+       "type": "text",
+       "text": " and "
+      },
+      {
+       "type": "text",
+       "text": "under",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ]
+      },
+      {
+       "type": "text",
+       "text": " and "
+      },
+      {
+       "type": "text",
+       "text": "it",
+       "marks": [
+        {
+         "type": "italic"
+        }
+       ]
+      },
+      {
+       "type": "text",
+       "text": " and "
+      },
+      {
+       "type": "text",
+       "text": "it2",
+       "marks": [
+        {
+         "type": "italic"
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "split": {
+    "title": "Code a*b*c and `unclosed and bold in bold and under and it and it2",
+    "body": []
+   }
+  },
+  {
+   "md": "Link with bad scheme [click](javascript:alert(1)) and [mail](MAILTO:x@y) and [rel](/p) and [](https://empty) and [x](  )",
+   "blocks": [
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "text": "Link with bad scheme "
+      },
+      {
+       "type": "text",
+       "text": "click"
+      },
+      {
+       "type": "text",
+       "text": ") and "
+      },
+      {
+       "type": "text",
+       "text": "mail",
+       "marks": [
+        {
+         "type": "link",
+         "attrs": {
+          "href": "MAILTO:x@y"
+         }
+        }
+       ]
+      },
+      {
+       "type": "text",
+       "text": " and "
+      },
+      {
+       "type": "text",
+       "text": "rel",
+       "marks": [
+        {
+         "type": "link",
+         "attrs": {
+          "href": "/p"
+         }
+        }
+       ]
+      },
+      {
+       "type": "text",
+       "text": " and "
+      },
+      {
+       "type": "text",
+       "text": " and "
+      },
+      {
+       "type": "text",
+       "text": "x"
+      }
+     ]
+    }
+   ],
+   "split": {
+    "title": "Link with bad scheme click) and mail and rel and  and x",
+    "body": []
+   }
+  },
+  {
+   "md": "Nested [**bold link**](https://a.b) and ![alt](https://not-a-moment/img.png) and ![x](dayone-moment:/video/ABC-123) ![y](dayone-moment:/audio/A1) ![z](dayone-moment:/pdfAttachment/P9) ![w](dayone-moment:/other/Q)",
+   "blocks": [
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "text": "Nested "
+      },
+      {
+       "type": "text",
+       "text": "bold link",
+       "marks": [
+        {
+         "type": "link",
+         "attrs": {
+          "href": "https://a.b"
+         }
+        },
+        {
+         "type": "bold"
+        }
+       ]
+      },
+      {
+       "type": "text",
+       "text": " and  and "
+      },
+      {
+       "type": "text",
+       "text": " "
+      },
+      {
+       "type": "text",
+       "text": " "
+      },
+      {
+       "type": "text",
+       "text": " "
+      }
+     ]
+    },
+    {
+     "type": "__dayoneMedia",
+     "attrs": {
+      "identifier": "ABC-123",
+      "kind": "video"
+     }
+    },
+    {
+     "type": "__dayoneMedia",
+     "attrs": {
+      "identifier": "A1",
+      "kind": "audio"
+     }
+    },
+    {
+     "type": "__dayoneMedia",
+     "attrs": {
+      "identifier": "P9",
+      "kind": "file"
+     }
+    },
+    {
+     "type": "__dayoneMedia",
+     "attrs": {
+      "identifier": "other",
+      "kind": "image"
+     }
+    }
+   ],
+   "split": {
+    "title": "Nested bold link and  and",
+    "body": [
+     {
+      "type": "__dayoneMedia",
+      "attrs": {
+       "identifier": "ABC-123",
+       "kind": "video"
+      }
+     },
+     {
+      "type": "__dayoneMedia",
+      "attrs": {
+       "identifier": "A1",
+       "kind": "audio"
+      }
+     },
+     {
+      "type": "__dayoneMedia",
+      "attrs": {
+       "identifier": "P9",
+       "kind": "file"
+      }
+     },
+     {
+      "type": "__dayoneMedia",
+      "attrs": {
+       "identifier": "other",
+       "kind": "image"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "md": "Inline image in heading\n# H ![](dayone-moment://IMG1)\n- item ![](dayone-moment://IMG2)",
+   "blocks": [
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "text": "Inline image in heading"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "attrs": {
+      "level": 1
+     },
+     "content": [
+      {
+       "type": "text",
+       "text": "H "
+      }
+     ]
+    },
+    {
+     "type": "bulletList",
+     "content": [
+      {
+       "type": "listItem",
+       "content": [
+        {
+         "type": "paragraph",
+         "content": [
+          {
+           "type": "text",
+           "text": "item "
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "split": {
+    "title": "Inline image in heading",
+    "body": [
+     {
+      "type": "heading",
+      "attrs": {
+       "level": 1
+      },
+      "content": [
+       {
+        "type": "text",
+        "text": "H "
+       }
+      ]
+     },
+     {
+      "type": "bulletList",
+      "content": [
+       {
+        "type": "listItem",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "item "
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "md": "\r\nWindows\r\nline endings\rold mac\r\n\r\n# H\r\n",
+   "blocks": [
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "text": "Windows"
+      },
+      {
+       "type": "hardBreak"
+      },
+      {
+       "type": "text",
+       "text": "line endings"
+      },
+      {
+       "type": "hardBreak"
+      },
+      {
+       "type": "text",
+       "text": "old mac"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "attrs": {
+      "level": 1
+     },
+     "content": [
+      {
+       "type": "text",
+       "text": "H"
+      }
+     ]
+    }
+   ],
+   "split": {
+    "title": "Windows",
+    "body": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "line endings"
+       },
+       {
+        "type": "hardBreak"
+       },
+       {
+        "type": "text",
+        "text": "old mac"
+       }
+      ]
+     },
+     {
+      "type": "heading",
+      "attrs": {
+       "level": 1
+      },
+      "content": [
+       {
+        "type": "text",
+        "text": "H"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "md": "trailing   \n still para ﻿\nnext",
+   "blocks": [
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "text": "trailing   "
+      },
+      {
+       "type": "hardBreak"
+      },
+      {
+       "type": "text",
+       "text": " still para ﻿"
+      },
+      {
+       "type": "hardBreak"
+      },
+      {
+       "type": "text",
+       "text": "next"
+      }
+     ]
+    }
+   ],
+   "split": {
+    "title": "trailing",
+    "body": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": " still para ﻿"
+       },
+       {
+        "type": "hardBreak"
+       },
+       {
+        "type": "text",
+        "text": "next"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "md": "#nospace\n####### seven\n#\ttab heading\n# \n#   ",
+   "blocks": [
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "text": "#nospace"
+      },
+      {
+       "type": "hardBreak"
+      },
+      {
+       "type": "text",
+       "text": "####### seven"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "attrs": {
+      "level": 1
+     },
+     "content": [
+      {
+       "type": "text",
+       "text": "tab heading"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "attrs": {
+      "level": 1
+     },
+     "content": []
+    },
+    {
+     "type": "heading",
+     "attrs": {
+      "level": 1
+     },
+     "content": []
+    }
+   ],
+   "split": {
+    "title": "#nospace",
+    "body": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "####### seven"
+       }
+      ]
+     },
+     {
+      "type": "heading",
+      "attrs": {
+       "level": 1
+      },
+      "content": [
+       {
+        "type": "text",
+        "text": "tab heading"
+       }
+      ]
+     },
+     {
+      "type": "heading",
+      "attrs": {
+       "level": 1
+      },
+      "content": []
+     },
+     {
+      "type": "heading",
+      "attrs": {
+       "level": 1
+      },
+      "content": []
+     }
+    ]
+   }
+  },
+  {
+   "md": "1.nospace\n10. ten\n-nospace\n-  [ ]  spaced task",
+   "blocks": [
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "text": "1.nospace"
+      }
+     ]
+    },
+    {
+     "type": "orderedList",
+     "content": [
+      {
+       "type": "listItem",
+       "content": [
+        {
+         "type": "paragraph",
+         "content": [
+          {
+           "type": "text",
+           "text": "ten"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "text": "-nospace"
+      }
+     ]
+    },
+    {
+     "type": "taskList",
+     "content": [
+      {
+       "type": "taskItem",
+       "attrs": {
+        "checked": false
+       },
+       "content": [
+        {
+         "type": "paragraph",
+         "content": [
+          {
+           "type": "text",
+           "text": "spaced task"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "split": {
+    "title": "1.nospace",
+    "body": [
+     {
+      "type": "orderedList",
+      "content": [
+       {
+        "type": "listItem",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "ten"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "-nospace"
+       }
+      ]
+     },
+     {
+      "type": "taskList",
+      "content": [
+       {
+        "type": "taskItem",
+        "attrs": {
+         "checked": false
+        },
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "spaced task"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "md": "**unclosed bold and *x",
+   "blocks": [
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "text": "*"
+      },
+      {
+       "type": "text",
+       "text": "unclosed bold and ",
+       "marks": [
+        {
+         "type": "italic"
+        }
+       ]
+      },
+      {
+       "type": "text",
+       "text": "x"
+      }
+     ]
+    }
+   ],
+   "split": {
+    "title": "*unclosed bold and x",
+    "body": []
+   }
+  },
+  {
+   "md": "* * *\n*a* *",
+   "blocks": [
+    {
+     "type": "bulletList",
+     "content": [
+      {
+       "type": "listItem",
+       "content": [
+        {
+         "type": "paragraph",
+         "content": [
+          {
+           "type": "text",
+           "text": " ",
+           "marks": [
+            {
+             "type": "italic"
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "text": "a",
+       "marks": [
+        {
+         "type": "italic"
+        }
+       ]
+      },
+      {
+       "type": "text",
+       "text": " *"
+      }
+     ]
+    }
+   ],
+   "split": {
+    "title": "",
+    "body": [
+     {
+      "type": "bulletList",
+      "content": [
+       {
+        "type": "listItem",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": " ",
+            "marks": [
+             {
+              "type": "italic"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "a",
+        "marks": [
+         {
+          "type": "italic"
+         }
+        ]
+       },
+       {
+        "type": "text",
+        "text": " *"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "md": "",
+   "blocks": [],
+   "split": {
+    "title": "",
+    "body": []
+   }
+  },
+  {
+   "md": "\n\n\n",
+   "blocks": [],
+   "split": {
+    "title": "",
+    "body": []
+   }
+  },
+  {
+   "md": "![](dayone-moment://ONLY)",
+   "blocks": [
+    {
+     "type": "__dayoneMedia",
+     "attrs": {
+      "identifier": "ONLY",
+      "kind": "image"
+     }
+    }
+   ],
+   "split": {
+    "title": "",
+    "body": [
+     {
+      "type": "__dayoneMedia",
+      "attrs": {
+       "identifier": "ONLY",
+       "kind": "image"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "md": "# \n\nBody after empty heading",
+   "blocks": [
+    {
+     "type": "heading",
+     "attrs": {
+      "level": 1
+     },
+     "content": []
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "text": "Body after empty heading"
+      }
+     ]
+    }
+   ],
+   "split": {
+    "title": "",
+    "body": [
+     {
+      "type": "heading",
+      "attrs": {
+       "level": 1
+      },
+      "content": []
+     },
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "Body after empty heading"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "md": "**Bold title**\nBody",
+   "blocks": [
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "text": "Bold title",
+       "marks": [
+        {
+         "type": "bold"
+        }
+       ]
+      },
+      {
+       "type": "hardBreak"
+      },
+      {
+       "type": "text",
+       "text": "Body"
+      }
+     ]
+    }
+   ],
+   "split": {
+    "title": "Bold title",
+    "body": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "Body"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "md": "[link title](https://x.y)\nbody",
+   "blocks": [
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "text": "link title",
+       "marks": [
+        {
+         "type": "link",
+         "attrs": {
+          "href": "https://x.y"
+         }
+        }
+       ]
+      },
+      {
+       "type": "hardBreak"
+      },
+      {
+       "type": "text",
+       "text": "body"
+      }
+     ]
+    }
+   ],
+   "split": {
+    "title": "link title",
+    "body": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "body"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "md": "Title with LS\nbody",
+   "blocks": [
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "text": "Title with LS"
+      },
+      {
+       "type": "hardBreak"
+      },
+      {
+       "type": "text",
+       "text": "body"
+      }
+     ]
+    }
+   ],
+   "split": {
+    "title": "Title with LS",
+    "body": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "body"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "md": "#﻿BOM heading\n-﻿BOM item\n#NEL not a heading\n-NEL not an item\n>﻿quote",
+   "blocks": [
+    {
+     "type": "heading",
+     "attrs": {
+      "level": 1
+     },
+     "content": [
+      {
+       "type": "text",
+       "text": "BOM heading"
+      }
+     ]
+    },
+    {
+     "type": "bulletList",
+     "content": [
+      {
+       "type": "listItem",
+       "content": [
+        {
+         "type": "paragraph",
+         "content": [
+          {
+           "type": "text",
+           "text": "BOM item"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "paragraph",
+     "content": [
+      {
+       "type": "text",
+       "text": "#NEL not a heading"
+      },
+      {
+       "type": "hardBreak"
+      },
+      {
+       "type": "text",
+       "text": "-NEL not an item"
+      }
+     ]
+    },
+    {
+     "type": "blockquote",
+     "content": [
+      {
+       "type": "paragraph",
+       "content": [
+        {
+         "type": "text",
+         "text": "quote"
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "split": {
+    "title": "BOM heading",
+    "body": [
+     {
+      "type": "bulletList",
+      "content": [
+       {
+        "type": "listItem",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "BOM item"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "#NEL not a heading"
+       },
+       {
+        "type": "hardBreak"
+       },
+       {
+        "type": "text",
+        "text": "-NEL not an item"
+       }
+      ]
+     },
+     {
+      "type": "blockquote",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "quote"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "md": "#### four\n##### five\n###### six\n```﻿\ncode after BOM fence\n```",
+   "blocks": [
+    {
+     "type": "heading",
+     "attrs": {
+      "level": 3
+     },
+     "content": [
+      {
+       "type": "text",
+       "text": "four"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "attrs": {
+      "level": 3
+     },
+     "content": [
+      {
+       "type": "text",
+       "text": "five"
+      }
+     ]
+    },
+    {
+     "type": "heading",
+     "attrs": {
+      "level": 3
+     },
+     "content": [
+      {
+       "type": "text",
+       "text": "six"
+      }
+     ]
+    },
+    {
+     "type": "codeBlock",
+     "attrs": {
+      "language": null
+     },
+     "content": [
+      {
+       "type": "text",
+       "text": "code after BOM fence"
+      }
+     ]
+    }
+   ],
+   "split": {
+    "title": "four",
+    "body": [
+     {
+      "type": "heading",
+      "attrs": {
+       "level": 3
+      },
+      "content": [
+       {
+        "type": "text",
+        "text": "five"
+       }
+      ]
+     },
+     {
+      "type": "heading",
+      "attrs": {
+       "level": 3
+      },
+      "content": [
+       {
+        "type": "text",
+        "text": "six"
+       }
+      ]
+     },
+     {
+      "type": "codeBlock",
+      "attrs": {
+       "language": null
+      },
+      "content": [
+       {
+        "type": "text",
+        "text": "code after BOM fence"
+       }
+      ]
+     }
+    ]
+   }
+  }
+ ],
+ "moments": [
+  {
+   "url": "dayone-moment://ABC",
+   "ref": {
+    "kind": "image",
+    "identifier": "ABC"
+   }
+  },
+  {
+   "url": "dayone-moment:/ABC",
+   "ref": {
+    "kind": "image",
+    "identifier": "ABC"
+   }
+  },
+  {
+   "url": "dayone-moment:///ABC",
+   "ref": null
+  },
+  {
+   "url": "dayone-moment://video/V1",
+   "ref": {
+    "kind": "video",
+    "identifier": "V1"
+   }
+  },
+  {
+   "url": "dayone-moment:/video/V1",
+   "ref": {
+    "kind": "video",
+    "identifier": "V1"
+   }
+  },
+  {
+   "url": "dayone-moment://video",
+   "ref": {
+    "kind": "image",
+    "identifier": "video"
+   }
+  },
+  {
+   "url": "dayone-moment://audio/",
+   "ref": {
+    "kind": "image",
+    "identifier": "audio"
+   }
+  },
+  {
+   "url": "dayone-moment://pdfAttachment/P_1",
+   "ref": {
+    "kind": "file",
+    "identifier": "P"
+   }
+  },
+  {
+   "url": "dayone-moment://a-b-c?x",
+   "ref": {
+    "kind": "image",
+    "identifier": "a-b-c"
+   }
+  },
+  {
+   "url": "dayone-moment:ABC",
+   "ref": null
+  },
+  {
+   "url": "https://x",
+   "ref": null
+  },
+  {
+   "url": "dayone-moment://",
+   "ref": null
+  },
+  {
+   "url": "DAYONE-MOMENT://A",
+   "ref": null
+  },
+  {
+   "url": "dayone-moment://Ä",
+   "ref": null
+  }
+ ]
+}

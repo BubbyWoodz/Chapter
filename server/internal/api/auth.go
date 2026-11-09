@@ -266,7 +266,7 @@ func (s *Server) handleVerify(w http.ResponseWriter, r *http.Request) {
 	// "approved".
 	status, err := s.store.OwnerStatus(r.Context(), ownerID)
 	if err != nil {
-		log.Printf("owner status lookup failed for %s: %v", ownerID, err)
+		log.Printf("owner status lookup failed (%T)", err)
 		writeError(w, http.StatusInternalServerError, "could not verify vault status")
 		return
 	}

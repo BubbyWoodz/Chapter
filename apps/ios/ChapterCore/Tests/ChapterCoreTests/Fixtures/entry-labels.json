@@ -1,0 +1,42 @@
+[
+  {
+    "input": "  TRAVEL, FRIENDS  ",
+    "expected": "travel, friends"
+  },
+  {
+    "input": "﻿Work  LIFE﻿",
+    "expected": "work life"
+  },
+  {
+    "input": "X",
+    "expected": "x"
+  },
+  {
+    "input": "​Keep​",
+    "expected": "​keep​"
+  },
+  {
+    "input": "İ ΟΣ",
+    "expected": "i̇ ος"
+  },
+  {
+    "input": "  ",
+    "expected": ""
+  },
+  {
+    "input": "MUSIC\n\t NOTES",
+    "expected": "music notes"
+  },
+  {
+    "input": "Straße",
+    "expected": "straße"
+  },
+  {
+    "input": "CAFÉ",
+    "expected": "café"
+  },
+  {
+    "input": "CAFÉ",
+    "expected": "café"
+  }
+]

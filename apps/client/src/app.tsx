@@ -215,8 +215,8 @@ function MobileNav({ flow, setFlow, onCompose, onSettings, onSearch }: {
 
 export function App(): VNode {
   const desk = useIsDesktop();
-  const theme = useTheme();
-  const { status, hasVault, vaultMethod, ownerId, pendingApproval, approvalHint, retryApproval, bootstrapping, entries, journals, templates, aiSettings, newJournal, updateJournal, deleteJournal, signIn, unlock, unlockWithKey, setDeviceUnlock, lock, createEntry, rotatePhrase, deleteVault } = useAppData();
+  const { status, hasVault, vaultMethod, ownerId, pendingApproval, approvalHint, retryApproval, bootstrapping, entries, journals, templates, aiSettings, saveAppearance, newJournal, updateJournal, deleteJournal, signIn, unlock, unlockWithKey, setDeviceUnlock, lock, createEntry, rotatePhrase, deleteVault } = useAppData();
+  const theme = useTheme({value:aiSettings?.chapterAppearance,ready:!!ownerId && (status==='online'||(status==='offline'&&aiSettings!==null)) && !bootstrapping,save:saveAppearance});
   // Gamification badges: derived from the decrypted entries; celebrates one
   // newly earned badge at a time (state/badges.ts, quiet catch-up on first run).
   const badges = useBadges();

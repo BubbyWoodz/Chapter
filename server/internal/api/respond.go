@@ -19,28 +19,25 @@ func writeError(w http.ResponseWriter, status int, msg string) {
 }
 
 // writeInternalError answers a 500 with a generic message and logs the real
-// error server-side. The split matters both ways: an operator debugging a 500
-// needs the underlying error in the log, and the caller must not see
-// internals. Only the method, path, and error reach the log — never request
-// bodies (which are opaque ciphertext anyway, but the rule is the rule).
+// error type server-side. Driver messages can contain identifiers or values,
+// so routine logs retain only the safe route, operation and error type. More
+// invasive diagnostics require a deliberate operator-controlled session.
 func writeInternalError(w http.ResponseWriter, r *http.Request, msg string, err error) {
-	log.Printf("%s %s: %s: %v", r.Method, r.URL.Path, msg, err)
+	log.Printf("%s: %s (%T)", requestRoute(r), msg, err)
 	writeError(w, http.StatusInternalServerError, msg)
 }
 
 // decodeJSON reads a JSON body, rejecting unknown fields and oversized payloads.
 //
-// The decoder error is logged, never returned. encoding/json errors name the
-// offending field and byte offset, and with DisallowUnknownFields they also
-// confirm which field names a handler accepts — an unauthenticated caller could
-// map the whole request schema by feeding it guesses. The caller gets one
-// generic message; the operator gets the detail.
+// Neither callers nor routine logs receive the decoder message: unknown field
+// names are attacker-controlled and may themselves contain sensitive text.
+// Operators get only the error type; callers get one generic message.
 func decodeJSON(w http.ResponseWriter, r *http.Request, dst any) bool {
 	r.Body = http.MaxBytesReader(w, r.Body, 32<<20) // 32 MiB ceiling for an encrypted blob batch
 	dec := json.NewDecoder(r.Body)
 	dec.DisallowUnknownFields()
 	if err := dec.Decode(dst); err != nil {
-		log.Printf("decode %s %s: %v", r.Method, r.URL.Path, err)
+		log.Printf("decode %s: invalid body (%T)", requestRoute(r), err)
 		writeError(w, http.StatusBadRequest, "invalid request body")
 		return false
 	}

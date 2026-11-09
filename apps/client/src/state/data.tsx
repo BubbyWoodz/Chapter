@@ -1,3 +1,5 @@
+import { SettingsJournal } from '../appearance/settingsJournal';
+import { withAppearance, readAppearance, withAiSettingsPreservingAppearance, type SharedAppearance } from '../appearance/shared';
 // AppData provider: holds the in-memory identity/session, the live entry list,
 // and the background sync loop. Seed/identity live in memory; at rest the seed
 // is either nowhere (re-enter the mnemonic on cold start — the default) or, if
@@ -30,7 +32,7 @@ import { mnemonicToSeed } from '../crypto/mnemonic';
 import { sealSeed, sealSeedWithPrfSecret, sealWithKey, openSeed, openSeedWithPrfSecret, type WrapKey } from '../crypto/seedlock';
 import { enrollPrfCredential, evalPrf } from '../platform/webauthn';
 import { loadSealedSeed, storeSealedSeed, clearSealedSeed, loadAiSettingsRecord, storeAiSettingsRecord, clearAiSettingsRecord } from '../platform/keystore';
-import { sealAiSettings, openAiSettings, type AiSyncMeta } from '../ai/settings';
+import { openAiSettings,type AiSyncMeta } from '../ai/settings';
 import type { AiSettings } from '../ai/types';
 import { pushEntries, pushTemplates, pushInterviewTypes, pushJournals, pushAiSettings, pullEntries, type JournalEntry, type MediaAttachment, type TemplateRecord, type InterviewType, type AiSettingsRecord } from '../sync/engine';
 import { uploadMedia, downloadMedia, type MediaProgress } from '../sync/media';
@@ -118,6 +120,11 @@ interface AppData {
   aiSettings: AiSettings | null;
   /** Persist (sealed) and apply new AI settings; null disables and clears the record. */
   saveAiSettings(s: AiSettings | null): Promise<void>;
+  saveAppearance(p: SharedAppearance): Promise<void>;
+  reloadAiSettings(): Promise<void>;
+  restoreAiRecovery(row: AiSettingsRecord, mode: 'appearance'|'assistant'): Promise<void>;
+  aiRecoveries: AiSettingsRecord[];
+  aiPersistenceError: string | null;
   /**
    * Enter with the recovery phrase. With a `seal` choice, the derived seed is
    * additionally sealed into IndexedDB — under an Argon2id passphrase or a
@@ -300,6 +307,11 @@ export function AppDataProvider({ children }: { children: ComponentChildren }): 
   const [templates, setTemplates] = useState<TemplateRecord[]>([]);
   const [interviewTypes, setInterviewTypes] = useState<InterviewType[]>([]);
   const [aiSettings, setAiSettings] = useState<AiSettings | null>(null);
+  const rotationBusy=useRef(false);
+  const settingsJournal = useRef<SettingsJournal | null>(null);
+  const priorSettingsDrain = useRef<Promise<unknown>>(Promise.resolve());
+  const [aiRecoveries,setAiRecoveries] = useState<AiSettingsRecord[]>([]);
+  const [aiPersistenceError,setAiPersistenceError] = useState<string|null>(null);
 
   // Render-fresh snapshots for callbacks that act on the CURRENT lists outside
   // a setState updater (the delete paths). Assigned every render below.
@@ -463,7 +475,7 @@ export function AppDataProvider({ children }: { children: ComponentChildren }): 
     do {
     flushQueued.current = false;
     const s = session.current;
-    if (!s) return false;
+    if (!s||rotationBusy.current) return false;
     if (
       pending.current.size === 0 &&
       pendingTemplates.current.size === 0 &&
@@ -505,14 +517,9 @@ export function AppDataProvider({ children }: { children: ComponentChildren }): 
         // Either outcome retires the queued record: accepted → it's on the relay;
         // rejected as stale → the relay already holds something newer and the
         // next pull brings it here.
-        await pushAiSettings(relay, s.token, s.identity.dataKey, aiBatch);
-        if (pendingAi.current === aiBatch) {
-          pendingAi.current = null;
-          aiSync.current = { recordId: aiBatch.recordId, updatedAt: aiBatch.updatedAt, dirty: false };
-          if (aiBatch.settings && identity.current) {
-            void storeAiSettingsRecord(sealAiSettings(identity.current.aiKey, aiBatch.settings, aiSync.current)).catch(() => undefined);
-          }
-        }
+        const applied=await pushAiSettings(relay, s.token, s.identity.dataKey, aiBatch);
+        if (identity.current !== s.identity || session.current !== s) return false;
+        if(applied)await settingsJournal.current?.acknowledge(aiBatch);
       }
       syncPendingCount();
       setStatusLive('online');
@@ -534,7 +541,7 @@ export function AppDataProvider({ children }: { children: ComponentChildren }): 
   // Returns false when the pull failed (see flush for why callers combine).
   const pull = useCallback(async (): Promise<boolean> => {
     const s = session.current;
-    if (!s) return false;
+    if (!s||rotationBusy.current) return false;
     try {
       // The relay caps a pull at one page (500 records): keep pulling until it
       // reports no more, or a fresh device bootstrapping a large vault would
@@ -542,7 +549,7 @@ export function AppDataProvider({ children }: { children: ComponentChildren }): 
       let more = true;
       while (more) {
       const res = await pullEntries(relay, s.token, s.identity.dataKey, cursor.current);
-      cursor.current = res.cursor;
+      if (identity.current !== s.identity || session.current !== s) return false;
       more = res.more;
       if (res.entries.length) {
         setEntries((prev) => mergeByLWW(prev, res.entries));
@@ -608,29 +615,13 @@ export function AppDataProvider({ children }: { children: ComponentChildren }): 
         });
       }
       if (res.aiSettings.length) {
-        // The settings singleton: newest updatedAt wins; ids converge like journals.
-        const newest = res.aiSettings.reduce((a, b) => (b.updatedAt > a.updatedAt ? b : a));
-        const recordId = res.aiSettings.reduce(
-          (id, r) => adoptRecordId(id, r.recordId),
-          aiSync.current.recordId,
-        );
-        if (newest.updatedAt > aiSync.current.updatedAt) {
-          aiSync.current = { recordId, updatedAt: newest.updatedAt, dirty: false };
-          pendingAi.current = null; // a queued older edit lost the race
-          if (newest.deleted || newest.settings === null) {
-            void clearAiSettingsRecord();
-            setAiSettings(null);
-          } else {
-            setAiSettings(newest.settings);
-            if (identity.current) {
-              void storeAiSettingsRecord(sealAiSettings(identity.current.aiKey, newest.settings, aiSync.current)).catch(() => undefined);
-            }
-          }
-          syncPendingCount();
-        } else {
-          aiSync.current = { ...aiSync.current, recordId };
-        }
+        const journal=settingsJournal.current;
+        if(!journal)throw new Error('Saved settings are not ready');
+        await journal.receive(res.aiSettings);
       }
+      if (identity.current !== s.identity || session.current !== s) return false;
+      // A settings transaction failure must NOT consume its relay page.
+      cursor.current = res.cursor;
       }
       setStatusLive('online');
       return true;
@@ -692,41 +683,41 @@ export function AppDataProvider({ children }: { children: ComponentChildren }): 
     void connect(true);
   }, [relay, connect]);
 
+  const clearOwnedSettings=useCallback(async(id:Identity)=>{
+    const legacy=await loadAiSettingsRecord();let ownedLegacy;
+    if(legacy){try{openAiSettings(id.aiKey,legacy);ownedLegacy=legacy;}catch{/* another owner/corrupt legacy copy is not ours to erase */}}
+    await clearAiSettingsRecord(id.ownerId,ownedLegacy);
+  },[]);
+  const makeSettingsJournal=useCallback((id:Identity)=>new SettingsJournal(id.aiKey,{
+        load:()=>loadAiSettingsRecord(id.ownerId),
+        store:(value,expected)=>storeAiSettingsRecord(value,id.ownerId,expected),
+      },()=>identity.current===id,state=>{
+        if(identity.current!==id)return;
+        setAiSettings(state.current?.settings??null);setAiRecoveries(state.recovered);
+        aiSync.current={recordId:state.current?.recordId,updatedAt:state.current?.updatedAt??0,dirty:state.dirty};
+        pendingAi.current=state.dirty?state.current:null;
+        syncPendingCount();
+      }),[setAiSettings,syncPendingCount]);
+
   // Shared tail of signIn and unlock: derive the identity from the seed, open
   // the per-owner DB, hydrate the UI, and kick off the first sync.
   const startSession = useCallback(
     async (seed: Uint8Array) => {
+      // Old in-flight writes finish before a different owner can load/store.
+      await priorSettingsDrain.current;
+      if(settingsJournal.current) {settingsJournal.current.close();await settingsJournal.current.drain();}
       const id = deriveIdentity(seed); // local, synchronous
       seedRef.current = seed;
       identity.current = id;
       setOwnerId(id.ownerId);
       setApprovalHint(id.approvalHint);
-      // Restore the AI settings, if this vault sealed any on this device. A
-      // record sealed by a different vault fails the AEAD tag → stays null.
-      void loadAiSettingsRecord().then((rec) => {
-        if (!rec || identity.current !== id) return;
-        try {
-          const settings = openAiSettings(id.aiKey, rec);
-          setAiSettings(settings);
-          // Records sealed before AI-settings sync carry no meta: stamp them
-          // now and queue a one-time push so this device seeds the relay (a
-          // newer record from another device wins on the next pull anyway).
-          const meta = rec.sync ?? { recordId: undefined, updatedAt: Date.now(), dirty: true };
-          aiSync.current = meta;
-          if (meta.dirty) {
-            pendingAi.current = {
-              recordId: meta.recordId ?? newRecordId(),
-              settings,
-              updatedAt: meta.updatedAt,
-            };
-            aiSync.current = { ...meta, recordId: pendingAi.current.recordId };
-            syncPendingCount();
-            void flush();
-          }
-        } catch {
-          /* tampered or another vault's record — AI stays unconfigured */
-        }
-      });
+      // Local load and every edit/pull/ack share one serialized journal. The
+      // legacy global slot is copied only if it opens with this vault's key.
+      const journal=makeSettingsJournal(id);
+      settingsJournal.current=journal;
+      setStatus('connecting');setBootstrapping(true);
+      try { await journal.load(); } catch { if(identity.current===id)setAiPersistenceError('Saved settings could not be opened or committed. Existing encrypted data is retained; settings changes are blocked until storage recovers.'); }
+      if(identity.current!==id||journal.isClosed)return;
       // Leave the lock screen immediately: loading the SQLite wasm and the
       // first relay sync take visible time — the app shell shows "connecting"
       // + the first-sync notice instead of freezing.
@@ -920,6 +911,8 @@ export function AppDataProvider({ children }: { children: ComponentChildren }): 
     // unlocked vault, since its output would have nowhere to be written.
     stopAllRenders();
     session.current = null;
+    if(settingsJournal.current){settingsJournal.current.close();priorSettingsDrain.current=settingsJournal.current.drain();settingsJournal.current=null;}
+    setAiRecoveries([]);setAiPersistenceError(null);
     identity.current = null;
     wrap.current = null;
     seedRef.current = null;
@@ -1192,28 +1185,38 @@ export function AppDataProvider({ children }: { children: ComponentChildren }): 
   // configuration — API key included — follows the vault to its other devices.
   // The plaintext only ever lives in this state object while unlocked; on the
   // wire and on the relay it is ciphertext like everything else.
-  const saveAiSettings: AppData['saveAiSettings'] = useCallback(
-    async (s) => {
-      const id = identity.current;
-      if (!id) throw new Error('not signed in');
-      const now = Date.now();
-      const recordId = aiSync.current.recordId ?? newRecordId();
-      aiSync.current = { recordId, updatedAt: now, dirty: true };
-      if (s === null) {
-        await clearAiSettingsRecord();
-        setAiSettings(null);
-        // Tombstone so the clearing reaches the other devices too.
-        pendingAi.current = { recordId, settings: null, updatedAt: now, deleted: true };
-      } else {
-        await storeAiSettingsRecord(sealAiSettings(id.aiKey, s, aiSync.current));
-        setAiSettings(s);
-        pendingAi.current = { recordId, settings: s, updatedAt: now };
-      }
-      syncPendingCount();
-      void flush();
-    },
-    [flush, syncPendingCount],
-  );
+  // Serialize durable settings edits; rapid palette/skin changes and an open AI
+  // form must not overwrite each other's latest fields or claim pre-disk success.
+  const persistSettings = useCallback(async (change:(current:AiSettings|null)=>AiSettings|null):Promise<void> => {
+    const journal=settingsJournal.current;
+    if(!journal||rotationBusy.current)throw new Error('Vault changed, locked or rotating');
+    try {await journal.edit(change);if(settingsJournal.current===journal){setAiPersistenceError(null);void flush();}}
+    catch(error){if(settingsJournal.current===journal)setAiPersistenceError('Settings were not saved. Existing encrypted data and queued work are retained. Reload after a cross-tab conflict, then retry.');throw error;}
+  },[flush]);
+  const reloadAiSettings=useCallback(async()=>{
+    const journal=settingsJournal.current;if(!journal||rotationBusy.current)throw new Error('Vault is locked or rotating');
+    try {await journal.load();if(settingsJournal.current===journal)setAiPersistenceError(null);}catch(error){if(settingsJournal.current===journal)setAiPersistenceError('Saved settings could not reload; encrypted data is retained.');throw error;}
+  },[]);
+  const restoreAiRecovery=useCallback(async(row:AiSettingsRecord,mode:'appearance'|'assistant')=>{
+    const journal=settingsJournal.current;if(!journal||rotationBusy.current)throw new Error('Vault is locked or rotating');
+    try {
+      await journal.edit(current=>{
+        if(!row.settings)throw new Error('Cleared settings have no configuration to restore');
+        if(mode==='appearance') {
+          const preference=readAppearance(row.settings.chapterAppearance);
+          if(!preference)throw new Error('Unsupported recovered appearance');
+          return withAppearance(current,preference);
+        }
+        return withAiSettingsPreservingAppearance(current,{...row.settings,enabled:false});
+      },Date.now(),true);
+      setAiPersistenceError(null);void flush();
+    }catch(error){setAiPersistenceError('Recovery was not applied. All encrypted versions are retained.');throw error;}
+  },[flush]);
+  const saveAiSettings: AppData['saveAiSettings'] = useCallback((s) => persistSettings(current => {
+    // AI forms opened before a remote theme update retain the newer appearance.
+    return withAiSettingsPreservingAppearance(current,s);
+  }),[persistSettings]);
+  const saveAppearance: AppData['saveAppearance'] = useCallback((p) => persistSettings(current => withAppearance(current,p)),[persistSettings]);
 
   // Store a recording: bytes go to the local DB + media outbox. The attachment
   // metadata is returned for the editor to embed as an inline node in the entry
@@ -1423,6 +1426,9 @@ export function AppDataProvider({ children }: { children: ComponentChildren }): 
       const s = session.current;
       if (!s) throw new Error('not signed in');
       setStatus('connecting');
+      rotationBusy.current=true;
+      const oldJournal=settingsJournal.current;
+      await oldJournal?.drain();
       try {
         const oldOwnerId = s.ownerId;
         // Metadata only — the bytes stream through localMediaBytes below, one
@@ -1454,6 +1460,7 @@ export function AppDataProvider({ children }: { children: ComponentChildren }): 
           onProgress,
         });
 
+        await oldJournal?.drain();const settingsCheckpoint=oldJournal?.snapshot();oldJournal?.pause();
         // The vault now lives under the new owner: swap the in-memory identity.
         identity.current = result.session.identity;
         session.current = result.session;
@@ -1551,17 +1558,17 @@ export function AppDataProvider({ children }: { children: ComponentChildren }): 
           }
         }
 
-        // Same for the sealed AI settings: their wrap key derives from the seed,
-        // so the old record would no longer open. Re-seal under the new identity
-        // (sync meta rides along — the rotation re-pushed the records already);
-        // on failure, clear — AI falls back to "not configured".
-        if (aiSettings) {
-          try {
-            await storeAiSettingsRecord(sealAiSettings(result.session.identity.aiKey, aiSettings, aiSync.current));
-          } catch {
-            void clearAiSettingsRecord();
-            setAiSettings(null);
-          }
+        const migrated=makeSettingsJournal(result.session.identity);
+        settingsJournal.current=migrated;
+        try {
+          if(settingsCheckpoint)await migrated.restore(settingsCheckpoint);
+          else await migrated.load();
+          await migrated.receive(result.aiSettings);
+          oldJournal?.close();await clearOwnedSettings(s.identity);
+        }catch(error){
+          // Keep original-key recovery bytes intact if the new durable copy fails.
+          setAiPersistenceError('Rotated server settings remain recoverable. Local settings migration failed; old encrypted recovery data was retained.');
+          throw error;
         }
 
         setEntries(all);
@@ -1573,9 +1580,10 @@ export function AppDataProvider({ children }: { children: ComponentChildren }): 
       } catch (e) {
         // Failed before the wipe: the old account is intact. The reconnect loop
         // re-authenticates the (unchanged) identity on its own.
+        if(identity.current===s.identity)oldJournal?.resume();
         setStatus('offline');
         throw e;
-      }
+      } finally {rotationBusy.current=false;}
     },
     [relay, db, entries, templates, interviewTypes, journals, aiSettings, syncPendingCount],
   );
@@ -1606,9 +1614,10 @@ export function AppDataProvider({ children }: { children: ComponentChildren }): 
     void destroyOwnerDb(s.ownerId);
     wrap.current = null;
     void clearSealedSeed();
-    void clearAiSettingsRecord(); // the sealed API key must not survive the vault
     setSealMethod('none');
     lock(); // drops the in-memory identity and lands on onboarding
+    await priorSettingsDrain.current;
+    await clearOwnedSettings(s.identity); // no late writer can recreate deleted settings
   }, [relay, db, lock]);
 
   // Repoint the app at a different relay. Persist best-effort, but drive the
@@ -1705,8 +1714,8 @@ export function AppDataProvider({ children }: { children: ComponentChildren }): 
   // re-rendered every useAppData consumer in the app. The callbacks are all
   // useCallback-stable, so the memo keys on the data that actually changes.
   const value: AppData = useMemo(
-    () => ({ status, hasVault, transcribeToken, vaultMethod, ownerId, pendingApproval, approvalHint, retryApproval, pendingCount, pendingJournalIds, syncTotal, saving, bootstrapping, entries: liveEntries, journals: journalsWithCounts, templates: localizedTemplates, interviewTypes: localizedInterviewTypes, aiSettings, saveAiSettings, signIn, unlock, unlockWithKey, setDeviceUnlock, lock, createEntry, updateEntry, attachFilm, attachTranscript, deleteEntry, newJournal, updateJournal, deleteJournal, createTemplate, updateTemplate, deleteTemplate, createInterviewType, updateInterviewType, deleteInterviewType, addMedia, removeMedia, mediaBlob, mediaThumb, rotatePhrase, deleteVault, relayUrl, setRelayUrl }),
-    [status, hasVault, transcribeToken, vaultMethod, ownerId, pendingApproval, approvalHint, retryApproval, pendingCount, pendingJournalIds, syncTotal, saving, bootstrapping, liveEntries, journalsWithCounts, localizedTemplates, localizedInterviewTypes, aiSettings, saveAiSettings, signIn, unlock, unlockWithKey, setDeviceUnlock, lock, createEntry, updateEntry, attachFilm, attachTranscript, deleteEntry, newJournal, updateJournal, deleteJournal, createTemplate, updateTemplate, deleteTemplate, createInterviewType, updateInterviewType, deleteInterviewType, addMedia, removeMedia, mediaBlob, mediaThumb, rotatePhrase, deleteVault, relayUrl, setRelayUrl],
+    () => ({ status, hasVault, transcribeToken, vaultMethod, ownerId, pendingApproval, approvalHint, retryApproval, pendingCount, pendingJournalIds, syncTotal, saving, bootstrapping, entries: liveEntries, journals: journalsWithCounts, templates: localizedTemplates, interviewTypes: localizedInterviewTypes, aiSettings, aiRecoveries, aiPersistenceError, reloadAiSettings, restoreAiRecovery, saveAiSettings, saveAppearance, signIn, unlock, unlockWithKey, setDeviceUnlock, lock, createEntry, updateEntry, attachFilm, attachTranscript, deleteEntry, newJournal, updateJournal, deleteJournal, createTemplate, updateTemplate, deleteTemplate, createInterviewType, updateInterviewType, deleteInterviewType, addMedia, removeMedia, mediaBlob, mediaThumb, rotatePhrase, deleteVault, relayUrl, setRelayUrl }),
+    [status, hasVault, transcribeToken, vaultMethod, ownerId, pendingApproval, approvalHint, retryApproval, pendingCount, pendingJournalIds, syncTotal, saving, bootstrapping, liveEntries, journalsWithCounts, localizedTemplates, localizedInterviewTypes, aiSettings, aiRecoveries, aiPersistenceError, reloadAiSettings, restoreAiRecovery, saveAiSettings, saveAppearance, signIn, unlock, unlockWithKey, setDeviceUnlock, lock, createEntry, updateEntry, attachFilm, attachTranscript, deleteEntry, newJournal, updateJournal, deleteJournal, createTemplate, updateTemplate, deleteTemplate, createInterviewType, updateInterviewType, deleteInterviewType, addMedia, removeMedia, mediaBlob, mediaThumb, rotatePhrase, deleteVault, relayUrl, setRelayUrl],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

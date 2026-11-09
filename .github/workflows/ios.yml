@@ -1,0 +1,166 @@
+name: Native iOS
+on:
+  pull_request:
+    paths: ['apps/ios/**', 'apps/client/scripts/native-*.ts', 'server/internal/api/native_interop_test.go', '.github/workflows/ios.yml']
+permissions:
+  contents: read
+concurrency:
+  group: native-ios-${{ github.head_ref || github.ref }}-${{ github.sha }}
+  cancel-in-progress: true
+jobs:
+  native:
+    # Hosted macos-15 (arm64) jobs were repeatedly "not acquired" for capacity, so the identical job
+    # also runs on macos-15-intel: the same macOS 15 image, default Xcode 16.4 and iOS 18.5 SDK, from
+    # a separate runner pool. Every step, test and strict audit is the same on both; either leg is
+    # a real Apple build. Artifacts are suffixed by runner because upload-artifact needs unique names.
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-15, macos-15-intel]
+    name: native (${{ matrix.runner }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Record toolchain
+        run: |
+          uname -m
+          xcodebuild -version
+          xcrun --sdk iphonesimulator --show-sdk-version
+      - name: Choose an installed iPhone Simulator
+        id: simulator
+        run: |
+          xcrun simctl list devices available --json > "$RUNNER_TEMP/devices.json"
+          python3 - "$RUNNER_TEMP/devices.json" "$(xcrun --sdk iphonesimulator --show-sdk-version)" >> "$GITHUB_OUTPUT" <<'PYDEVICE'
+          import json, sys
+          devices = json.load(open(sys.argv[1]))['devices']
+          runtime = 'com.apple.CoreSimulator.SimRuntime.iOS-' + sys.argv[2].replace('.', '-')
+          phones = [d for d in devices.get(runtime, []) if 'iPhone' in d['name'] and d.get('isAvailable')]
+          if not phones: raise SystemExit('No iPhone Simulator runtime matching selected Xcode SDK: ' + runtime)
+          print('id=' + phones[0]['udid'])
+          print('boot=' + str(phones[0].get('state') != 'Booted').lower())
+          print('Selected ' + phones[0]['name'] + ' / ' + runtime, file=sys.stderr)
+          PYDEVICE
+      - name: Start Simulator while dependencies and app build run
+        if: steps.simulator.outputs.boot == 'true'
+        run: xcrun simctl boot '${{ steps.simulator.outputs.id }}'
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Native core tests and Swift-generated ciphertext
+        run: swift test --package-path apps/ios/ChapterCore
+        env:
+          CHAPTER_NATIVE_OUTPUT: ${{ runner.temp }}/chapter-native-output.json
+      - name: Verify Swift ciphertext with actual web decoder
+        run: pnpm --filter client exec tsx scripts/native-vectors.ts
+        env:
+          CHAPTER_NATIVE_OUTPUT: ${{ runner.temp }}/chapter-native-output.json
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: server/go.mod
+          cache-dependency-path: server/go.sum
+      - name: Verify Apple signatures with actual Go relay verifier
+        working-directory: server
+        run: go test ./internal/api -run TestNativeAppleAuthenticationInterop -v
+        env:
+          CHAPTER_NATIVE_OUTPUT: ${{ runner.temp }}/chapter-native-output.json
+      - name: Build genuine native app for iOS Simulator (no signing credentials)
+        id: simulator_build
+        run: xcodebuild -project apps/ios/Chapter.xcodeproj -scheme Chapter -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/ChapterBuild" ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO build
+
+      - name: Package unsigned Simulator app (not an iPhone IPA)
+        run: ditto -c -k --sequesterRsrc --keepParent "$RUNNER_TEMP/ChapterBuild/Build/Products/Debug-iphonesimulator/Chapter.app" "$RUNNER_TEMP/Chapter-Simulator.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Chapter-unsigned-Simulator-${{ matrix.runner }}
+          path: ${{ runner.temp }}/Chapter-Simulator.zip
+          retention-days: 7
+      - name: Capture actual implemented native pages (public fixture, no mocks)
+        run: |
+          device='${{ steps.simulator.outputs.id }}'
+          xcrun simctl ui "$device" content_size large
+          xcodebuild -project apps/ios/Chapter.xcodeproj -scheme Chapter -configuration Debug -destination "platform=iOS Simulator,id=$device" -destination-timeout 120 -parallel-testing-enabled NO -test-timeouts-enabled YES -maximum-test-execution-time-allowance 180 -derivedDataPath "$RUNNER_TEMP/ChapterUITestBuild" -resultBundlePath "$RUNNER_TEMP/ChapterPages.xcresult" -only-testing:ChapterUITests/ChapterPageCaptures CODE_SIGNING_ALLOWED=NO test
+      - name: Export real page screenshots before independent strict audit runs
+        if: always()
+        run: |
+          if [[ -d "$RUNNER_TEMP/ChapterPages.xcresult" ]]; then
+            xcrun xcresulttool export attachments --path "$RUNNER_TEMP/ChapterPages.xcresult" --output-path "$RUNNER_TEMP/ChapterPageAttachments"
+            xcrun xcresulttool get test-results summary --path "$RUNNER_TEMP/ChapterPages.xcresult" > "$RUNNER_TEMP/ChapterPageAttachments/test-summary.json"
+            xcrun xcresulttool get test-results tests --path "$RUNNER_TEMP/ChapterPages.xcresult" > "$RUNNER_TEMP/ChapterPageAttachments/tests.json"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Chapter-actual-page-screenshots-${{ matrix.runner }}
+          path: |
+            ${{ runner.temp }}/ChapterPages.xcresult
+            ${{ runner.temp }}/ChapterPageAttachments
+          retention-days: 7
+      # Required audits run/export BEFORE the broader functional suite, so a
+      # later test failure/timeout cannot hide the actual accessibility diagnosis.
+      - name: Required normal production and native-comparison accessibility audits
+        if: always() && steps.simulator_build.outcome == 'success' && !cancelled()
+        timeout-minutes: 10
+        run: |
+          device='${{ steps.simulator.outputs.id }}'
+          xcrun simctl ui "$device" content_size large
+          xcodebuild -project apps/ios/Chapter.xcodeproj -scheme Chapter -configuration Debug -destination "platform=iOS Simulator,id=$device" -destination-timeout 120 -parallel-testing-enabled NO -test-timeouts-enabled YES -maximum-test-execution-time-allowance 180 -derivedDataPath "$RUNNER_TEMP/ChapterUITestBuild" -resultBundlePath "$RUNNER_TEMP/ChapterConnectionAudit.xcresult" -only-testing:ChapterUITests/ChapterUITests/testConnectionScreenAccessibilityAndPrivacy -only-testing:ChapterUITests/ChapterUITests/testUnmodifiedNativeFormDynamicTypeReproduction -only-testing:ChapterUITests/ChapterUITests/testUnmodifiedNativeSecureFieldDynamicTypeReproduction -only-testing:ChapterUITests/ChapterUITests/testNativeFullWidthActionDynamicTypeReproduction CODE_SIGNING_ALLOWED=NO test
+      - name: Required largest production accessibility and geometry audits
+        if: always() && steps.simulator_build.outcome == 'success' && !cancelled()
+        timeout-minutes: 10
+        run: |
+          device='${{ steps.simulator.outputs.id }}'
+          trap 'xcrun simctl ui "$device" content_size large' EXIT
+          xcrun simctl ui "$device" content_size accessibility-extra-extra-extra-large
+          xcodebuild -project apps/ios/Chapter.xcodeproj -scheme Chapter -configuration Debug -destination "platform=iOS Simulator,id=$device" -destination-timeout 120 -parallel-testing-enabled NO -test-timeouts-enabled YES -maximum-test-execution-time-allowance 180 -derivedDataPath "$RUNNER_TEMP/ChapterUITestBuild" -resultBundlePath "$RUNNER_TEMP/ChapterLargeTypeUITests.xcresult" -only-testing:ChapterUITests/ChapterUITests/testLargestDynamicTypeConnectionScreen -only-testing:ChapterUITests/ChapterUITests/testLargestDynamicTypeControlGeometry -only-testing:ChapterUITests/ChapterUITests/testLargestDynamicTypeUnmodifiedNativeFormReproduction -only-testing:ChapterUITests/ChapterUITests/testLargestDynamicTypeUnmodifiedSecureFieldReproduction -only-testing:ChapterUITests/ChapterUITests/testLargestDynamicTypeFullWidthActionReproduction CODE_SIGNING_ALLOWED=NO test-without-building
+      - name: Export required strict audit evidence immediately
+        if: always()
+        run: |
+          for kind in ChapterConnectionAudit ChapterLargeTypeUITests; do
+            if [[ -d "$RUNNER_TEMP/$kind.xcresult" ]]; then
+              xcrun xcresulttool export attachments --path "$RUNNER_TEMP/$kind.xcresult" --output-path "$RUNNER_TEMP/${kind}Attachments"
+              xcrun xcresulttool get test-results summary --path "$RUNNER_TEMP/$kind.xcresult" > "$RUNNER_TEMP/${kind}Attachments/test-summary.json"
+              xcrun xcresulttool get test-results tests --path "$RUNNER_TEMP/$kind.xcresult" > "$RUNNER_TEMP/${kind}Attachments/tests.json"
+            fi
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Chapter-required-accessibility-audit-results-${{ matrix.runner }}
+          path: |
+            ${{ runner.temp }}/ChapterConnectionAudit.xcresult
+            ${{ runner.temp }}/ChapterConnectionAuditAttachments
+            ${{ runner.temp }}/ChapterLargeTypeUITests.xcresult
+            ${{ runner.temp }}/ChapterLargeTypeUITestsAttachments
+          retention-days: 7
+      - name: Native functional screen tests and independent font audit
+        if: always() && steps.simulator_build.outcome == 'success' && !cancelled()
+        timeout-minutes: 15
+        run: |
+          device='${{ steps.simulator.outputs.id }}'
+          xcrun simctl ui "$device" content_size large
+          # Only already-required dedicated audit/capture tests are de-duplicated.
+          xcodebuild -project apps/ios/Chapter.xcodeproj -scheme Chapter -configuration Debug -destination "platform=iOS Simulator,id=$device" -destination-timeout 120 -parallel-testing-enabled NO -test-timeouts-enabled YES -maximum-test-execution-time-allowance 180 -derivedDataPath "$RUNNER_TEMP/ChapterUITestBuild" -resultBundlePath "$RUNNER_TEMP/ChapterUITests.xcresult" -skip-testing:ChapterUITests/ChapterPageCaptures -skip-testing:ChapterUITests/ChapterUITests/testConnectionScreenAccessibilityAndPrivacy -skip-testing:ChapterUITests/ChapterUITests/testUnmodifiedNativeFormDynamicTypeReproduction -skip-testing:ChapterUITests/ChapterUITests/testUnmodifiedNativeSecureFieldDynamicTypeReproduction -skip-testing:ChapterUITests/ChapterUITests/testNativeFullWidthActionDynamicTypeReproduction -skip-testing:ChapterUITests/ChapterUITests/testLargestDynamicTypeConnectionScreen -skip-testing:ChapterUITests/ChapterUITests/testLargestDynamicTypeControlGeometry -skip-testing:ChapterUITests/ChapterUITests/testLargestDynamicTypeUnmodifiedNativeFormReproduction -skip-testing:ChapterUITests/ChapterUITests/testLargestDynamicTypeUnmodifiedSecureFieldReproduction -skip-testing:ChapterUITests/ChapterUITests/testLargestDynamicTypeFullWidthActionReproduction CODE_SIGNING_ALLOWED=NO test-without-building
+      - name: Export genuine test screenshots for review
+        if: always()
+        run: |
+          for kind in Chapter ChapterLargeType; do
+            if [[ -d "$RUNNER_TEMP/${kind}UITests.xcresult" ]]; then
+              xcrun xcresulttool export attachments --path "$RUNNER_TEMP/${kind}UITests.xcresult" --output-path "$RUNNER_TEMP/${kind}UIAttachments"
+              xcrun xcresulttool get test-results summary --path "$RUNNER_TEMP/${kind}UITests.xcresult" > "$RUNNER_TEMP/${kind}UIAttachments/test-summary.json"
+            fi
+          done
+      - name: Save real UI test results and fixture-only screen captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Chapter-native-ui-results-${{ matrix.runner }}
+          path: |
+            ${{ runner.temp }}/ChapterUITests.xcresult
+            ${{ runner.temp }}/ChapterUIAttachments
+            ${{ runner.temp }}/ChapterLargeTypeUITests.xcresult
+            ${{ runner.temp }}/ChapterLargeTypeUIAttachments
+          retention-days: 7
