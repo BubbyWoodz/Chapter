@@ -72,6 +72,15 @@ the exact revision; a failing strict accessibility audit remains a release block
   is treated as unproven until it passes again. No audit is waived; re-verification pending.
 
 <!-- Times are commit times in America/Los_Angeles; earlier labels this night ran ahead of the clock and were corrected. -->
+## First app compile since e825899 — November 9, 2026, 7:52 AM PST
+
+Native 42644878320 (on 0cba064), on `macos-15-intel`: the core tests, the web-decoder verification and the Go signature verification all passed on Apple. The arm64 leg was again not acquired. The **app build** failed on errors in code never compiled before:
+
+- **The DEBUG Day One fixture (`VaultModel.swift:72`):** it was a `#"…"#` raw string whose JSON contains `"# Public Lisbon`, and that `"#` ended the literal early. It is now `##"…"##`. A scan of every Swift file found no other raw string with that problem.
+- **`ChapterDayOneImport.Progress` and `ChapterExport.Progress`:** the app couldn't call their memberwise initializers, which are internal. They now have public `init(done:total:current:)`.
+- A scan for app uses of core members that aren't public found nothing else; the one hit is in a `public extension`.
+- **03129ba (7:52 AM PST):** both fixes, pushed together with the audio core. Since the fixture error was a parse error, it may have hidden further type errors in `VaultModel.swift`, so the next run is the real test.
+
 ## Film audio and recorder logic core — November 9, 2026, 7:32 AM PST
 
 These are local commits, not pushed yet. Native 42644878320 (on 0cba064) is running on `macos-15-intel`. CI passed on 0cba064, confirming the time-zone fix.
