@@ -72,6 +72,16 @@ the exact revision; a failing strict accessibility audit remains a release block
   is treated as unproven until it passes again. No audit is waived; re-verification pending.
 
 <!-- Times are commit times in America/Los_Angeles; earlier labels this night ran ahead of the clock and were corrected. -->
+## Core passes on Apple; vector time zone fixed — November 9, 2026, 7:19 AM PST
+
+Native 42639679973 (on 34518ae): the `macos-15` arm64 leg was again not acquired, and the `macos-15-intel` leg ran.
+
+- **ChapterCore on Apple (Xcode 16.4, x86_64):** 177 tests, 2 skipped, 0 failures. This is the first Apple run of the export, Day One, reminders and video core since they were written.
+- **The next step, web-vector verification, failed with "Native ZIP vectors must equal fflate".** So the app build, captures and audits were skipped again.
+  - Cause: fflate writes ZIP entry times in local time. The committed ZIP vectors were written in Pacific time, and CI runs in UTC.
+  - The same failure has broken the CI workflow's "client | regression checks" job on every push since 13606df (5:53 AM PST).
+- **9dd5428 (7:19 AM PST):** `scripts/native-tz.ts` is the first import of `native-vectors.ts` and pins `America/Los_Angeles`. The vectors and all 30 checks now pass under `TZ=UTC`, `Asia/Tokyo` and `America/Los_Angeles`. Fixtures, Swift code and export behaviour are unchanged.
+
 ## First Apple compile since e825899, and its fix — November 9, 2026, 6:55 AM PST
 
 Native 42637327128 (on f2f1539): the `macos-15-intel` leg got a runner within seconds (x86_64, Xcode 16.4 build 16F6), and the `macos-15` arm64 leg started about 10 minutes later. Both failed at the same point, the ChapterCore `swift test` build, so the app build, captures and strict audits were skipped and did not run.
