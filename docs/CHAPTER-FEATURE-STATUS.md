@@ -72,7 +72,7 @@ the exact revision; a failing strict accessibility audit remains a release block
   is treated as unproven until it passes again. No audit is waived; re-verification pending.
 
 <!-- Times are commit times in America/Los_Angeles; earlier labels this night ran ahead of the clock and were corrected. -->
-## Web export fix: media without a saved date — November 9, 2026, 5:33 AM PST
+## Web export fix: media without a saved date — November 9, 2026, 5:27 AM PST
 
 - `ArchiveWriter.add` (web `src/export/journal.ts`) now gives the export time as the zip time to any file whose own time falls outside 1980–2099 in local time, fflate's limit. Nothing else changes: the manifest and entry JSON keep exactly the dates they always wrote (for example `1970-01-01T00:00:00.000Z`), in-range times are kept, and a non-numeric time is left to fflate as before.
 - Regression check `checkUndatedMedia` in `scripts/export-journal.ts` covers a gallery image with no date, media dated 0, an entry with `updatedAt` -1 and a dated control. It reads the zip times from the central directory. It fails with the original error without the fix, and passes in the UTC, UTC+14 and UTC−11 time zones.
