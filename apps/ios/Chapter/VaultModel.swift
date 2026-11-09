@@ -23,6 +23,32 @@ import ChapterCore
         localeID = id; UserDefaults.standard.set(id, forKey: "chapter.locale")
     }
     @Published private(set) var lastCompletePullID: UUID?
+    // Web useBadges: the celebration queue and the device-local celebrated set per owner.
+    @Published private(set) var badgeQueue: [String] = []
+    private var badgeSeen: Set<String>?
+    private var badgeOwner: String?
+    var earnedBadges: Set<String> {
+        ChapterBadges.evaluate(ChapterBadges.entries(snapshot.records.filter { $0.kind == "entry" }), interviewTypeNames: ChapterBadges.interviewTypeNames(snapshot.records, name: { self.t($0) }))
+    }
+    /// Evaluate only once hydrated: after the first complete pull (or with no relay at all),
+    /// so the empty→loaded transition never reads as "everything newly earned".
+    func refreshBadges() {
+        guard unlocked, let owner = identity?.ownerID, relay == nil || lastCompletePullID != nil else { return }
+        if badgeOwner != owner { badgeOwner = owner; badgeSeen = nil; badgeQueue = [] }
+        let key = ChapterBadges.seenKey(owner), earned = earnedBadges
+        let seen = badgeSeen ?? ChapterBadges.loadSeen(UserDefaults.standard.string(forKey: key))
+        let result = ChapterBadges.catchUpOrDelta(seen: seen, earned: earned)
+        badgeSeen = result.seen
+        if seen == nil { UserDefaults.standard.set(ChapterBadges.encodeSeen(result.seen), forKey: key); return }
+        badgeQueue += result.celebrate.filter { !badgeQueue.contains($0) }
+        badgeQueue = badgeQueue.filter(earned.contains)
+    }
+    func dismissBadgeCelebration() {
+        guard let current = badgeQueue.first, let owner = badgeOwner else { return }
+        var seen = badgeSeen ?? []; seen.insert(current); badgeSeen = seen
+        UserDefaults.standard.set(ChapterBadges.encodeSeen(seen), forKey: ChapterBadges.seenKey(owner))
+        badgeQueue.removeFirst()
+    }
     private var identity: VaultIdentity?
     private var store: EncryptedSnapshotStore?
     private var relay: Relay?
@@ -89,6 +115,12 @@ import ChapterCore
             identity = publicIdentity; mediaFiles = files
         }
         if let fixtureLocale = ProcessInfo.processInfo.arguments.first(where: { $0.hasPrefix("--chapter-fixture-locale=") })?.dropFirst("--chapter-fixture-locale=".count) { setLanguage(String(fixtureLocale)) }
+        if let owner = identity?.ownerID {
+            // Public fixtures start from the quiet first-run catch-up so a celebration never
+            // covers another test; --chapter-fixture-badges-unseen celebrates everything earned.
+            let key = ChapterBadges.seenKey(owner)
+            if ProcessInfo.processInfo.arguments.contains("--chapter-fixture-badges-unseen") { UserDefaults.standard.set("[]", forKey: key) } else { UserDefaults.standard.removeObject(forKey: key) }
+        }
         try disk.save(value); store = disk; snapshot = value; unlocked = true; appearanceInitialized = true
         // Never creates a relay or pretends to authenticate. Default rich fixture
         // still has no identity; optional media fixture uses public local keys.
@@ -125,7 +157,7 @@ import ChapterCore
     func lock() {
         generation = UUID(); scheduledSync?.cancel(); scheduledSync = nil; backoff = SyncBackoff(); mediaErrors = [:]; mediaImport?.cancel(); mediaImport = nil; mediaFiles = nil; playbackFiles.forEach { try? FileManager.default.removeItem(at: $0) }; playbackFiles = []; relay?.cancel(); relay = nil; identity = nil; store = nil
         if let root = try? EncryptedSnapshotStore.applicationDirectory() { try? FileManager.default.removeItem(at: root.appendingPathComponent("ImportStaging", isDirectory: true)) }
-        snapshot = VaultSnapshot(); seedForks = [:]; lastCompletePullID = nil; appearanceInitialized = false; unlocked = false; syncing = false; connecting = false; message = nil
+        snapshot = VaultSnapshot(); seedForks = [:]; badgeQueue = []; badgeSeen = nil; badgeOwner = nil; lastCompletePullID = nil; appearanceInitialized = false; unlocked = false; syncing = false; connecting = false; message = nil
     }
     private func commit(_ next: VaultSnapshot) throws {
         guard let store else { throw ChapterError.storage }

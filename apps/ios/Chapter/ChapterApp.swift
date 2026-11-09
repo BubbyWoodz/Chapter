@@ -239,6 +239,10 @@ struct ChapterTabs: View {
             NotebookList().tabItem { Label(model.t("shell.notebooks"), systemImage: "books.vertical") }
             SettingsView().tabItem { Label(model.t("common.settings"), systemImage: "gearshape") }
         }.font(chapterFont(.ui,skin:model.snapshot.appearance?.skin ?? "paper"))
+        .onAppear { model.refreshBadges() }
+        .onChange(of: model.snapshot) { model.refreshBadges() }
+        .onChange(of: model.lastCompletePullID) { model.refreshBadges() }
+        .sheet(item: Binding(get: { model.badgeQueue.first.map(BadgeID.init) }, set: { _ in })) { BadgeCelebrationView(id: $0.id) }
     }
 }
 struct EntryList: View {
@@ -764,6 +768,7 @@ struct SettingsView: View {
                     }
                 }
                 WritingStatsSection()
+                BadgeGallerySection()
                 Section("Sync") {
                     Button { Task { await model.sync() } } label: { if model.syncing { ProgressView("Syncing") } else { Label("Sync now", systemImage: "arrow.triangle.2.circlepath") } }.disabled(model.syncing)
                     LabeledContent("Pending changes", value: "\(model.pending)")
@@ -1399,5 +1404,93 @@ struct SearchHitDetail: View {
                     .accessibilityIdentifier("search.snippet")
             }
         }.padding(.horizontal, 4).accessibilityElement(children: .combine)
+    }
+}
+
+
+struct BadgeID: Identifiable, Equatable { let id: String }
+
+func badgeName(_ id: String, _ model: VaultModel) -> String {
+    switch id {
+    case "first-words": return model.t("badges.first-words.name"); case "streak-3": return model.t("badges.streak-3.name")
+    case "streak-7": return model.t("badges.streak-7.name"); case "wordsmith": return model.t("badges.wordsmith.name")
+    case "deep-dive": return model.t("badges.deep-dive.name"); case "first-interview": return model.t("badges.first-interview.name")
+    case "on-camera": return model.t("badges.on-camera.name"); case "memory-keeper": return model.t("badges.memory-keeper.name")
+    default: return id
+    }
+}
+func badgeDesc(_ id: String, _ model: VaultModel) -> String {
+    switch id {
+    case "first-words": return model.t("badges.first-words.desc"); case "streak-3": return model.t("badges.streak-3.desc")
+    case "streak-7": return model.t("badges.streak-7.desc"); case "wordsmith": return model.t("badges.wordsmith.desc")
+    case "deep-dive": return model.t("badges.deep-dive.desc"); case "first-interview": return model.t("badges.first-interview.desc")
+    case "on-camera": return model.t("badges.on-camera.desc"); case "memory-keeper": return model.t("badges.memory-keeper.desc")
+    default: return ""
+    }
+}
+
+/// Web BadgeMedallion: accent-soft disc with an accent ring when earned; dimmed and grey when locked.
+struct BadgeMedallion: View {
+    @EnvironmentObject private var model: VaultModel
+    let earned: Bool
+    var size: CGFloat = 44
+    var body: some View {
+        let p = model.snapshot.appearance ?? .standard
+        ZStack {
+            Circle().fill(chapterToken(earned ? "accent-soft" : "surface-2", preference: p))
+            Circle().strokeBorder(chapterToken(earned ? "accent-line" : "line", preference: p), lineWidth: earned ? 3 : 1)
+            Image(systemName: "rosette").font(.system(size: size * 0.48)).foregroundStyle(chapterToken(earned ? "accent-ink" : "ink-3", preference: p))
+        }.frame(width: size, height: size).opacity(earned ? 1 : 0.38).saturation(earned ? 1 : 0).accessibilityHidden(true)
+    }
+}
+
+/// Web Preferences badge gallery: the eight badges in fixed order, two per row.
+struct BadgeGallerySection: View {
+    @EnvironmentObject private var model: VaultModel
+    var body: some View {
+        let earned = model.earnedBadges
+        let p = model.snapshot.appearance ?? .standard
+        Section(model.t("badges.gallery.title")) {
+            Grid(horizontalSpacing: 8, verticalSpacing: 8) {
+                ForEach(Array(stride(from: 0, to: ChapterBadges.order.count, by: 2)), id: \.self) { i in
+                    GridRow {
+                        ForEach(ChapterBadges.order[i..<min(i + 2, ChapterBadges.order.count)], id: \.self) { id in
+                            let has = earned.contains(id)
+                            VStack(spacing: 8) {
+                                BadgeMedallion(earned: has)
+                                Text(badgeName(id, model)).font(chapterFont(.ui, skin: p.skin, size: 11.5, relativeTo: .caption)).fontWeight(has ? .bold : .medium)
+                                    .foregroundStyle(has ? chapterToken("accent-ink", preference: p) : Color.secondary).multilineTextAlignment(.center)
+                            }
+                            .frame(maxWidth: .infinity).padding(.vertical, 12).padding(.horizontal, 8)
+                            .background(chapterToken(has ? "accent-soft" : "paper", preference: p), in: RoundedRectangle(cornerRadius: 12))
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(chapterToken(has ? "accent-line" : "line", preference: p)))
+                            .accessibilityElement(children: .combine)
+                            .accessibilityHint(badgeDesc(id, model))
+                            .accessibilityValue(has ? "Earned" : "Not earned yet")
+                            .accessibilityIdentifier("badge." + id)
+                        }
+                    }
+                }
+            }.padding(.vertical, 4)
+        }
+    }
+}
+
+/// Web BadgeCelebration: one newly earned badge at a time; dismissing marks it seen.
+struct BadgeCelebrationView: View {
+    @EnvironmentObject private var model: VaultModel
+    let id: String
+    var body: some View {
+        let p = model.snapshot.appearance ?? .standard
+        VStack(spacing: 16) {
+            BadgeMedallion(earned: true, size: 96)
+            Text(model.t("badges.celebrate.title").uppercased()).font(chapterFont(.mono, skin: p.skin, size: 12, relativeTo: .caption)).tracking(1).foregroundStyle(.secondary)
+            Text(badgeName(id, model)).font(chapterFont(.heading, skin: p.skin, size: 28, relativeTo: .title)).multilineTextAlignment(.center).accessibilityIdentifier("badge.celebrate.name")
+            Text(badgeDesc(id, model)).font(chapterFont(.ui, skin: p.skin, size: 15, relativeTo: .body)).multilineTextAlignment(.center).foregroundStyle(.secondary)
+            Button(model.t("badges.celebrate.dismiss")) { model.dismissBadgeCelebration() }
+                .buttonStyle(.borderedProminent).controlSize(.large).accessibilityIdentifier("badge.celebrate.dismiss")
+        }
+        .padding(32).frame(maxWidth: .infinity, maxHeight: .infinity).modifier(ChapterScreenSurface())
+        .presentationDetents([.medium]).interactiveDismissDisabled()
     }
 }

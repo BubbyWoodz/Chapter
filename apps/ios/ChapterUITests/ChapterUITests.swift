@@ -269,6 +269,24 @@ final class ChapterUITests: XCTestCase {
         created.tap()
         XCTAssertTrue(app.staticTexts["One intention"].waitForExistence(timeout:5),"A native-created template starts an entry with its content")
     }
+    func testBadgesCelebrateOnceThenShowInTheGalleryLikeTheWeb() throws {
+        // Web useBadges: newly earned badges celebrate one at a time; dismissing marks them seen.
+        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture","--chapter-still-captures","--chapter-media-fixture","--chapter-fixture-badges-unseen"];app.launch()
+        let name=app.staticTexts["badge.celebrate.name"];XCTAssertTrue(name.waitForExistence(timeout:10));XCTAssertEqual(name.label,"First Words","Fixed order starts with first-words")
+        XCTAssertTrue(app.staticTexts["Badge earned".uppercased()].exists)
+        try audit(app);attach(app,name:"Actual native badge celebration like the web")
+        var shown=0
+        while app.buttons["badge.celebrate.dismiss"].waitForExistence(timeout:3) && shown<8 { app.buttons["badge.celebrate.dismiss"].tap();shown+=1 }
+        XCTAssertFalse(app.buttons["badge.celebrate.dismiss"].waitForExistence(timeout:2),"Every celebration is dismissed once")
+        app.tabBars.buttons["Settings"].tap()
+        let first=app.descendants(matching:.any)["badge.first-words"];reveal(first,in:app)
+        XCTAssertTrue(first.exists);XCTAssertEqual(first.value as? String,"Earned")
+        attach(app,name:"Actual native badge gallery")
+        app.terminate()
+        let again=XCUIApplication();again.launchArguments=["--chapter-rich-fixture","--chapter-still-captures","--chapter-media-fixture"];again.launch()
+        XCTAssertTrue(again.tabBars.buttons["Settings"].waitForExistence(timeout:10))
+        XCTAssertFalse(again.staticTexts["badge.celebrate.name"].waitForExistence(timeout:3),"First run on a device catches up quietly")
+    }
     func testSearchRanksAndTagsLikeTheWebSearchSheet() throws {
         // Web search/core port: the matched field is tagged, and no match shows shell.search.empty with the query.
         let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture"];app.launch()
