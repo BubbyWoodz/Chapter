@@ -1,0 +1,5824 @@
+{
+ "theme": {
+  "paper": "#f4eee2",
+  "ink": "#2a2521",
+  "muted": "#a99f8e",
+  "accent": "#b0563a",
+  "serif": "Georgia, serif",
+  "mono": "ui-monospace, monospace"
+ },
+ "cases": [
+  {
+   "text": "Where did you grow up?",
+   "n": 1,
+   "total": 6,
+   "width": 1280,
+   "height": 720,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 720,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "Where did you grow up?",
+     "x": 141,
+     "y": 383,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       141,
+       421
+      ],
+      [
+       256,
+       421
+      ]
+     ],
+     "width": 4,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 141,
+     "y": 475,
+     "font": "24px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "",
+   "n": 12,
+   "total": 12,
+   "width": 1280,
+   "height": 720,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 720,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       141,
+       380
+      ],
+      [
+       256,
+       380
+      ]
+     ],
+     "width": 4,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "12 / 12",
+     "x": 141,
+     "y": 434,
+     "font": "24px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "   ",
+   "n": 0,
+   "total": 0,
+   "width": 1280,
+   "height": 720,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 720,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       141,
+       380
+      ],
+      [
+       256,
+       380
+      ]
+     ],
+     "width": 4,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "0 / 0",
+     "x": 141,
+     "y": 434,
+     "font": "24px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": " \t\n Tabs\tand\nnew lines and　ideographic space ",
+   "n": 1,
+   "total": 6,
+   "width": 1280,
+   "height": 720,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 720,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "Tabs and new lines and ideographic",
+     "x": 141,
+     "y": 342,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "space",
+     "x": 141,
+     "y": 423,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       141,
+       461
+      ],
+      [
+       256,
+       461
+      ]
+     ],
+     "width": 4,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 141,
+     "y": 515,
+     "font": "24px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves?",
+   "n": 12,
+   "total": 12,
+   "width": 1280,
+   "height": 720,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 720,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "What is the one thing about the house",
+     "x": 141,
+     "y": 271,
+     "font": "500 55px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "you grew up in that you would most like",
+     "x": 141,
+     "y": 344,
+     "font": "500 55px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "your grandchildren to know about, even",
+     "x": 141,
+     "y": 417,
+     "font": "500 55px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "if they never get to see it themselves?",
+     "x": 141,
+     "y": 490,
+     "font": "500 55px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       141,
+       524
+      ],
+      [
+       256,
+       524
+      ]
+     ],
+     "width": 4,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "12 / 12",
+     "x": 141,
+     "y": 578,
+     "font": "24px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves? What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves?",
+   "n": 0,
+   "total": 0,
+   "width": 1280,
+   "height": 720,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 720,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "What is the one thing about the house you grew up in that you would most",
+     "x": 141,
+     "y": 314,
+     "font": "500 29px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "like your grandchildren to know about, even if they never get to see it",
+     "x": 141,
+     "y": 352,
+     "font": "500 29px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "themselves? What is the one thing about the house you grew up in that you",
+     "x": 141,
+     "y": 390,
+     "font": "500 29px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "would most like your grandchildren to know about, even if they never get to…",
+     "x": 141,
+     "y": 428,
+     "font": "500 29px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       141,
+       446
+      ],
+      [
+       256,
+       446
+      ]
+     ],
+     "width": 4,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "0 / 0",
+     "x": 141,
+     "y": 500,
+     "font": "24px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves? What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves? What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves?",
+   "n": 1,
+   "total": 6,
+   "width": 1280,
+   "height": 720,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 720,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "What is the one thing about the house you grew up in that you would most",
+     "x": 141,
+     "y": 314,
+     "font": "500 29px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "like your grandchildren to know about, even if they never get to see it",
+     "x": 141,
+     "y": 352,
+     "font": "500 29px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "themselves? What is the one thing about the house you grew up in that you",
+     "x": 141,
+     "y": 390,
+     "font": "500 29px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "would most like your grandchildren to know about, even if they never get to…",
+     "x": 141,
+     "y": 428,
+     "font": "500 29px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       141,
+       446
+      ],
+      [
+       256,
+       446
+      ]
+     ],
+     "width": 4,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 141,
+     "y": 500,
+     "font": "24px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "Supercalifragilisticexpialidocious_is_a_single_enormous_word_that_will_never_wrap_anywhere_at_all",
+   "n": 12,
+   "total": 12,
+   "width": 1280,
+   "height": 720,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 720,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "Supercalifragilisticexpialidocious_is_a_single_enormous_word_that_will_never_wrap_anywhere_at_all",
+     "x": 141,
+     "y": 383,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       141,
+       421
+      ],
+      [
+       256,
+       421
+      ]
+     ],
+     "width": 4,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "12 / 12",
+     "x": 141,
+     "y": 475,
+     "font": "24px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "Olá — qual é a tua memória mais antiga de 日本 e de 😀?",
+   "n": 0,
+   "total": 0,
+   "width": 1280,
+   "height": 720,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 720,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "Olá — qual é a tua memória mais",
+     "x": 141,
+     "y": 342,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "antiga de 日本 e de 😀?",
+     "x": 141,
+     "y": 423,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       141,
+       461
+      ],
+      [
+       256,
+       461
+      ]
+     ],
+     "width": 4,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "0 / 0",
+     "x": 141,
+     "y": 515,
+     "font": "24px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "a b c d e f g h i j k l m n o p q r s t u v w x y z",
+   "n": 1,
+   "total": 6,
+   "width": 1280,
+   "height": 720,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 720,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "a b c d e f g h i j k l m n o p q r s t u v",
+     "x": 141,
+     "y": 342,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "w x y z",
+     "x": 141,
+     "y": 423,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       141,
+       461
+      ],
+      [
+       256,
+       461
+      ]
+     ],
+     "width": 4,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 141,
+     "y": 515,
+     "font": "24px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "One. Two. Three. Four. Five. Six. Seven. Eight. Nine. Ten. Eleven. Twelve. Thirteen.",
+   "n": 12,
+   "total": 12,
+   "width": 1280,
+   "height": 720,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 720,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "One. Two. Three. Four. Five. Six.",
+     "x": 141,
+     "y": 302,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "Seven. Eight. Nine. Ten. Eleven.",
+     "x": 141,
+     "y": 383,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "Twelve. Thirteen.",
+     "x": 141,
+     "y": 464,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       141,
+       502
+      ],
+      [
+       256,
+       502
+      ]
+     ],
+     "width": 4,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "12 / 12",
+     "x": 141,
+     "y": 556,
+     "font": "24px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "abcdefghi jklmnopqrs",
+   "n": 0,
+   "total": 0,
+   "width": 1280,
+   "height": 720,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 720,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "abcdefghi jklmnopqrs",
+     "x": 141,
+     "y": 383,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       141,
+       421
+      ],
+      [
+       256,
+       421
+      ]
+     ],
+     "width": 4,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "0 / 0",
+     "x": 141,
+     "y": 475,
+     "font": "24px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "abcdefghi jklmnopqrst",
+   "n": 1,
+   "total": 6,
+   "width": 1280,
+   "height": 720,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 720,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "abcdefghi jklmnopqrst",
+     "x": 141,
+     "y": 383,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       141,
+       421
+      ],
+      [
+       256,
+       421
+      ]
+     ],
+     "width": 4,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 141,
+     "y": 475,
+     "font": "24px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "Where did you grow up?",
+   "n": 1,
+   "total": 6,
+   "width": 720,
+   "height": 1280,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 720,
+     "h": 1280,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "Where did",
+     "x": 79,
+     "y": 536,
+     "font": "500 109px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "you grow",
+     "x": 79,
+     "y": 680,
+     "font": "500 109px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "up?",
+     "x": 79,
+     "y": 824,
+     "font": "500 109px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       79,
+       892
+      ],
+      [
+       144,
+       892
+      ]
+     ],
+     "width": 6,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 79,
+     "y": 988,
+     "font": "42px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "",
+   "n": 12,
+   "total": 12,
+   "width": 720,
+   "height": 1280,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 720,
+     "h": 1280,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       79,
+       676
+      ],
+      [
+       144,
+       676
+      ]
+     ],
+     "width": 6,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "12 / 12",
+     "x": 79,
+     "y": 772,
+     "font": "42px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "   ",
+   "n": 0,
+   "total": 0,
+   "width": 720,
+   "height": 1280,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 720,
+     "h": 1280,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       79,
+       676
+      ],
+      [
+       144,
+       676
+      ]
+     ],
+     "width": 6,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "0 / 0",
+     "x": 79,
+     "y": 772,
+     "font": "42px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": " \t\n Tabs\tand\nnew lines and　ideographic space ",
+   "n": 1,
+   "total": 6,
+   "width": 720,
+   "height": 1280,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 720,
+     "h": 1280,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "Tabs and new",
+     "x": 79,
+     "y": 478,
+     "font": "500 101px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "lines and",
+     "x": 79,
+     "y": 611,
+     "font": "500 101px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "ideographic",
+     "x": 79,
+     "y": 744,
+     "font": "500 101px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "space",
+     "x": 79,
+     "y": 877,
+     "font": "500 101px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       79,
+       940
+      ],
+      [
+       144,
+       940
+      ]
+     ],
+     "width": 6,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 79,
+     "y": 1036,
+     "font": "42px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves?",
+   "n": 12,
+   "total": 12,
+   "width": 720,
+   "height": 1280,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 720,
+     "h": 1280,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "What is the one thing",
+     "x": 79,
+     "y": 558,
+     "font": "500 51px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "about the house you grew",
+     "x": 79,
+     "y": 625,
+     "font": "500 51px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "up in that you would",
+     "x": 79,
+     "y": 692,
+     "font": "500 51px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "most like your…",
+     "x": 79,
+     "y": 759,
+     "font": "500 51px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       79,
+       791
+      ],
+      [
+       144,
+       791
+      ]
+     ],
+     "width": 6,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "12 / 12",
+     "x": 79,
+     "y": 887,
+     "font": "42px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves? What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves?",
+   "n": 0,
+   "total": 0,
+   "width": 720,
+   "height": 1280,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 720,
+     "h": 1280,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "What is the one thing",
+     "x": 79,
+     "y": 558,
+     "font": "500 51px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "about the house you grew",
+     "x": 79,
+     "y": 625,
+     "font": "500 51px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "up in that you would",
+     "x": 79,
+     "y": 692,
+     "font": "500 51px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "most like your…",
+     "x": 79,
+     "y": 759,
+     "font": "500 51px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       79,
+       791
+      ],
+      [
+       144,
+       791
+      ]
+     ],
+     "width": 6,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "0 / 0",
+     "x": 79,
+     "y": 887,
+     "font": "42px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves? What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves? What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves?",
+   "n": 1,
+   "total": 6,
+   "width": 720,
+   "height": 1280,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 720,
+     "h": 1280,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "What is the one thing",
+     "x": 79,
+     "y": 558,
+     "font": "500 51px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "about the house you grew",
+     "x": 79,
+     "y": 625,
+     "font": "500 51px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "up in that you would",
+     "x": 79,
+     "y": 692,
+     "font": "500 51px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "most like your…",
+     "x": 79,
+     "y": 759,
+     "font": "500 51px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       79,
+       791
+      ],
+      [
+       144,
+       791
+      ]
+     ],
+     "width": 6,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 79,
+     "y": 887,
+     "font": "42px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "Supercalifragilisticexpialidocious_is_a_single_enormous_word_that_will_never_wrap_anywhere_at_all",
+   "n": 12,
+   "total": 12,
+   "width": 720,
+   "height": 1280,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 720,
+     "h": 1280,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "Supercalifragilisticexpialidocious_is_a_single_enormous_word_that_will_never_wrap_anywhere_at_all",
+     "x": 79,
+     "y": 680,
+     "font": "500 109px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       79,
+       748
+      ],
+      [
+       144,
+       748
+      ]
+     ],
+     "width": 6,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "12 / 12",
+     "x": 79,
+     "y": 844,
+     "font": "42px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "Olá — qual é a tua memória mais antiga de 日本 e de 😀?",
+   "n": 0,
+   "total": 0,
+   "width": 720,
+   "height": 1280,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 720,
+     "h": 1280,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "Olá — qual é",
+     "x": 79,
+     "y": 506,
+     "font": "500 83px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "a tua memória",
+     "x": 79,
+     "y": 616,
+     "font": "500 83px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "mais antiga de",
+     "x": 79,
+     "y": 726,
+     "font": "500 83px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "日本 e de 😀?",
+     "x": 79,
+     "y": 836,
+     "font": "500 83px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       79,
+       887
+      ],
+      [
+       144,
+       887
+      ]
+     ],
+     "width": 6,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "0 / 0",
+     "x": 79,
+     "y": 983,
+     "font": "42px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "a b c d e f g h i j k l m n o p q r s t u v w x y z",
+   "n": 1,
+   "total": 6,
+   "width": 720,
+   "height": 1280,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 720,
+     "h": 1280,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "a b c d e f g",
+     "x": 79,
+     "y": 464,
+     "font": "500 109px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "h i j k l m n",
+     "x": 79,
+     "y": 608,
+     "font": "500 109px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "o p q r s t u",
+     "x": 79,
+     "y": 752,
+     "font": "500 109px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "v w x y z",
+     "x": 79,
+     "y": 896,
+     "font": "500 109px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       79,
+       964
+      ],
+      [
+       144,
+       964
+      ]
+     ],
+     "width": 6,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 79,
+     "y": 1060,
+     "font": "42px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "One. Two. Three. Four. Five. Six. Seven. Eight. Nine. Ten. Eleven. Twelve. Thirteen.",
+   "n": 12,
+   "total": 12,
+   "width": 720,
+   "height": 1280,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 720,
+     "h": 1280,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "One. Two. Three. Four.",
+     "x": 79,
+     "y": 558,
+     "font": "500 51px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "Five. Six. Seven.",
+     "x": 79,
+     "y": 625,
+     "font": "500 51px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "Eight. Nine. Ten.",
+     "x": 79,
+     "y": 692,
+     "font": "500 51px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "Eleven. Twelve.…",
+     "x": 79,
+     "y": 759,
+     "font": "500 51px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       79,
+       791
+      ],
+      [
+       144,
+       791
+      ]
+     ],
+     "width": 6,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "12 / 12",
+     "x": 79,
+     "y": 887,
+     "font": "42px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "abcdefghi jklmnopqrs",
+   "n": 0,
+   "total": 0,
+   "width": 720,
+   "height": 1280,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 720,
+     "h": 1280,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "abcdefghi",
+     "x": 79,
+     "y": 608,
+     "font": "500 109px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "jklmnopqrs",
+     "x": 79,
+     "y": 752,
+     "font": "500 109px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       79,
+       820
+      ],
+      [
+       144,
+       820
+      ]
+     ],
+     "width": 6,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "0 / 0",
+     "x": 79,
+     "y": 916,
+     "font": "42px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "abcdefghi jklmnopqrst",
+   "n": 1,
+   "total": 6,
+   "width": 720,
+   "height": 1280,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 720,
+     "h": 1280,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "abcdefghi",
+     "x": 79,
+     "y": 608,
+     "font": "500 109px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "jklmnopqrst",
+     "x": 79,
+     "y": 752,
+     "font": "500 109px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       79,
+       820
+      ],
+      [
+       144,
+       820
+      ]
+     ],
+     "width": 6,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 79,
+     "y": 916,
+     "font": "42px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "Where did you grow up?",
+   "n": 1,
+   "total": 6,
+   "width": 640,
+   "height": 360,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 640,
+     "h": 360,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "Where did you grow up?",
+     "x": 70,
+     "y": 191,
+     "font": "500 31px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       70,
+       210
+      ],
+      [
+       128,
+       210
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 70,
+     "y": 237,
+     "font": "12px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "",
+   "n": 12,
+   "total": 12,
+   "width": 640,
+   "height": 360,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 640,
+     "h": 360,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       70,
+       190
+      ],
+      [
+       128,
+       190
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "12 / 12",
+     "x": 70,
+     "y": 217,
+     "font": "12px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "   ",
+   "n": 0,
+   "total": 0,
+   "width": 640,
+   "height": 360,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 640,
+     "h": 360,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       70,
+       190
+      ],
+      [
+       128,
+       190
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "0 / 0",
+     "x": 70,
+     "y": 217,
+     "font": "12px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": " \t\n Tabs\tand\nnew lines and　ideographic space ",
+   "n": 1,
+   "total": 6,
+   "width": 640,
+   "height": 360,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 640,
+     "h": 360,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "Tabs and new lines and ideographic",
+     "x": 70,
+     "y": 171,
+     "font": "500 31px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "space",
+     "x": 70,
+     "y": 212,
+     "font": "500 31px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       70,
+       231
+      ],
+      [
+       128,
+       231
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 70,
+     "y": 258,
+     "font": "12px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves?",
+   "n": 12,
+   "total": 12,
+   "width": 640,
+   "height": 360,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 640,
+     "h": 360,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "What is the one thing about the house you",
+     "x": 70,
+     "y": 136,
+     "font": "500 27px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "grew up in that you would most like your",
+     "x": 70,
+     "y": 172,
+     "font": "500 27px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "grandchildren to know about, even if",
+     "x": 70,
+     "y": 208,
+     "font": "500 27px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "they never get to see it themselves?",
+     "x": 70,
+     "y": 244,
+     "font": "500 27px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       70,
+       261
+      ],
+      [
+       128,
+       261
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "12 / 12",
+     "x": 70,
+     "y": 288,
+     "font": "12px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves? What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves?",
+   "n": 0,
+   "total": 0,
+   "width": 640,
+   "height": 360,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 640,
+     "h": 360,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "What is the one thing about the house you grew up in that you would most like your",
+     "x": 70,
+     "y": 159,
+     "font": "500 13px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "grandchildren to know about, even if they never get to see it themselves? What is",
+     "x": 70,
+     "y": 176,
+     "font": "500 13px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "the one thing about the house you grew up in that you would most like your",
+     "x": 70,
+     "y": 193,
+     "font": "500 13px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "grandchildren to know about, even if they never get to see it themselves?",
+     "x": 70,
+     "y": 210,
+     "font": "500 13px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       70,
+       218
+      ],
+      [
+       128,
+       218
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "0 / 0",
+     "x": 70,
+     "y": 245,
+     "font": "12px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves? What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves? What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves?",
+   "n": 1,
+   "total": 6,
+   "width": 640,
+   "height": 360,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 640,
+     "h": 360,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "What is the one thing about the house you grew up in that you would most like your",
+     "x": 70,
+     "y": 159,
+     "font": "500 13px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "grandchildren to know about, even if they never get to see it themselves? What is",
+     "x": 70,
+     "y": 176,
+     "font": "500 13px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "the one thing about the house you grew up in that you would most like your",
+     "x": 70,
+     "y": 193,
+     "font": "500 13px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "grandchildren to know about, even if they never get to see it themselves? What is…",
+     "x": 70,
+     "y": 210,
+     "font": "500 13px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       70,
+       218
+      ],
+      [
+       128,
+       218
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 70,
+     "y": 245,
+     "font": "12px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "Supercalifragilisticexpialidocious_is_a_single_enormous_word_that_will_never_wrap_anywhere_at_all",
+   "n": 12,
+   "total": 12,
+   "width": 640,
+   "height": 360,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 640,
+     "h": 360,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "Supercalifragilisticexpialidocious_is_a_single_enormous_word_that_will_never_wrap_anywhere_at_all",
+     "x": 70,
+     "y": 191,
+     "font": "500 31px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       70,
+       210
+      ],
+      [
+       128,
+       210
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "12 / 12",
+     "x": 70,
+     "y": 237,
+     "font": "12px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "Olá — qual é a tua memória mais antiga de 日本 e de 😀?",
+   "n": 0,
+   "total": 0,
+   "width": 640,
+   "height": 360,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 640,
+     "h": 360,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "Olá — qual é a tua memória mais",
+     "x": 70,
+     "y": 171,
+     "font": "500 31px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "antiga de 日本 e de 😀?",
+     "x": 70,
+     "y": 212,
+     "font": "500 31px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       70,
+       231
+      ],
+      [
+       128,
+       231
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "0 / 0",
+     "x": 70,
+     "y": 258,
+     "font": "12px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "a b c d e f g h i j k l m n o p q r s t u v w x y z",
+   "n": 1,
+   "total": 6,
+   "width": 640,
+   "height": 360,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 640,
+     "h": 360,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "a b c d e f g h i j k l m n o p q r s t u",
+     "x": 70,
+     "y": 171,
+     "font": "500 31px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "v w x y z",
+     "x": 70,
+     "y": 212,
+     "font": "500 31px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       70,
+       231
+      ],
+      [
+       128,
+       231
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 70,
+     "y": 258,
+     "font": "12px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "One. Two. Three. Four. Five. Six. Seven. Eight. Nine. Ten. Eleven. Twelve. Thirteen.",
+   "n": 12,
+   "total": 12,
+   "width": 640,
+   "height": 360,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 640,
+     "h": 360,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "One. Two. Three. Four. Five. Six.",
+     "x": 70,
+     "y": 150,
+     "font": "500 31px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "Seven. Eight. Nine. Ten. Eleven.",
+     "x": 70,
+     "y": 191,
+     "font": "500 31px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "Twelve. Thirteen.",
+     "x": 70,
+     "y": 232,
+     "font": "500 31px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       70,
+       251
+      ],
+      [
+       128,
+       251
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "12 / 12",
+     "x": 70,
+     "y": 278,
+     "font": "12px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "abcdefghi jklmnopqrs",
+   "n": 0,
+   "total": 0,
+   "width": 640,
+   "height": 360,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 640,
+     "h": 360,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "abcdefghi jklmnopqrs",
+     "x": 70,
+     "y": 191,
+     "font": "500 31px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       70,
+       210
+      ],
+      [
+       128,
+       210
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "0 / 0",
+     "x": 70,
+     "y": 237,
+     "font": "12px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "abcdefghi jklmnopqrst",
+   "n": 1,
+   "total": 6,
+   "width": 640,
+   "height": 360,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 640,
+     "h": 360,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "abcdefghi jklmnopqrst",
+     "x": 70,
+     "y": 191,
+     "font": "500 31px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       70,
+       210
+      ],
+      [
+       128,
+       210
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 70,
+     "y": 237,
+     "font": "12px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "Where did you grow up?",
+   "n": 1,
+   "total": 6,
+   "width": 720,
+   "height": 720,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 720,
+     "h": 720,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "Where did you grow",
+     "x": 79,
+     "y": 342,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "up?",
+     "x": 79,
+     "y": 423,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       79,
+       461
+      ],
+      [
+       144,
+       461
+      ]
+     ],
+     "width": 4,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 79,
+     "y": 515,
+     "font": "24px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "",
+   "n": 12,
+   "total": 12,
+   "width": 720,
+   "height": 720,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 720,
+     "h": 720,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       79,
+       380
+      ],
+      [
+       144,
+       380
+      ]
+     ],
+     "width": 4,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "12 / 12",
+     "x": 79,
+     "y": 434,
+     "font": "24px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "   ",
+   "n": 0,
+   "total": 0,
+   "width": 720,
+   "height": 720,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 720,
+     "h": 720,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       79,
+       380
+      ],
+      [
+       144,
+       380
+      ]
+     ],
+     "width": 4,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "0 / 0",
+     "x": 79,
+     "y": 434,
+     "font": "24px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": " \t\n Tabs\tand\nnew lines and　ideographic space ",
+   "n": 1,
+   "total": 6,
+   "width": 720,
+   "height": 720,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 720,
+     "h": 720,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "Tabs and new lines",
+     "x": 79,
+     "y": 302,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "and ideographic",
+     "x": 79,
+     "y": 383,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "space",
+     "x": 79,
+     "y": 464,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       79,
+       502
+      ],
+      [
+       144,
+       502
+      ]
+     ],
+     "width": 4,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 79,
+     "y": 556,
+     "font": "24px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves?",
+   "n": 12,
+   "total": 12,
+   "width": 720,
+   "height": 720,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 720,
+     "h": 720,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "What is the one thing about the house",
+     "x": 79,
+     "y": 310,
+     "font": "500 31px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "you grew up in that you would most like",
+     "x": 79,
+     "y": 351,
+     "font": "500 31px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "your grandchildren to know about, even",
+     "x": 79,
+     "y": 392,
+     "font": "500 31px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "if they never get to see it themselves?",
+     "x": 79,
+     "y": 433,
+     "font": "500 31px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       79,
+       452
+      ],
+      [
+       144,
+       452
+      ]
+     ],
+     "width": 4,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "12 / 12",
+     "x": 79,
+     "y": 506,
+     "font": "24px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves? What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves?",
+   "n": 0,
+   "total": 0,
+   "width": 720,
+   "height": 720,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 720,
+     "h": 720,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "What is the one thing about the house you",
+     "x": 79,
+     "y": 314,
+     "font": "500 29px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "grew up in that you would most like your",
+     "x": 79,
+     "y": 352,
+     "font": "500 29px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "grandchildren to know about, even if they",
+     "x": 79,
+     "y": 390,
+     "font": "500 29px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "never get to see it themselves? What is…",
+     "x": 79,
+     "y": 428,
+     "font": "500 29px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       79,
+       446
+      ],
+      [
+       144,
+       446
+      ]
+     ],
+     "width": 4,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "0 / 0",
+     "x": 79,
+     "y": 500,
+     "font": "24px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves? What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves? What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves?",
+   "n": 1,
+   "total": 6,
+   "width": 720,
+   "height": 720,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 720,
+     "h": 720,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "What is the one thing about the house you",
+     "x": 79,
+     "y": 314,
+     "font": "500 29px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "grew up in that you would most like your",
+     "x": 79,
+     "y": 352,
+     "font": "500 29px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "grandchildren to know about, even if they",
+     "x": 79,
+     "y": 390,
+     "font": "500 29px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "never get to see it themselves? What is…",
+     "x": 79,
+     "y": 428,
+     "font": "500 29px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       79,
+       446
+      ],
+      [
+       144,
+       446
+      ]
+     ],
+     "width": 4,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 79,
+     "y": 500,
+     "font": "24px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "Supercalifragilisticexpialidocious_is_a_single_enormous_word_that_will_never_wrap_anywhere_at_all",
+   "n": 12,
+   "total": 12,
+   "width": 720,
+   "height": 720,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 720,
+     "h": 720,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "Supercalifragilisticexpialidocious_is_a_single_enormous_word_that_will_never_wrap_anywhere_at_all",
+     "x": 79,
+     "y": 383,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       79,
+       421
+      ],
+      [
+       144,
+       421
+      ]
+     ],
+     "width": 4,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "12 / 12",
+     "x": 79,
+     "y": 475,
+     "font": "24px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "Olá — qual é a tua memória mais antiga de 日本 e de 😀?",
+   "n": 0,
+   "total": 0,
+   "width": 720,
+   "height": 720,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 720,
+     "h": 720,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "Olá — qual é a",
+     "x": 79,
+     "y": 261,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "tua memória mais",
+     "x": 79,
+     "y": 342,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "antiga de 日本 e de",
+     "x": 79,
+     "y": 423,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "😀?",
+     "x": 79,
+     "y": 504,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       79,
+       542
+      ],
+      [
+       144,
+       542
+      ]
+     ],
+     "width": 4,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "0 / 0",
+     "x": 79,
+     "y": 596,
+     "font": "24px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "a b c d e f g h i j k l m n o p q r s t u v w x y z",
+   "n": 1,
+   "total": 6,
+   "width": 720,
+   "height": 720,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 720,
+     "h": 720,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "a b c d e f g h i j k l",
+     "x": 79,
+     "y": 302,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "m n o p q r s t u v w x",
+     "x": 79,
+     "y": 383,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "y z",
+     "x": 79,
+     "y": 464,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       79,
+       502
+      ],
+      [
+       144,
+       502
+      ]
+     ],
+     "width": 4,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 79,
+     "y": 556,
+     "font": "24px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "One. Two. Three. Four. Five. Six. Seven. Eight. Nine. Ten. Eleven. Twelve. Thirteen.",
+   "n": 12,
+   "total": 12,
+   "width": 720,
+   "height": 720,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 720,
+     "h": 720,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "One. Two. Three. Four.",
+     "x": 79,
+     "y": 281,
+     "font": "500 49px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "Five. Six. Seven. Eight.",
+     "x": 79,
+     "y": 346,
+     "font": "500 49px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "Nine. Ten. Eleven.",
+     "x": 79,
+     "y": 411,
+     "font": "500 49px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "Twelve. Thirteen.",
+     "x": 79,
+     "y": 476,
+     "font": "500 49px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       79,
+       506
+      ],
+      [
+       144,
+       506
+      ]
+     ],
+     "width": 4,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "12 / 12",
+     "x": 79,
+     "y": 560,
+     "font": "24px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "abcdefghi jklmnopqrs",
+   "n": 0,
+   "total": 0,
+   "width": 720,
+   "height": 720,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 720,
+     "h": 720,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "abcdefghi",
+     "x": 79,
+     "y": 342,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "jklmnopqrs",
+     "x": 79,
+     "y": 423,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       79,
+       461
+      ],
+      [
+       144,
+       461
+      ]
+     ],
+     "width": 4,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "0 / 0",
+     "x": 79,
+     "y": 515,
+     "font": "24px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "abcdefghi jklmnopqrst",
+   "n": 1,
+   "total": 6,
+   "width": 720,
+   "height": 720,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 720,
+     "h": 720,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "abcdefghi",
+     "x": 79,
+     "y": 342,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "jklmnopqrst",
+     "x": 79,
+     "y": 423,
+     "font": "500 61px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       79,
+       461
+      ],
+      [
+       144,
+       461
+      ]
+     ],
+     "width": 4,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 79,
+     "y": 515,
+     "font": "24px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "Where did you grow up?",
+   "n": 1,
+   "total": 6,
+   "width": 1280,
+   "height": 640,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 640,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "Where did you grow up?",
+     "x": 141,
+     "y": 340,
+     "font": "500 54px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       141,
+       373
+      ],
+      [
+       256,
+       373
+      ]
+     ],
+     "width": 3,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 141,
+     "y": 421,
+     "font": "21px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "",
+   "n": 12,
+   "total": 12,
+   "width": 1280,
+   "height": 640,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 640,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       141,
+       337
+      ],
+      [
+       256,
+       337
+      ]
+     ],
+     "width": 3,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "12 / 12",
+     "x": 141,
+     "y": 385,
+     "font": "21px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "   ",
+   "n": 0,
+   "total": 0,
+   "width": 1280,
+   "height": 640,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 640,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       141,
+       337
+      ],
+      [
+       256,
+       337
+      ]
+     ],
+     "width": 3,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "0 / 0",
+     "x": 141,
+     "y": 385,
+     "font": "21px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": " \t\n Tabs\tand\nnew lines and　ideographic space ",
+   "n": 1,
+   "total": 6,
+   "width": 1280,
+   "height": 640,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 640,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "Tabs and new lines and ideographic",
+     "x": 141,
+     "y": 304,
+     "font": "500 54px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "space",
+     "x": 141,
+     "y": 375,
+     "font": "500 54px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       141,
+       408
+      ],
+      [
+       256,
+       408
+      ]
+     ],
+     "width": 3,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 141,
+     "y": 456,
+     "font": "21px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves?",
+   "n": 12,
+   "total": 12,
+   "width": 1280,
+   "height": 640,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 640,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "What is the one thing about the house",
+     "x": 141,
+     "y": 233,
+     "font": "500 54px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "you grew up in that you would most like",
+     "x": 141,
+     "y": 304,
+     "font": "500 54px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "your grandchildren to know about, even",
+     "x": 141,
+     "y": 375,
+     "font": "500 54px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "if they never get to see it themselves?",
+     "x": 141,
+     "y": 446,
+     "font": "500 54px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       141,
+       479
+      ],
+      [
+       256,
+       479
+      ]
+     ],
+     "width": 3,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "12 / 12",
+     "x": 141,
+     "y": 527,
+     "font": "21px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves? What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves?",
+   "n": 0,
+   "total": 0,
+   "width": 1280,
+   "height": 640,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 640,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "What is the one thing about the house you grew up in that you would most like your",
+     "x": 141,
+     "y": 279,
+     "font": "500 26px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "grandchildren to know about, even if they never get to see it themselves? What is",
+     "x": 141,
+     "y": 313,
+     "font": "500 26px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "the one thing about the house you grew up in that you would most like your",
+     "x": 141,
+     "y": 347,
+     "font": "500 26px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "grandchildren to know about, even if they never get to see it themselves?",
+     "x": 141,
+     "y": 381,
+     "font": "500 26px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       141,
+       397
+      ],
+      [
+       256,
+       397
+      ]
+     ],
+     "width": 3,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "0 / 0",
+     "x": 141,
+     "y": 445,
+     "font": "21px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves? What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves? What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves?",
+   "n": 1,
+   "total": 6,
+   "width": 1280,
+   "height": 640,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 640,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "What is the one thing about the house you grew up in that you would most like your",
+     "x": 141,
+     "y": 279,
+     "font": "500 26px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "grandchildren to know about, even if they never get to see it themselves? What is",
+     "x": 141,
+     "y": 313,
+     "font": "500 26px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "the one thing about the house you grew up in that you would most like your",
+     "x": 141,
+     "y": 347,
+     "font": "500 26px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "grandchildren to know about, even if they never get to see it themselves? What is…",
+     "x": 141,
+     "y": 381,
+     "font": "500 26px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       141,
+       397
+      ],
+      [
+       256,
+       397
+      ]
+     ],
+     "width": 3,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 141,
+     "y": 445,
+     "font": "21px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "Supercalifragilisticexpialidocious_is_a_single_enormous_word_that_will_never_wrap_anywhere_at_all",
+   "n": 12,
+   "total": 12,
+   "width": 1280,
+   "height": 640,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 640,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "Supercalifragilisticexpialidocious_is_a_single_enormous_word_that_will_never_wrap_anywhere_at_all",
+     "x": 141,
+     "y": 340,
+     "font": "500 54px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       141,
+       373
+      ],
+      [
+       256,
+       373
+      ]
+     ],
+     "width": 3,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "12 / 12",
+     "x": 141,
+     "y": 421,
+     "font": "21px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "Olá — qual é a tua memória mais antiga de 日本 e de 😀?",
+   "n": 0,
+   "total": 0,
+   "width": 1280,
+   "height": 640,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 640,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "Olá — qual é a tua memória mais",
+     "x": 141,
+     "y": 304,
+     "font": "500 54px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "antiga de 日本 e de 😀?",
+     "x": 141,
+     "y": 375,
+     "font": "500 54px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       141,
+       408
+      ],
+      [
+       256,
+       408
+      ]
+     ],
+     "width": 3,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "0 / 0",
+     "x": 141,
+     "y": 456,
+     "font": "21px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "a b c d e f g h i j k l m n o p q r s t u v w x y z",
+   "n": 1,
+   "total": 6,
+   "width": 1280,
+   "height": 640,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 640,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "a b c d e f g h i j k l m n o p q r s t u v w x",
+     "x": 141,
+     "y": 304,
+     "font": "500 54px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "y z",
+     "x": 141,
+     "y": 375,
+     "font": "500 54px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       141,
+       408
+      ],
+      [
+       256,
+       408
+      ]
+     ],
+     "width": 3,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 141,
+     "y": 456,
+     "font": "21px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "One. Two. Three. Four. Five. Six. Seven. Eight. Nine. Ten. Eleven. Twelve. Thirteen.",
+   "n": 12,
+   "total": 12,
+   "width": 1280,
+   "height": 640,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 640,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "One. Two. Three. Four. Five. Six.",
+     "x": 141,
+     "y": 269,
+     "font": "500 54px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "Seven. Eight. Nine. Ten. Eleven.",
+     "x": 141,
+     "y": 340,
+     "font": "500 54px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "Twelve. Thirteen.",
+     "x": 141,
+     "y": 411,
+     "font": "500 54px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       141,
+       444
+      ],
+      [
+       256,
+       444
+      ]
+     ],
+     "width": 3,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "12 / 12",
+     "x": 141,
+     "y": 492,
+     "font": "21px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "abcdefghi jklmnopqrs",
+   "n": 0,
+   "total": 0,
+   "width": 1280,
+   "height": 640,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 640,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "abcdefghi jklmnopqrs",
+     "x": 141,
+     "y": 340,
+     "font": "500 54px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       141,
+       373
+      ],
+      [
+       256,
+       373
+      ]
+     ],
+     "width": 3,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "0 / 0",
+     "x": 141,
+     "y": 421,
+     "font": "21px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "abcdefghi jklmnopqrst",
+   "n": 1,
+   "total": 6,
+   "width": 1280,
+   "height": 640,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 1280,
+     "h": 640,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "abcdefghi jklmnopqrst",
+     "x": 141,
+     "y": 340,
+     "font": "500 54px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       141,
+       373
+      ],
+      [
+       256,
+       373
+      ]
+     ],
+     "width": 3,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 141,
+     "y": 421,
+     "font": "21px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "Where did you grow up?",
+   "n": 1,
+   "total": 6,
+   "width": 300,
+   "height": 280,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 300,
+     "h": 280,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "Where did you grow",
+     "x": 33,
+     "y": 133,
+     "font": "500 24px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "up?",
+     "x": 33,
+     "y": 165,
+     "font": "500 24px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       33,
+       180
+      ],
+      [
+       60,
+       180
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 33,
+     "y": 201,
+     "font": "9px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "",
+   "n": 12,
+   "total": 12,
+   "width": 300,
+   "height": 280,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 300,
+     "h": 280,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       33,
+       148
+      ],
+      [
+       60,
+       148
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "12 / 12",
+     "x": 33,
+     "y": 169,
+     "font": "9px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "   ",
+   "n": 0,
+   "total": 0,
+   "width": 300,
+   "height": 280,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 300,
+     "h": 280,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       33,
+       148
+      ],
+      [
+       60,
+       148
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "0 / 0",
+     "x": 33,
+     "y": 169,
+     "font": "9px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": " \t\n Tabs\tand\nnew lines and　ideographic space ",
+   "n": 1,
+   "total": 6,
+   "width": 300,
+   "height": 280,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 300,
+     "h": 280,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "Tabs and new lines",
+     "x": 33,
+     "y": 117,
+     "font": "500 24px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "and ideographic",
+     "x": 33,
+     "y": 149,
+     "font": "500 24px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "space",
+     "x": 33,
+     "y": 181,
+     "font": "500 24px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       33,
+       196
+      ],
+      [
+       60,
+       196
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 33,
+     "y": 217,
+     "font": "9px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves?",
+   "n": 12,
+   "total": 12,
+   "width": 300,
+   "height": 280,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 300,
+     "h": 280,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "What is the one thing about the house you",
+     "x": 33,
+     "y": 120,
+     "font": "500 12px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "grew up in that you would most like your",
+     "x": 33,
+     "y": 136,
+     "font": "500 12px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "grandchildren to know about, even if they",
+     "x": 33,
+     "y": 152,
+     "font": "500 12px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "never get to see it themselves?",
+     "x": 33,
+     "y": 168,
+     "font": "500 12px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       33,
+       175
+      ],
+      [
+       60,
+       175
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "12 / 12",
+     "x": 33,
+     "y": 196,
+     "font": "9px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves? What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves?",
+   "n": 0,
+   "total": 0,
+   "width": 300,
+   "height": 280,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 300,
+     "h": 280,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "What is the one thing about the house you grew up in",
+     "x": 33,
+     "y": 124,
+     "font": "500 10px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "that you would most like your grandchildren to",
+     "x": 33,
+     "y": 137,
+     "font": "500 10px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "know about, even if they never get to see it",
+     "x": 33,
+     "y": 150,
+     "font": "500 10px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "themselves? What is the one thing about the house…",
+     "x": 33,
+     "y": 163,
+     "font": "500 10px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       33,
+       169
+      ],
+      [
+       60,
+       169
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "0 / 0",
+     "x": 33,
+     "y": 190,
+     "font": "9px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves? What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves? What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves?",
+   "n": 1,
+   "total": 6,
+   "width": 300,
+   "height": 280,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 300,
+     "h": 280,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "What is the one thing about the house you grew up in",
+     "x": 33,
+     "y": 124,
+     "font": "500 10px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "that you would most like your grandchildren to",
+     "x": 33,
+     "y": 137,
+     "font": "500 10px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "know about, even if they never get to see it",
+     "x": 33,
+     "y": 150,
+     "font": "500 10px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "themselves? What is the one thing about the house…",
+     "x": 33,
+     "y": 163,
+     "font": "500 10px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       33,
+       169
+      ],
+      [
+       60,
+       169
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 33,
+     "y": 190,
+     "font": "9px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "Supercalifragilisticexpialidocious_is_a_single_enormous_word_that_will_never_wrap_anywhere_at_all",
+   "n": 12,
+   "total": 12,
+   "width": 300,
+   "height": 280,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 300,
+     "h": 280,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "Supercalifragilisticexpialidocious_is_a_single_enormous_word_that_will_never_wrap_anywhere_at_all",
+     "x": 33,
+     "y": 149,
+     "font": "500 24px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       33,
+       164
+      ],
+      [
+       60,
+       164
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "12 / 12",
+     "x": 33,
+     "y": 185,
+     "font": "9px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "Olá — qual é a tua memória mais antiga de 日本 e de 😀?",
+   "n": 0,
+   "total": 0,
+   "width": 300,
+   "height": 280,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 300,
+     "h": 280,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "Olá — qual é a tua",
+     "x": 33,
+     "y": 117,
+     "font": "500 24px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "memória mais antiga",
+     "x": 33,
+     "y": 149,
+     "font": "500 24px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "de 日本 e de 😀?",
+     "x": 33,
+     "y": 181,
+     "font": "500 24px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       33,
+       196
+      ],
+      [
+       60,
+       196
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "0 / 0",
+     "x": 33,
+     "y": 217,
+     "font": "9px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "a b c d e f g h i j k l m n o p q r s t u v w x y z",
+   "n": 1,
+   "total": 6,
+   "width": 300,
+   "height": 280,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 300,
+     "h": 280,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "a b c d e f g h i j k l m",
+     "x": 33,
+     "y": 133,
+     "font": "500 24px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "n o p q r s t u v w x y z",
+     "x": 33,
+     "y": 165,
+     "font": "500 24px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       33,
+       180
+      ],
+      [
+       60,
+       180
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 33,
+     "y": 201,
+     "font": "9px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "One. Two. Three. Four. Five. Six. Seven. Eight. Nine. Ten. Eleven. Twelve. Thirteen.",
+   "n": 12,
+   "total": 12,
+   "width": 300,
+   "height": 280,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 300,
+     "h": 280,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "One. Two. Three. Four.",
+     "x": 33,
+     "y": 108,
+     "font": "500 20px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "Five. Six. Seven. Eight.",
+     "x": 33,
+     "y": 134,
+     "font": "500 20px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "Nine. Ten. Eleven.",
+     "x": 33,
+     "y": 160,
+     "font": "500 20px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "Twelve. Thirteen.",
+     "x": 33,
+     "y": 186,
+     "font": "500 20px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       33,
+       198
+      ],
+      [
+       60,
+       198
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "12 / 12",
+     "x": 33,
+     "y": 219,
+     "font": "9px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "abcdefghi jklmnopqrs",
+   "n": 0,
+   "total": 0,
+   "width": 300,
+   "height": 280,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 300,
+     "h": 280,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "abcdefghi jklmnopqrs",
+     "x": 33,
+     "y": 149,
+     "font": "500 24px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       33,
+       164
+      ],
+      [
+       60,
+       164
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "0 / 0",
+     "x": 33,
+     "y": 185,
+     "font": "9px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "abcdefghi jklmnopqrst",
+   "n": 1,
+   "total": 6,
+   "width": 300,
+   "height": 280,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 300,
+     "h": 280,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "abcdefghi",
+     "x": 33,
+     "y": 133,
+     "font": "500 24px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "jklmnopqrst",
+     "x": 33,
+     "y": 165,
+     "font": "500 24px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       33,
+       180
+      ],
+      [
+       60,
+       180
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 33,
+     "y": 201,
+     "font": "9px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "Where did you grow up?",
+   "n": 1,
+   "total": 6,
+   "width": 320,
+   "height": 180,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 320,
+     "h": 180,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "Where did you grow up?",
+     "x": 35,
+     "y": 96,
+     "font": "500 15px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       35,
+       105
+      ],
+      [
+       64,
+       105
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 35,
+     "y": 119,
+     "font": "6px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "",
+   "n": 12,
+   "total": 12,
+   "width": 320,
+   "height": 180,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 320,
+     "h": 180,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       35,
+       95
+      ],
+      [
+       64,
+       95
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "12 / 12",
+     "x": 35,
+     "y": 109,
+     "font": "6px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "   ",
+   "n": 0,
+   "total": 0,
+   "width": 320,
+   "height": 180,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 320,
+     "h": 180,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       35,
+       95
+      ],
+      [
+       64,
+       95
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "0 / 0",
+     "x": 35,
+     "y": 109,
+     "font": "6px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": " \t\n Tabs\tand\nnew lines and　ideographic space ",
+   "n": 1,
+   "total": 6,
+   "width": 320,
+   "height": 180,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 320,
+     "h": 180,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "Tabs and new lines and ideographic",
+     "x": 35,
+     "y": 86,
+     "font": "500 15px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "space",
+     "x": 35,
+     "y": 106,
+     "font": "500 15px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       35,
+       115
+      ],
+      [
+       64,
+       115
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 35,
+     "y": 129,
+     "font": "6px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves?",
+   "n": 12,
+   "total": 12,
+   "width": 320,
+   "height": 180,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 320,
+     "h": 180,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "What is the one thing about the house you",
+     "x": 35,
+     "y": 69,
+     "font": "500 13px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "grew up in that you would most like your",
+     "x": 35,
+     "y": 86,
+     "font": "500 13px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "grandchildren to know about, even if they",
+     "x": 35,
+     "y": 103,
+     "font": "500 13px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "never get to see it themselves?",
+     "x": 35,
+     "y": 120,
+     "font": "500 13px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       35,
+       128
+      ],
+      [
+       64,
+       128
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "12 / 12",
+     "x": 35,
+     "y": 142,
+     "font": "6px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves? What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves?",
+   "n": 0,
+   "total": 0,
+   "width": 320,
+   "height": 180,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 320,
+     "h": 180,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "What is the one thing about the house you grew up in that you would most like",
+     "x": 35,
+     "y": 79,
+     "font": "500 7px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "your grandchildren to know about, even if they never get to see it",
+     "x": 35,
+     "y": 88,
+     "font": "500 7px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "themselves? What is the one thing about the house you grew up in that you",
+     "x": 35,
+     "y": 97,
+     "font": "500 7px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "would most like your grandchildren to know about, even if they never get to…",
+     "x": 35,
+     "y": 106,
+     "font": "500 7px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       35,
+       110
+      ],
+      [
+       64,
+       110
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "0 / 0",
+     "x": 35,
+     "y": 124,
+     "font": "6px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves? What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves? What is the one thing about the house you grew up in that you would most like your grandchildren to know about, even if they never get to see it themselves?",
+   "n": 1,
+   "total": 6,
+   "width": 320,
+   "height": 180,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 320,
+     "h": 180,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "What is the one thing about the house you grew up in that you would most like",
+     "x": 35,
+     "y": 79,
+     "font": "500 7px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "your grandchildren to know about, even if they never get to see it",
+     "x": 35,
+     "y": 88,
+     "font": "500 7px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "themselves? What is the one thing about the house you grew up in that you",
+     "x": 35,
+     "y": 97,
+     "font": "500 7px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "would most like your grandchildren to know about, even if they never get to…",
+     "x": 35,
+     "y": 106,
+     "font": "500 7px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       35,
+       110
+      ],
+      [
+       64,
+       110
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 35,
+     "y": 124,
+     "font": "6px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "Supercalifragilisticexpialidocious_is_a_single_enormous_word_that_will_never_wrap_anywhere_at_all",
+   "n": 12,
+   "total": 12,
+   "width": 320,
+   "height": 180,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 320,
+     "h": 180,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "Supercalifragilisticexpialidocious_is_a_single_enormous_word_that_will_never_wrap_anywhere_at_all",
+     "x": 35,
+     "y": 96,
+     "font": "500 15px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       35,
+       105
+      ],
+      [
+       64,
+       105
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "12 / 12",
+     "x": 35,
+     "y": 119,
+     "font": "6px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "Olá — qual é a tua memória mais antiga de 日本 e de 😀?",
+   "n": 0,
+   "total": 0,
+   "width": 320,
+   "height": 180,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 320,
+     "h": 180,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "Olá — qual é a tua memória mais",
+     "x": 35,
+     "y": 86,
+     "font": "500 15px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "antiga de 日本 e de 😀?",
+     "x": 35,
+     "y": 106,
+     "font": "500 15px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       35,
+       115
+      ],
+      [
+       64,
+       115
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "0 / 0",
+     "x": 35,
+     "y": 129,
+     "font": "6px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "a b c d e f g h i j k l m n o p q r s t u v w x y z",
+   "n": 1,
+   "total": 6,
+   "width": 320,
+   "height": 180,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 320,
+     "h": 180,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "a b c d e f g h i j k l m n o p q r s t u v",
+     "x": 35,
+     "y": 86,
+     "font": "500 15px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "w x y z",
+     "x": 35,
+     "y": 106,
+     "font": "500 15px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       35,
+       115
+      ],
+      [
+       64,
+       115
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 35,
+     "y": 129,
+     "font": "6px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "One. Two. Three. Four. Five. Six. Seven. Eight. Nine. Ten. Eleven. Twelve. Thirteen.",
+   "n": 12,
+   "total": 12,
+   "width": 320,
+   "height": 180,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 320,
+     "h": 180,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "One. Two. Three. Four. Five. Six.",
+     "x": 35,
+     "y": 76,
+     "font": "500 15px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "Seven. Eight. Nine. Ten. Eleven.",
+     "x": 35,
+     "y": 96,
+     "font": "500 15px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "text",
+     "text": "Twelve. Thirteen.",
+     "x": 35,
+     "y": 116,
+     "font": "500 15px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       35,
+       125
+      ],
+      [
+       64,
+       125
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "12 / 12",
+     "x": 35,
+     "y": 139,
+     "font": "6px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "abcdefghi jklmnopqrs",
+   "n": 0,
+   "total": 0,
+   "width": 320,
+   "height": 180,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 320,
+     "h": 180,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "abcdefghi jklmnopqrs",
+     "x": 35,
+     "y": 96,
+     "font": "500 15px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       35,
+       105
+      ],
+      [
+       64,
+       105
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "0 / 0",
+     "x": 35,
+     "y": 119,
+     "font": "6px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  },
+  {
+   "text": "abcdefghi jklmnopqrst",
+   "n": 1,
+   "total": 6,
+   "width": 320,
+   "height": 180,
+   "ops": [
+    {
+     "op": "rect",
+     "x": 0,
+     "y": 0,
+     "w": 320,
+     "h": 180,
+     "style": "#f4eee2"
+    },
+    {
+     "op": "text",
+     "text": "abcdefghi jklmnopqrst",
+     "x": 35,
+     "y": 96,
+     "font": "500 15px Georgia, serif",
+     "style": "#2a2521",
+     "align": "start",
+     "baseline": "alphabetic"
+    },
+    {
+     "op": "line",
+     "path": [
+      [
+       35,
+       105
+      ],
+      [
+       64,
+       105
+      ]
+     ],
+     "width": 2,
+     "style": "#b0563a"
+    },
+    {
+     "op": "text",
+     "text": "1 / 6",
+     "x": 35,
+     "y": 119,
+     "font": "6px ui-monospace, monospace",
+     "style": "#a99f8e",
+     "align": "start",
+     "baseline": "alphabetic"
+    }
+   ]
+  }
+ ]
+}
