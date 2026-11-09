@@ -155,6 +155,9 @@ final class ChapterUITests: XCTestCase {
         XCTAssertEqual(merged.frame.minX,header.frame.maxX,accuracy:1.5);XCTAssertGreaterThan(merged.frame.width,header.frame.width*0.9)
         XCTAssertEqual(header.frame.width,160,accuracy:1.5,"Original TipTap colwidth must be honored")
         attach(app,name:"Actual native original table with exact merged grid")
+        let location=app.staticTexts["custom.location"];reveal(location,in:app);XCTAssertEqual(location.label,"📍 Home → Park")
+        let interview=app.staticTexts["custom.videoInterview"];reveal(interview,in:app);XCTAssertEqual(interview.label,"🎬 Public interview · 1 question")
+        attach(app,name:"Actual native original custom-block markers")
     }
     func testSyncedTemplateStartsNewEntryWithExactContentAndOriginalDefaultTitle() throws {
         let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture","--chapter-template-fixture"];app.launch()

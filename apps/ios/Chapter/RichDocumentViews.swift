@@ -57,6 +57,14 @@ struct RichDocumentView: View {
         if !["paragraph", "heading"].contains(node.type) { return AttributedString("[\(node.type) — preserved]") }
         return node.children.reduce(into: AttributedString()) { $0 += inline($1, font: font) }
     }
+    /// Original DocPreview marker: UI face at 0.82em, ink-3, 1px dashed line, radius 9.
+    private func customChip(_ text: String) -> some View {
+        let preference = model.snapshot.appearance ?? .standard
+        return Text(text).font(chapterFont(.ui, skin: preference.skin, size: 15, relativeTo: .subheadline))
+            .foregroundStyle(chapterToken("ink-3", preference: preference))
+            .padding(.vertical, 4).padding(.horizontal, 10)
+            .overlay(RoundedRectangle(cornerRadius: 9).stroke(chapterToken("line", preference: preference), style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
+    }
     private func render(_ node: RichNode) -> AnyView {
         switch node.type {
         case "doc", "listItem", "taskList": return AnyView(children(node))
@@ -110,9 +118,9 @@ struct RichDocumentView: View {
         case "tableCell", "tableHeader": return AnyView(children(node).padding(10).background(chapterToken("surface",preference:model.snapshot.appearance ?? .standard)).border(Color.secondary.opacity(0.4)))
         case "blockMath": return AnyView(Text(node.value["attrs"]["latex"].string ?? "").font(chapterFont(.mono,skin:model.snapshot.appearance?.skin ?? "paper",size:16)).textSelection(.enabled).accessibilityLabel("LaTeX formula: " + (node.value["attrs"]["latex"].string ?? "")))
         case "mediaAttachment", "mediaGallery": return AnyView(Label(node.value["attrs"]["name"].string ?? "Encrypted media — use attachment preview below", systemImage: "paperclip").foregroundStyle(.secondary))
-        case "locationMap": return AnyView(Label((node.value["attrs"]["from"]["label"].string ?? "Location") + " → " + (node.value["attrs"]["to"]["label"].string ?? ""), systemImage: "map").textSelection(.enabled))
-        case "videoInterview": return AnyView(VStack(alignment: .leading) {
-            Label(node.value["attrs"]["typeName"].string ?? "Video interview", systemImage: "video")
+        case "locationMap": return AnyView(customChip(RichCustomBlockLabel.location(node.value["attrs"])).textSelection(.enabled).accessibilityIdentifier("custom.location"))
+        case "videoInterview": return AnyView(VStack(alignment: .leading, spacing: 8) {
+            customChip(RichCustomBlockLabel.videoInterview(node.value["attrs"])).accessibilityIdentifier("custom.videoInterview")
             ForEach(Array(node.value["attrs"]["cards"].array.enumerated()), id: \.offset) { _, card in
                 Text(card["q"].string ?? "").font(.headline); Text(card["transcript"].string ?? "")
             }

@@ -71,6 +71,15 @@ the exact revision; a failing strict accessibility audit remains a release block
   audit passed on dd19955 but failed on 869c075 with unchanged visible layout, so it
   is treated as unproven until it passes again. No audit is waived; re-verification pending.
 
+## Custom-block markers match the original preview — November 9, 2026, 1:00 AM PST
+
+- Location and video-interview blocks now use the original DocPreview labels and
+  truthiness (`📍 from||Location[ → to]`, `🎬 name||Video interview[ · N
+  question(s)]`) in the original marker style (UI face, ink-3, dashed line,
+  radius 9). Fixes the previous native "Location → " with an empty destination.
+  1 new Foundation test (33 total) PASS; UI label checks pending Apple. Maps,
+  clips and math are still not rendered as images/KaTeX natively.
+
 ## Native "start from template" — November 9, 2026, 12:56 AM PST
 
 - Journal → New from template lists synced templates (name || "Untitled

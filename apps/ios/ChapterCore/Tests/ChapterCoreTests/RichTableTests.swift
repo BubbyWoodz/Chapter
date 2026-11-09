@@ -40,4 +40,15 @@ final class RichTableTests: XCTestCase {
         let huge = try XCTUnwrap(try layout(.object(["type": .string("table"), "content": .array([])])))
         XCTAssertEqual(huge.problems, ["zero_sized"])
     }
+    func testCustomBlockLabelsMatchOriginalDocPreviewTruthiness() {
+        func o(_ d: [String: JSONValue]) -> JSONValue { .object(d) }
+        XCTAssertEqual(RichCustomBlockLabel.location(o(["from": o(["label": .string("Home")]), "to": o(["label": .string("Café")])])), "📍 Home → Café")
+        XCTAssertEqual(RichCustomBlockLabel.location(o(["from": o(["label": .string("Home")]), "to": o(["label": .string("")])])), "📍 Home")
+        XCTAssertEqual(RichCustomBlockLabel.location(o(["from": o(["label": .string("")])])), "📍 Location")
+        XCTAssertEqual(RichCustomBlockLabel.location(o(["from": o(["label": .number(3)]), "to": o(["label": .string("Pier")])])), "📍 Location → Pier")
+        XCTAssertEqual(RichCustomBlockLabel.location(.null), "📍 Location")
+        XCTAssertEqual(RichCustomBlockLabel.videoInterview(o(["typeName": .string("Origin story"), "cards": .array([.null])])), "🎬 Origin story · 1 question")
+        XCTAssertEqual(RichCustomBlockLabel.videoInterview(o(["typeName": .string(""), "cards": .array([.null, .null, .null])])), "🎬 Video interview · 3 questions")
+        XCTAssertEqual(RichCustomBlockLabel.videoInterview(o(["cards": .object([:])])), "🎬 Video interview")
+    }
 }
