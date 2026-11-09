@@ -4,7 +4,8 @@ import XCTest
 
 final class ChapterLocaleTests: XCTestCase {
     private func catalog() throws -> LocalizedBuiltins {
-        try ChapterLocales.load(from: Data(contentsOf: try XCTUnwrap(Bundle.module.url(forResource: "builtin-templates-locales", withExtension: "json"))))
+        // The catalog ships in ChapterCore's own resources (not the test bundle).
+        try XCTUnwrap(ChapterLocales.bundled)
     }
     func testOriginalWebLanguagesAndLocalizedSeedsLoad() throws {
         let c = try catalog()
@@ -13,7 +14,7 @@ final class ChapterLocaleTests: XCTestCase {
         XCTAssertEqual(c.locales[1].name, "Deutsch")
         XCTAssertEqual(ChapterLocales.seeds(for: "de", in: c).first?.name, "Tagesrückblick")
         XCTAssertEqual(ChapterLocales.seeds(for: "de", in: c).first?.bodyText, "Wie sich der Tag anfühlte\nErinnernswert\nMorgen, eine Sache")
-        XCTAssertEqual(ChapterLocales.seeds(for: "en", in: c), try BuiltinTemplates.load(from: Data(contentsOf: try XCTUnwrap(Bundle.module.url(forResource: "builtin-templates", withExtension: "json")))))
+        XCTAssertEqual(ChapterLocales.seeds(for: "en", in: c), BuiltinTemplates.bundled)
         for locale in c.locales {
             for seed in ChapterLocales.seeds(for: locale.id, in: c) {
                 XCTAssertNoThrow(try RichDocument(json: seed.bodyJson), locale.id + " " + seed.slug)

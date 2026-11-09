@@ -78,7 +78,7 @@ Native run 42605056777 stopped in core tests. `testFormattingRetainsOpaqueMarksA
 
 The fix follows ProseMirror's `Mark.addToSet`: a new mark goes before the first existing mark of higher schema rank, and nothing else moves. Whole-run and selection formatting both use it, and the selection fixtures still match TipTap on all 23 cases.
 
-That test now also runs in the Linux harness (51 tests pass). Because core stopped the run, the UI steps, and with them the connection bisection, didn't run, so the bisection result comes from the next run.
+That test now also runs in the Linux harness (51 tests pass). The d561af7 run also showed that ChapterLocaleTests looked for the catalog in the test bundle. It ships in ChapterCore's own resources, so the tests now use `ChapterLocales.bundled`, as EntryTemplateTests uses `BuiltinTemplates.bundled`. RichSelectionTests passed on Apple in that run. Because core stopped the run, the UI steps, and with them the connection bisection, didn't run, so the bisection result comes from the next run.
 
 ## Table editing — November 9, 2026, 3:11 AM PST
 
