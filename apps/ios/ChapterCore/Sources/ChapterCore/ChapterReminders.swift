@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Reminders on the original relay API (server/internal/api/reminders.go): GET/PUT /v1/reminders and
-// DELETE /v1/reminders/{id}. The server keeps only an id and a cleartext fire time (a documented,
-// accepted leak); the server scheduler only logs, so delivery is local notifications that say
-// "Reminder" and nothing else. The web client has no reminders yet, and what a reminder points
-// to (an entry, a schedule) is not designed, so this is only the wire client and the local plan.
+// DELETE /v1/reminders/{id}. Semantics are upstream's: a reminder is an id and a cleartext fire time
+// (migrations/0001_init.sql, a documented accepted leak), one-shot (an upsert reschedules and clears
+// `dispatched`; there is no recurrence anywhere upstream), and it "fires generic ('Reminder')"
+// (CLAUDE.md §3; the scheduler calls it "a journal nudge"). So a notification carries the generic
+// title only: no body, no journal content, nothing that reaches the lock screen. Ids are random
+// 128-bit hex like the web's `src/sync/ids.ts`, never time-derived, because the relay sees them.
 import Foundation
 
 public enum ChapterReminders {
@@ -15,6 +17,16 @@ public enum ChapterReminders {
     public struct Notification: Equatable, Sendable { public let identifier: String, fireAt: Date }
     public static let notificationPrefix = "chapter.reminder."
     public static let notificationTitle = "Reminder"
+    /// Everything a reminder notification shows. Deliberately only the generic title.
+    public struct Content: Equatable, Sendable { public let title: String, body: String }
+    public static let content = Content(title: notificationTitle, body: "")
+    /// A fresh reminder id: 16 random bytes as lowercase hex, like `randomId()` in src/sync/ids.ts.
+    public static func newID() -> String { var g = SystemRandomNumberGenerator(); return newID(using: &g) }
+    public static func newID<G: RandomNumberGenerator>(using g: inout G) -> String {
+        var bytes: [UInt8] = []
+        for _ in 0..<2 { withUnsafeBytes(of: g.next().littleEndian) { bytes.append(contentsOf: $0) } }
+        return bytes.map { ($0 < 16 ? "0" : "") + String($0, radix: 16) }.joined()
+    }
     /// iOS keeps at most 64 pending local notifications per app.
     public static let pendingLimit = 64
 

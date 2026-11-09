@@ -134,4 +134,22 @@ final class ChapterRemindersTests: XCTestCase {
         let settled = ChapterReminders.reconcile(pending: plan, plan: plan)
         XCTAssertTrue(settled.add.isEmpty && settled.remove.isEmpty)
     }
+
+    func testRemindersAreGenericOneShotAndUseRandomHexIDsLikeUpstream() {
+        // Upstream: "Reminders fire generic ('Reminder')"; nothing else reaches the lock screen.
+        XCTAssertEqual(ChapterReminders.content, .init(title: "Reminder", body: ""))
+        struct Fixed: RandomNumberGenerator { var values: [UInt64]; mutating func next() -> UInt64 { values.removeFirst() } }
+        var g = Fixed(values: [0x0f0e0d0c0b0a0900, 0xffeeddccbbaa1001])
+        XCTAssertEqual(ChapterReminders.newID(using: &g), "00090a0b0c0d0e0f0110aabbccddeeff")
+        var ids = Set<String>()
+        for _ in 0..<200 {
+            let id = ChapterReminders.newID()
+            XCTAssertEqual(id.count, 32); XCTAssertTrue(id.allSatisfy { "0123456789abcdef".contains($0) })
+            XCTAssertTrue(ChapterReminders.validID(id)); ids.insert(id)
+        }
+        XCTAssertEqual(ids.count, 200)
+        // One-shot: a reminder whose time has passed is not scheduled again; there is no recurrence.
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        XCTAssertEqual(ChapterReminders.plan([.init(id: "a", fireAt: now), .init(id: "b", fireAt: now.addingTimeInterval(-1))], now: now), [])
+    }
 }
