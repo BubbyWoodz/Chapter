@@ -72,6 +72,14 @@ the exact revision; a failing strict accessibility audit remains a release block
   is treated as unproven until it passes again. No audit is waived; re-verification pending.
 
 <!-- Times are commit times in America/Los_Angeles; earlier labels this night ran ahead of the clock and were corrected. -->
+## First Apple compile since e825899, and its fix — November 9, 2026, 6:55 AM PST
+
+Native 42637327128 (on f2f1539): the `macos-15-intel` leg got a runner within seconds (x86_64, Xcode 16.4 build 16F6), and the `macos-15` arm64 leg started about 10 minutes later. Both failed at the same point, the ChapterCore `swift test` build, so the app build, captures and strict audits were skipped and did not run.
+
+- **The only error, on both legs:** `ChapterExport.swift:291`, "the compiler is unable to type-check this expression in reasonable time". It's the single-expression DOS date/time packing from 6a549c5 (the ZIP writer). Linux Swift 6.4 accepts it, and even with a 100 ms warning threshold it flags nothing in the 108 core files. Xcode 16.4's Swift 6.1 type-checker gives up.
+- **9000d62 (6:55 AM PST):** the expression is split into typed `Int` parts, with the same bits and the same precedence. Export, ZIP and Day One tests pass, along with the full gate: core 177 tests (3 skipped), vectors, tsc, 30 checks and Go.
+- **Still unverified on Apple:** the core test target, the app (export, Day One import, reminders and video code never compiled there) and every UI test and audit. The next run will be the first to reach them.
+
 ## Native iOS runner fallback — November 9, 2026, 6:42 AM PST
 
 Native 42634671252 (on d8029d4) was cancelled at 6:41 AM PST, again "not acquired by Runner of type hosted". That is five runs in a row on `macos-15` (arm64), whose queue GitHub says is under capacity constraints. `macos-14` was retired on November 2, 2026.
