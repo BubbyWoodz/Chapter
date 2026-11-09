@@ -75,11 +75,11 @@ public struct ChapterZipReader {
     /// `unzipSync`'s object: later duplicates win, keys keep the first position, and
     /// array-index-like names ("12") come first, ascending, like any JavaScript object.
     public var jsOrderedNames: [String] {
-        var seen = Set<String>(), names: [String] = []
-        for m in members where seen.insert(m.name).inserted { names.append(m.name) }
+        var seen = Set<[UInt16]>(), names: [String] = [] // exact UTF-16 keys, like JavaScript (not canonical equivalence)
+        for m in members where seen.insert(Array(m.name.utf16)).inserted { names.append(m.name) }
         return names.filter(JSValue.isArrayIndex).sorted { UInt64($0)! < UInt64($1)! } + names.filter { !JSValue.isArrayIndex($0) }
     }
-    public func last(named name: String) -> Member? { members.last { $0.name == name } }
+    public func last(named name: String) -> Member? { members.last { $0.name.utf16.elementsEqual(name.utf16) } }
 }
 
 /// RFC 1951 raw DEFLATE decoder.
