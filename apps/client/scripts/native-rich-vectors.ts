@@ -169,6 +169,42 @@ export function verifyRichFixture(write: boolean, identity: {dataKey:Uint8Array}
   ['bold in table cell','nested',[1,0,0,0,0],1,3,'bold'], ['bold in code block no-op','block',[0,0],0,3,'bold'],
  ];
  const selCases = selInputs.map(([name,docName,leaf,from,to,mark]) => ({name, doc:selDocs[docName], leaf, from, to, mark, expected:toggleInEditor(selDocs[docName],leaf,from,to,mark)}));
+ // Table editing: the original toolbar's prosemirror-tables commands, run by the
+ // real TipTap Editor with the cursor inside one cell (row, column).
+ const cellPos = (docJSON:JSONContent, table:number[], row:number, col:number):number => leafPos(docJSON,[...table,row,col,0]) + 1;
+ const tableCommand = (docJSON:JSONContent, table:number[], row:number, col:number, command:string):JSONContent => {
+  const editor = new Editor({extensions:buildExtensions(''), content:docJSON});
+  assert.deepEqual(JSON.parse(JSON.stringify(editor.getJSON())),JSON.parse(JSON.stringify(caretSchema.nodeFromJSON(docJSON).toJSON())),'TipTap load changed a table fixture');
+  editor.commands.setTextSelection(cellPos(docJSON,table,row,col));
+  (editor.chain() as unknown as Record<string,() => {run:() => boolean}>)[command]().run();
+  const out = JSON.parse(JSON.stringify(editor.getJSON())) as JSONContent; editor.destroy(); return out;
+ };
+ const tc = (text?:string):JSONContent => ({type:'tableCell',attrs:{colspan:1,rowspan:1,colwidth:null},content:[text ? cp(ct(text)) : cp()]});
+ const thc = (text?:string, colwidth:number[]|null = null):JSONContent => ({type:'tableHeader',attrs:{colspan:1,rowspan:1,colwidth},content:[text ? cp(ct(text)) : cp()]});
+ const tr = (...cells:JSONContent[]):JSONContent => ({type:'tableRow',content:cells});
+ const editTables:Record<string,JSONContent> = {
+  header:{type:'doc',content:[cp(ct('Before')),{type:'table',content:[tr(thc('A',[120]),thc('B')),tr(tc('1'),tc('2')),tr(tc('3'),tc('4'))]},cp(ct('After'))]},
+  plain:{type:'doc',content:[{type:'table',content:[tr(tc('a'),tc('b'),tc('c')),tr(tc('d'),tc('e'),tc('f'))]},cp()]},
+  single:{type:'doc',content:[{type:'table',content:[tr(thc('Only'))]},cp()]},
+  headerColumn:{type:'doc',content:[{type:'table',content:[tr(thc('H'),thc('X')),tr(thc('R'),tc('v'))]},cp()]},
+  nested:{type:'doc',content:[{type:'blockquote',content:[{type:'table',content:[tr(tc('q'),tc(''))]}]},cp()]},
+  votes:{type:'doc',content:[{type:'table',content:[tr(thc('w',[100]),thc('x')),tr({...tc('y'),attrs:{colspan:1,rowspan:1,colwidth:[200]}},tc('z')),tr({...tc('u'),attrs:{colspan:1,rowspan:1,colwidth:[200]}},tc('v')),tr(tc('t'),tc('s'))]},cp()]},
+ };
+ const tableEditInputs:[string,string,number[],number,number,string][] = [
+  ['row after header','header',[1],0,1,'addRowAfter'], ['row after body','header',[1],1,0,'addRowAfter'], ['row after last','header',[1],2,1,'addRowAfter'],
+  ['column after first','header',[1],1,0,'addColumnAfter'], ['column after last','header',[1],0,1,'addColumnAfter'], ['delete body row','header',[1],1,1,'deleteRow'],
+  ['delete header row','header',[1],0,0,'deleteRow'], ['delete first column','header',[1],2,0,'deleteColumn'], ['toggle header off','header',[1],2,1,'toggleHeaderRow'],
+  ['toggle header on','plain',[0],1,2,'toggleHeaderRow'], ['row after plain','plain',[0],0,2,'addRowAfter'], ['column middle plain','plain',[0],1,1,'addColumnAfter'],
+  ['delete middle column','plain',[0],0,1,'deleteColumn'], ['delete table','header',[1],1,0,'deleteTable'], ['delete only row no-op','single',[0],0,0,'deleteRow'],
+  ['delete only column no-op','single',[0],0,0,'deleteColumn'], ['row after single header','single',[0],0,0,'addRowAfter'], ['column after single header','single',[0],0,0,'addColumnAfter'],
+  ['toggle header with header column','headerColumn',[0],1,1,'toggleHeaderRow'], ['column after header column','headerColumn',[0],1,0,'addColumnAfter'], ['row after header row and column','headerColumn',[0],0,1,'addRowAfter'],
+  ['nested row after','nested',[0,0],0,1,'addRowAfter'], ['nested delete table','nested',[0,0],0,0,'deleteTable'],
+  ['width vote after column','votes',[0],1,1,'addColumnAfter'],
+ ];
+ const tableEditCases = tableEditInputs.map(([name,docName,table,row,col,command]) => ({name, doc:editTables[docName], table, row, col, command, expected:tableCommand(editTables[docName],table,row,col,command)}));
+ const tableEditURL = new URL('../../ios/ChapterCore/Tests/ChapterCoreTests/Fixtures/rich-table-edit.json',import.meta.url);
+ if (write) writeFileSync(tableEditURL,JSON.stringify(tableEditCases,null,2)+'\n');
+ else assert.deepEqual(JSON.parse(readFileSync(tableEditURL,'utf8')),JSON.parse(JSON.stringify(tableEditCases)),'Native table-edit fixtures must equal the actual prosemirror-tables commands');
  const selURL = new URL('../../ios/ChapterCore/Tests/ChapterCoreTests/Fixtures/rich-selection.json',import.meta.url);
  const selFixture = {markOrder, markExclusions, cases:selCases};
  if (write) writeFileSync(selURL,JSON.stringify(selFixture,null,2)+'\n');
@@ -221,6 +257,10 @@ export function verifyRichFixture(write: boolean, identity: {dataKey:Uint8Array}
   assert.equal(nativeSel.length,selCases.length);
   nativeSel.forEach((doc,i) => assert.deepEqual(JSON.parse(JSON.stringify(webSchema.nodeFromJSON(doc).toJSON())),JSON.parse(JSON.stringify(selCases[i].expected)),'Native selection formatting differs from TipTap: '+selCases[i].name));
   console.log('Native selection formatting equals the actual TipTap toggleMark on all '+selCases.length+' cases.');
+  const nativeTables = JSON.parse(readFileSync(nativePath+'.rich-table-edit','utf8')) as JSONContent[];
+  assert.equal(nativeTables.length,tableEditCases.length);
+  nativeTables.forEach((doc,i) => assert.deepEqual(JSON.parse(JSON.stringify(webSchema.nodeFromJSON(doc).toJSON())),JSON.parse(JSON.stringify(tableEditCases[i].expected)),'Native table edit differs from prosemirror-tables: '+tableEditCases[i].name));
+  console.log('Native table editing equals the actual prosemirror-tables commands on all '+tableEditCases.length+' cases.');
   const arranged = JSON.parse(readFileSync(nativePath+'.rich-structure','utf8')) as {id:string;record:string};
   const arrangedBody = JSON.parse(Buffer.from(decryptRecord(identity.dataKey,arranged.id,Buffer.from(arranged.record,'base64'))).toString());
   assert.deepEqual(JSON.parse(arrangedBody.bodyJson),reordered,'Native block move lost, flattened or rewrote an original/opaque block');

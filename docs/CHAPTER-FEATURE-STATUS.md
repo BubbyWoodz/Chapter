@@ -72,6 +72,25 @@ the exact revision; a failing strict accessibility audit remains a release block
   is treated as unproven until it passes again. No audit is waived; re-verification pending.
 
 <!-- Times are commit times in America/Los_Angeles; earlier labels this night ran ahead of the clock and were corrected. -->
+## Table editing — November 9, 2026, 3:11 AM PST
+
+The original table toolbar's six commands (add row below, add column right, delete row, delete column, toggle header row, delete table) now work natively. In the rich editor, **Tables → Table N** opens a grid: choose the cell the cursor would be in, then run the command.
+
+**What matches prosemirror-tables exactly:**
+- **New cells** take their type from the neighbouring row or column, using `addRow`/`addColumn`'s header-row and header-column rules.
+- **Header toggling** skips the corner when the first column is a header column. Cells keep their attrs and content.
+- **Deleting the only row or column** does nothing on the web and is refused natively.
+- **Deleting a table** that was a container's only child leaves the empty paragraph ProseMirror inserts.
+- **Column widths:** after every table command, the `computeMap` width vote and `findBadColWidths` run as `fixTables` does, so a column's width spreads to cells that lack it.
+
+**Kept unchanged:** the fields of rows, cells and the table itself.
+
+**Refused, not approximated:** merged-cell, ragged or malformed tables. They stay read-only natively and are preserved exactly.
+
+**Ground truth:** `rich-table-edit.json` comes from the real TipTap Editor with the original extensions, with the cursor placed in the chosen cell. Its 24 cases include header rows and columns, a single-cell table, a table nested in a quote, and a conflicting-width vote. Every native output is re-checked through the real web schema.
+
+**Results:** 50 local tests pass, and 7 of 7 deliberately introduced bugs were caught. `testTableToolbarCommandsRestructureAnOriginalTable` starts an entry from the original Experiment log built-in, adds a row and a column, deletes the column, then deletes the table with confirmation (native has no undo).
+
 ## Languages and localized built-in templates — November 9, 2026, 3:02 AM PST
 
 The original web's language is a device-only choice that never syncs: `mneme.locale`, English by default, 12 languages. Pristine built-in templates re-render in that language, and the first rename or delete forks the text being shown. Natively:

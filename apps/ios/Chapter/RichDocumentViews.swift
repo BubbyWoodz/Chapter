@@ -130,6 +130,68 @@ struct RichDocumentView: View {
     }
 }
 
+/// The original table toolbar: choose the cell the cursor would be in, then run
+/// the same prosemirror-tables command. Merged-cell tables are left read-only.
+struct RichTableEditor: View {
+    @EnvironmentObject private var model: VaultModel
+    @Environment(\.dismiss) private var dismiss
+    let entryID: String
+    let path: [Int]
+    @State private var row = 0
+    @State private var column = 0
+    @State private var error: String?
+    @State private var confirmDelete = false
+    private var live: VaultRecord? { model.snapshot.records.first { $0.id == entryID && !$0.deleted && $0.kind == "entry" } }
+    private var rows: [[JSONValue]]? { live?.body["bodyJson"]?.string.flatMap { try? RichDocument(json: $0) }?.editableTableRows(at: path) }
+    var body: some View {
+        Form {
+            if let rows {
+                Section {
+                    ForEach(rows.indices, id: \.self) { r in
+                        ScrollView(.horizontal) {
+                            HStack {
+                                ForEach(rows[r].indices, id: \.self) { c in
+                                    let text = RichDocument.cellText(rows[r][c])
+                                    let header = rows[r][c]["type"].string == "tableHeader"
+                                    Button { row = r; column = c } label: {
+                                        Text(text.isEmpty ? "Empty" : text).font(header ? .headline : .body).frame(minWidth: 88, minHeight: 44)
+                                    }.buttonStyle(.bordered).tint(r == row && c == column ? .accentColor : .gray)
+                                        .accessibilityLabel("Row \(r + 1), column \(c + 1)\(header ? ", header" : ""): \(text.isEmpty ? "empty" : text)")
+                                        .accessibilityAddTraits(r == row && c == column ? .isSelected : [])
+                                        .accessibilityIdentifier("table.cell.\(r).\(c)")
+                                }
+                            }
+                        }
+                    }
+                } header: { Text("Choose a cell") } footer: { Text("Selected: row \(row + 1), column \(column + 1). Commands act like the original toolbar with the cursor in this cell.") }
+                Section("Table") {
+                    ForEach(RichTableCommand.allCases, id: \.self) { command in
+                        Button(command.title, role: [.deleteRow, .deleteColumn, .deleteTable].contains(command) ? .destructive : nil) {
+                            if command == .deleteTable { confirmDelete = true } else { run(command, rows: rows) }
+                        }.disabled((command == .deleteRow && rows.count < 2) || (command == .deleteColumn && rows[0].count < 2))
+                            .accessibilityIdentifier("table.command." + command.rawValue)
+                    }
+                }
+                if let error { Text(error).accessibilityIdentifier("table.error") }
+            } else {
+                Text("This table has merged cells or is no longer available. It is preserved exactly; edit its structure in the web app.").accessibilityIdentifier("table.unsupported")
+            }
+        }.modifier(ChapterScreenSurface()).navigationTitle("Edit table")
+        .confirmationDialog("Delete this table?", isPresented: $confirmDelete, titleVisibility: .visible) {
+            Button("Delete table", role: .destructive) { if let rows { run(.deleteTable, rows: rows) } }.accessibilityIdentifier("table.confirmDelete")
+        } message: { Text("The table and its contents are removed from this entry.") }
+    }
+    private func run(_ command: RichTableCommand, rows: [[JSONValue]]) {
+        do {
+            guard let live else { throw ChapterError.conflict }
+            try model.applyTableCommand(live, command: command, table: path, row: row, column: column)
+            error = nil
+            if command == .deleteTable { dismiss(); return }
+            if let next = self.rows { row = min(row, next.count - 1); column = min(column, next[0].count - 1) }
+        } catch { self.error = "The table changed or can’t take this command. Nothing was lost. " + error.localizedDescription }
+    }
+}
+
 struct RichEntryEditor: View {
     @EnvironmentObject private var model: VaultModel
     let entry: VaultRecord
@@ -140,13 +202,22 @@ struct RichEntryEditor: View {
             List {
                 if let live, let raw = live.body["bodyJson"]?.string, let document = try? RichDocument(json: raw) {
                     Section {
-                        Text("Changes preserve original custom nodes and formatting. Text and formatting drafts are saved encrypted; Apply updates the entry. New blocks support headings, lists, quotes and code. In a text run, place the cursor to insert an entry link or template there (iOS 18). Formatting a selected part of a run and table restructuring are not yet complete.")
+                        Text("Changes preserve original custom nodes and formatting. Text and formatting drafts are saved encrypted; Apply updates the entry. New blocks support headings, lists, quotes and code. In a text run, place the cursor to insert an entry link or template there, or select text to format just that part (iOS 18). Tables without merged cells can gain or lose rows and columns.")
                         let pending = model.snapshot.richDrafts?.first { $0.entryID == live.id && $0.newBlockStyle != nil }
                         NavigationLink { RichDraftEditor(draft: pending ?? RichDraft.newBlock(entryID: live.id, expectedDocument: raw)) } label: { Label("Add block", systemImage: "plus") }.accessibilityIdentifier("rich.add-block")
                     }
                     Section {
                         NavigationLink { RichStructureEditor(entry: live) } label: { Label("Arrange blocks", systemImage: "arrow.up.arrow.down") }
                             .accessibilityIdentifier("rich.arrange-blocks")
+                    }
+                    let tables = document.tablePaths
+                    if !tables.isEmpty {
+                        Section("Tables") {
+                            ForEach(Array(tables.enumerated()), id: \.offset) { number, path in
+                                NavigationLink { RichTableEditor(entryID: live.id, path: path) } label: { Label("Table \(number + 1)", systemImage: "tablecells") }
+                                    .accessibilityIdentifier("rich.table." + path.map(String.init).joined(separator: "/"))
+                            }
+                        }
                     }
                     Section("Text and empty blocks") {
                         ForEach(document.editableTextNodes) { leaf in

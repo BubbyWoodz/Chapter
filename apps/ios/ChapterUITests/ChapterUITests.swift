@@ -253,6 +253,27 @@ final class ChapterUITests: XCTestCase {
         daily.tap()
         XCTAssertTrue(app.staticTexts["Wie sich der Tag anfühlte"].waitForExistence(timeout:5),"The entry starts with the German built-in content")
     }
+    func testTableToolbarCommandsRestructureAnOriginalTable() throws {
+        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture"];app.launch()
+        let start=app.buttons["journal.fromTemplate"];XCTAssertTrue(start.waitForExistence(timeout:10));start.tap()
+        let experiment=app.buttons["template.use.builtin:experiment"];XCTAssertTrue(experiment.waitForExistence(timeout:5));experiment.tap()
+        let edit=app.buttons["Edit"];XCTAssertTrue(edit.waitForExistence(timeout:5));edit.tap()
+        let table=app.buttons["rich.table.5"];reveal(table,in:app);table.tap()
+        XCTAssertTrue(app.buttons["table.cell.0.0"].waitForExistence(timeout:5));XCTAssertTrue(app.buttons["table.cell.2.2"].exists);XCTAssertFalse(app.buttons["table.cell.3.0"].exists)
+        app.buttons["table.cell.1.1"].tap()
+        app.buttons["table.command.addRowAfter"].tap()
+        XCTAssertTrue(app.buttons["table.cell.3.2"].waitForExistence(timeout:5),"A row was added below")
+        app.buttons["table.command.addColumnAfter"].tap()
+        XCTAssertTrue(app.buttons["table.cell.0.3"].waitForExistence(timeout:5),"A column was added to the right")
+        XCTAssertTrue(app.buttons["table.cell.0.2"].label.contains("header"),"The new header-row cell is a header, as in prosemirror-tables")
+        attach(app,name:"Actual native table editor after adding a row and a column")
+        app.buttons["table.command.deleteColumn"].tap()
+        XCTAssertTrue(app.buttons["table.cell.0.3"].waitForNonExistence(timeout:5))
+        app.buttons["table.command.deleteTable"].tap()
+        let confirm=app.buttons["table.confirmDelete"];XCTAssertTrue(confirm.waitForExistence(timeout:5));confirm.tap()
+        XCTAssertTrue(app.navigationBars["Edit rich entry"].waitForExistence(timeout:5))
+        XCTAssertFalse(app.buttons["rich.table.5"].exists,"The table is gone")
+    }
     func testOriginalBuiltinTemplatesStartEntriesAndDeleteForksSyncedTombstone() throws {
         let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture"];app.launch()
         let start=app.buttons["journal.fromTemplate"];XCTAssertTrue(start.waitForExistence(timeout:10));start.tap()
