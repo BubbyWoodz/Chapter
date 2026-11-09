@@ -74,6 +74,8 @@ struct ConnectView: View {
     @FocusState private var focusedField:Field?
     var body: some View {
         NavigationStack {
+            // Footnotes use the full ink colour: secondary grey failed the strict
+            // contrast audit ("Contrast nearly passed") on Apple CI (3bcde6e).
             // Every text is an ordinary Form row in a scaling text style, like the
             // unmodified Form reproduction that passes the strict audit. Apple CI
             // (cd787e8) showed system Section header/footer text only partially
@@ -84,17 +86,17 @@ struct ConnectView: View {
                 Section {
                     Text("Your journal. Your server.").font(.title2).accessibilityAddTraits(.isHeader).accessibilityIdentifier("connection.heading")
                     Text("Connect directly over your local network or Tailscale. No Chapter account is required.")
-                    Text("Native preview: feature coverage is incomplete. Use the web app for advanced features and recovery-phrase creation/rotation.").font(.footnote).foregroundStyle(.secondary)
+                    Text("Native preview: feature coverage is incomplete. Use the web app for advanced features and recovery-phrase creation/rotation.").font(.footnote)
                 }
                 Section {
                     Text("Server").font(.headline).accessibilityAddTraits(.isHeader)
                     TextField("Server URL", text: $server).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityIdentifier("connection.server").focused($focusedField,equals:.server).submitLabel(.next).onSubmit {focusedField = .phrase}
-                    Text("HTTPS with a trusted certificate is required, including on Tailscale. Include your server’s path prefix.").font(.footnote).foregroundStyle(.secondary)
+                    Text("HTTPS with a trusted certificate is required, including on Tailscale. Include your server’s path prefix.").font(.footnote)
                 }
                 Section {
                     Text("Unlock vault").font(.headline).accessibilityAddTraits(.isHeader)
                     SecureField("12-word recovery phrase", text: $phrase).accessibilityIdentifier("connection.phrase").focused($focusedField,equals:.phrase).submitLabel(.done).onSubmit {focusedField=nil}.textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
-                    Text("The phrase stays on this device and is not saved. A device passcode is required to protect offline journals. Face ID or device authentication protects the local storage key.").font(.footnote).foregroundStyle(.secondary)
+                    Text("The phrase stays on this device and is not saved. A device passcode is required to protect offline journals. Face ID or device authentication protects the local storage key.").font(.footnote)
                 }
                 if let message = model.message { Section { Text(message).accessibilityLabel("Connection status: \(message)").accessibilityIdentifier("connection.status") } }
             }.modifier(ChapterScreenSurface()).navigationTitle("Chapter").scrollDismissesKeyboard(.interactively)
@@ -311,7 +313,7 @@ struct EntryDetail: View {
                             if !(model.snapshot.mediaUploads ?? []).isEmpty { Text("Attachments waiting to upload: \(model.snapshot.mediaUploads?.count ?? 0). Their entry references are not sent until upload completes.").font(.footnote) }
                         }
                         if let mediaError { Text(mediaError).font(.footnote).foregroundStyle(.red).accessibilityIdentifier("media.error") }
-                        if !entry.editablePlainText { Text("Rich structure is preserved. Native editing supports formatted runs and adding text blocks. Selection-based editing, existing block restructuring and custom-node editing remain incomplete.").font(.footnote).foregroundStyle(.secondary) }
+                        if !entry.editablePlainText { Text("Rich structure is preserved. Native editing supports formatted runs, adding text blocks, and inserting links or templates at the cursor. Formatting a selected range, existing block restructuring and custom-node editing remain incomplete.").font(.footnote).foregroundStyle(.secondary) }
                     }.padding().frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .toolbar {

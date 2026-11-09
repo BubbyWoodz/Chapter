@@ -56,6 +56,20 @@ final class ChapterUITests: XCTestCase {
         attach(app, name: "Chapter actual OS XXXL action")
         // This supplements, never replaces, the separate strict audit tests.
     }
+    /// Additional required comparisons at the actual OS XXXL size: unchanged
+    /// native SecureField and the production CTA layout, each audited alone.
+    func testLargestDynamicTypeUnmodifiedSecureFieldReproduction() throws {
+        let app = XCUIApplication(); app.launchArguments = ["--chapter-native-secure-field-audit-repro"]; app.launch()
+        XCTAssertTrue(app.secureTextFields["Public secure field"].waitForExistence(timeout:10))
+        attach(app,name:"Unmodified native SecureField at actual OS accessibility XXXL")
+        try audit(app,for:.dynamicType)
+    }
+    func testLargestDynamicTypeFullWidthActionReproduction() throws {
+        let app=XCUIApplication();app.launchArguments=["--chapter-full-width-action-audit-repro"];app.launch()
+        XCTAssertTrue(app.buttons["repro.full-width-action"].waitForExistence(timeout:10))
+        attach(app,name:"Production full-width CTA layout at actual OS accessibility XXXL")
+        try audit(app,for:.dynamicType)
+    }
     func testOriginalBundledFontsActuallyLoadInIOS() throws {
         let app = XCUIApplication(); app.launchArguments = ["--chapter-font-diagnostic"]; app.launch()
         for name in ["HankenGrotesk-Regular","HankenGrotesk-Italic","Newsreader16pt-Regular","Newsreader16pt-Italic","SplineSansMono-Regular","SplineSansMono-Italic"] {
@@ -87,9 +101,15 @@ final class ChapterUITests: XCTestCase {
         }
     }
     private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
-        for _ in 0..<8 {
+        // Slow drags, then back the other way: a fast fling can carry a tall
+        // XXXL row straight past the viewport. Reachability is still required.
+        for _ in 0..<10 {
             if element.exists && element.isHittable { return }
-            app.swipeUp()
+            app.swipeUp(velocity: .slow)
+        }
+        for _ in 0..<10 {
+            if element.exists && element.isHittable { return }
+            app.swipeDown(velocity: .slow)
         }
         if !(element.exists && element.isHittable) {
             attach(app, name: "Actual unreached control after bounded scrolling")

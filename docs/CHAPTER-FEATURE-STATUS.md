@@ -72,6 +72,14 @@ the exact revision; a failing strict accessibility audit remains a release block
   is treated as unproven until it passes again. No audit is waived; re-verification pending.
 
 <!-- Times are commit times in America/Los_Angeles; earlier labels this night ran ahead of the clock and were corrected. -->
+## Apple results for 55a66dc (run on 3bcde6e) — November 9, 2026, 2:22 AM PST
+
+Native run 42596110804. GitHub created no runs for 55a66dc itself; an empty commit re-triggered them.
+- **Normal-size connection audit:** the Dynamic Type finding is **gone** (moving the text into ordinary rows worked). The remaining finding is "Contrast nearly passed", caused by the `.secondary` grey footnotes added in 55a66dc. Fixed by restoring the full ink colour.
+- **XXXL audit:** still "Dynamic Type font sizes are partially unsupported", on the very first audit at the top of the screen. Neither the log nor the xcresult names the element. The unmodified Form reproduction passes at XXXL, but the SecureField and full-width-CTA reproductions had only been audited at normal size, so both now also run at XXXL in the required large-type step to tell them apart.
+- **XXXL geometry test and the built-in template UI test:** both failed in the test helper. A fast `swipeUp` flung the tall XXXL rows past the viewport (the hierarchy shows the list at 100% with the server field scrolled past). `reveal` now drags slowly and searches both directions; reachability is still required.
+- **Everything else passed:** all other functional UI tests, including `testNativeTemplateCreateRenameAndDeleteLikeOriginalManager`, plus core, the web vectors (template authoring, built-in seeds) and server/live.
+
 ## Cursor tracking: insert links and templates at the cursor — November 9, 2026, 1:56 AM PST
 
 - **Cursor model:** `RichCaret` is ProseMirror's own cursor form: a textblock path plus a parent offset (UTF-16 units; each non-text inline node counts 1). `caret(leaf:utf16Offset:)` maps the native editor's cursor in a text run, or in an empty block, onto the original document. It refuses offsets that would split a surrogate pair or fall outside the run.
