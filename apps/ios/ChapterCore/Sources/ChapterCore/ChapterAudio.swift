@@ -69,7 +69,9 @@ public enum ChapterRecorder {
     /// `fmtCountdown`: "M:SS" remaining, rounded up so 0:00 means stopped.
     public static func formatCountdown(ms: Double) -> String { clock(JS.max(0, (ms / 1000).rounded(.up))) }
     static func clock(_ s: Double) -> String {
-        let seconds = JSValue.numberString(s.truncatingRemainder(dividingBy: 60))
-        return JSValue.numberString((s / 60).rounded(.down)) + ":" + (seconds.count < 2 ? String(repeating: "0", count: 2 - seconds.count) + seconds : seconds)
+        let minutes: String = JSValue.numberString((s / 60).rounded(.down))
+        var seconds: String = JSValue.numberString(s.truncatingRemainder(dividingBy: 60))
+        if seconds.count < 2 { seconds = "0" + seconds }   // padStart(2, '0')
+        return minutes + ":" + seconds
     }
 }
