@@ -87,6 +87,10 @@ public final class Relay {
         }
         return result
     }
+    /// The bounded request primitive, for extensions in this module.
+    func send(_ path: String, method: String, body: Data? = nil, token: String? = nil, maxBytes: Int, expectedStatus: Int? = nil) async throws -> Data {
+        try await request(path, method: method, body: body, token: token, maxBytes: maxBytes, expectedStatus: expectedStatus)
+    }
     public func authenticate(_ identity: VaultIdentity) async throws -> String {
         let registration = try await request("v1/register", body: JSONEncoder().encode(identity.registration()))
         struct Registration: Decodable { let owner_id, device_id, status: String }
