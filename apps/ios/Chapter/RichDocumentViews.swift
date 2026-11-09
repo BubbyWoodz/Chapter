@@ -23,7 +23,7 @@ struct RichDocumentView: View {
         })
         .confirmationDialog("Open outside Chapter?", isPresented: Binding(get: { externalURL != nil }, set: { if !$0 { externalURL = nil } }), titleVisibility: .visible) {
             if let url = externalURL { Button("Open link") { UIApplication.shared.open(url); externalURL = nil } }
-            Button("Cancel", role: .cancel) { externalURL = nil }
+            Button(model.t("common.cancel"), role: .cancel) { externalURL = nil }
         } message: { Text(externalURL?.absoluteString ?? "") }
         .alert("Could not save task", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) { Button("OK", role: .cancel) {} } message: { Text(error ?? "") }
     }
@@ -343,7 +343,7 @@ struct RichTableEditor: View {
                         }
                     }
                 } header: { Text("Choose a cell") } footer: { Text("Selected: row \(row + 1), column \(column + 1). Commands act like the original toolbar with the cursor in this cell.") }
-                Section("Table") {
+                Section(model.t("editorx.slash.table")) {
                     ForEach(RichTableCommand.allCases, id: \.self) { command in
                         Button(command.title, role: [.deleteRow, .deleteColumn, .deleteTable].contains(command) ? .destructive : nil) {
                             if command == .deleteTable { confirmDelete = true } else { run(command, rows: rows) }
@@ -618,7 +618,7 @@ struct RichDraftEditor: View {
             Text(error ?? (savedDraft ? "Draft saved encrypted on this device. Tap Save to update the entry." : "Edits stay in an encrypted draft until Save. Other formatting and unknown content remain intact.")).font(.footnote).padding()
         }.modifier(ChapterScreenSurface()).navigationTitle(current.newBlockStyle == nil ? "Edit text" : "Add block")
         .toolbar {
-            Button("Save") {
+            Button(model.t("common.save")) {
                 do { try model.applyRichDraft(current); dismiss() } catch { self.error = error.localizedDescription }
             }.disabled(current.newBlockStyle != nil && current.text.isEmpty)
         }

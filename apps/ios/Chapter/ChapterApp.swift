@@ -429,8 +429,8 @@ struct EntryDetail: View {
                 }
                 .toolbar {
                     if entry.editablePlainText {
-                        Button("Edit") { showingPlainEdit.toggle() }.accessibilityValue(showingPlainEdit ? "Expanded":"Collapsed")
-                    } else if entry.body["bodyJson"]?.string.flatMap({ try? RichDocument(json: $0) }) != nil { Button("Edit") { editRich = true; editing = true } }
+                        Button(model.t("common.edit")) { showingPlainEdit.toggle() }.accessibilityValue(showingPlainEdit ? "Expanded":"Collapsed")
+                    } else if entry.body["bodyJson"]?.string.flatMap({ try? RichDocument(json: $0) }) != nil { Button(model.t("common.edit")) { editRich = true; editing = true } }
 
                 }
                 .sheet(isPresented: $editing) {
@@ -987,7 +987,7 @@ struct EntryLinkPicker: View {
                     Text((caret == nil ? "Adds a link at the end of this entry" : "Adds a link at your cursor") + ", the same link the web editor creates. Only downloaded entries are listed; it syncs when your server is reachable.").font(.footnote)
                 }
                 if let error { Text(error).foregroundStyle(.red).accessibilityIdentifier("link.error") }
-            }.modifier(ChapterScreenSurface()).navigationTitle("Link to entry").navigationBarTitleDisplayMode(.inline)
+            }.modifier(ChapterScreenSurface()).navigationTitle(model.t("editorx.slash.link")).navigationBarTitleDisplayMode(.inline)
             .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search entry titles")
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button(model.t("common.cancel")) { dismiss() } } }
         }
