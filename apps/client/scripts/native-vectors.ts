@@ -8,6 +8,7 @@ import { verifyRichFixture } from './native-rich-vectors';
 import { verifyLocalizedBuiltins } from './native-locale-vectors';
 import { verifyMath } from './native-math-vectors';
 import { verifyUIStrings } from './native-ui-strings-vectors';
+import { verifyStats } from './native-stats-vectors';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { wordlist } from '@scure/bip39/wordlists/english.js';
 import { ed25519 } from '@noble/curves/ed25519.js';
@@ -82,5 +83,6 @@ verifyRichFixture(process.argv.includes('--write'), id, process.env.CHAPTER_NATI
 await verifyLocalizedBuiltins(process.argv.includes('--write'));
 verifyMath(process.argv.includes('--write'));
 await verifyUIStrings(process.argv.includes('--write'));
+verifyStats(process.argv.includes('--write'));
 
 if (process.env.CHAPTER_NATIVE_OUTPUT) await verifyNotebookLifecycle(process.env.CHAPTER_NATIVE_OUTPUT+'.notebook-lifecycle',id.dataKey);

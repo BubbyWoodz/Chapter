@@ -281,6 +281,8 @@ final class ChapterUITests: XCTestCase {
             XCTAssertTrue(app.staticTexts[language].exists || app.otherElements[language].exists,locale+": language section header")
             let mode=app.buttons["appearance.mode"];reveal(mode,in:app);mode.tap()
             XCTAssertTrue(app.buttons[dark].waitForExistence(timeout:5),locale+": appearance modes use prefs.mode.*");app.buttons[dark].tap()
+            let streak=app.descendants(matching:.any)["stat.streak"];reveal(streak,in:app)
+            XCTAssertTrue(streak.label.contains(locale=="de" ? "Tage in Folge" : "أيام متتالية"),locale+": web stats tile: "+streak.label)
             attach(app,name:"Actual native settings in "+locale+" from the web catalogs")
             try audit(app)
             app.terminate()

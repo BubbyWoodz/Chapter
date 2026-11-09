@@ -149,6 +149,44 @@ struct SelectableEntryText: View {
     }
 }
 
+/// Web Preferences "Your writing": six stats from state/stats.ts, counted on the device.
+struct WritingStatsSection: View {
+    @EnvironmentObject private var model: VaultModel
+    var body: some View {
+        let items = ChapterStats.items(model.entries)
+        let now = Date().timeIntervalSince1970 * 1000
+        var utc = Calendar(identifier: .gregorian); utc.timeZone = TimeZone(identifier: "UTC")!
+        let parts = utc.dateComponents([.year, .month], from: Date())
+        let tiles: [(String, String, String)] = [
+            ("entries", ChapterStats.compactCount(items.count), "prefs.stat.entries"),
+            ("words", ChapterStats.compactCount(ChapterStats.totalWords(items)), "prefs.stat.words"),
+            ("month", ChapterStats.compactCount(ChapterStats.monthWords(items, year: parts.year ?? 1970, month: (parts.month ?? 1) - 1)), "prefs.stat.month"),
+            ("streak", String(ChapterStats.dayStreak(items, now: now)), "prefs.stat.streak"),
+            ("longest", String(ChapterStats.longestStreak(items)), "prefs.stat.longest"),
+            ("days", ChapterStats.compactCount(ChapterStats.journaledDays(items)), "prefs.stat.days"),
+        ]
+        let preference = model.snapshot.appearance ?? .standard
+        Section {
+            Grid(horizontalSpacing: 8, verticalSpacing: 8) {
+                ForEach(0..<3, id: \.self) { row in
+                    GridRow {
+                        ForEach(tiles[(row * 2)..<(row * 2 + 2)], id: \.0) { tile in
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(tile.1).font(chapterFont(.heading, skin: preference.skin, size: 22, relativeTo: .title2)).foregroundStyle(chapterToken("ink", preference: preference))
+                                Text(model.t(tile.2)).font(chapterFont(.ui, skin: preference.skin, size: 12, relativeTo: .caption)).foregroundStyle(chapterToken("ink", preference: preference))
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading).padding(10)
+                            .background(chapterToken("paper", preference: preference), in: RoundedRectangle(cornerRadius: 12))
+                            .accessibilityElement(children: .combine).accessibilityIdentifier("stat." + tile.0)
+                        }
+                    }
+                }
+            }
+            Text(model.t("prefs.writing.note")).font(.footnote)
+        } header: { Text(model.t("prefs.writing.section")) }
+    }
+}
+
 /// One grouped card of the connection screen: the inset-grouped Form look, without a lazy list.
 private struct ConnectCard<Content: View>: View {
     @EnvironmentObject private var model: VaultModel
@@ -637,8 +675,9 @@ struct CalendarView: View {
                     NavigationLink { EntryDetail(entryID:entry.id) } label: { ChapterEntryCard(entry:entry) }
                         .listRowBackground(Color.clear).listRowSeparator(.hidden)
                 } }
-                Section("On this device") { LabeledContent("Entries", value: "\(model.entries.count)")
-                    LabeledContent(model.t("prefs.stat.days"), value: "\(Set(model.entries.map { Calendar.current.startOfDay(for: $0.date) }).count)") }
+                Section("On this device") { LabeledContent(model.t("prefs.stat.entries"), value: "\(model.entries.count)")
+                    // Web journaledDays: distinct UTC days, the calendar grid's boundaries.
+                    LabeledContent(model.t("prefs.stat.days"), value: "\(ChapterStats.journaledDays(ChapterStats.items(model.entries)))") }
             }.modifier(ChapterScreenSurface()).navigationTitle(model.t("shell.nav.calendar"))
         }
     }
@@ -654,9 +693,10 @@ struct SettingsView: View {
                         Picker(model.t("prefs.language"), selection: Binding(get: { model.language?.id ?? "en" }, set: { model.setLanguage($0) })) {
                             ForEach(catalog.locales) { Text($0.name).tag($0.id) }
                         }.accessibilityIdentifier("settings.language")
-                        Text("Device-only, like the web app, and never synced. Built-in templates, dates and layout direction follow it; other native text is still English.").font(.footnote)
+                        Text("Device-only, like the web app, and never synced. Built-in templates, dates, layout direction and the screens already using the web app’s own translations follow it; the rest of the native text is still English.").font(.footnote)
                     }
                 }
+                WritingStatsSection()
                 Section("Sync") {
                     Button { Task { await model.sync() } } label: { if model.syncing { ProgressView("Syncing") } else { Label("Sync now", systemImage: "arrow.triangle.2.circlepath") } }.disabled(model.syncing)
                     LabeledContent("Pending changes", value: "\(model.pending)")

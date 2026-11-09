@@ -1,0 +1,441 @@
+{
+ "entries": [
+  {
+   "id": "today",
+   "createdAt": 1794220200000,
+   "bodyText": "Hello  world again"
+  },
+  {
+   "id": "yesterday-late",
+   "createdAt": 1794180599999,
+   "bodyText": "　lead and trail  "
+  },
+  {
+   "id": "two-days",
+   "createdAt": 1794047400000,
+   "bodyText": "one"
+  },
+  {
+   "id": "gap",
+   "createdAt": 1793788200000,
+   "bodyText": ""
+  },
+  {
+   "id": "gap2",
+   "createdAt": 1793701800000,
+   "bodyText": "  \n\t "
+  },
+  {
+   "id": "gap3",
+   "createdAt": 1793615400000,
+   "bodyText": "a﻿b c​d"
+  },
+  {
+   "id": "last-year",
+   "createdAt": 1762732799999,
+   "bodyText": "On this day last year"
+  },
+  {
+   "id": "two-years",
+   "createdAt": 1731110400000,
+   "bodyText": "Two years"
+  },
+  {
+   "id": "month-start",
+   "createdAt": 1793491200000,
+   "bodyText": "x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x "
+  },
+  {
+   "id": "oct",
+   "createdAt": 1793491140000,
+   "bodyText": "October words here"
+  },
+  {
+   "id": "epoch-before",
+   "createdAt": -1,
+   "bodyText": "negative ts"
+  }
+ ],
+ "wordCounts": [
+  {
+   "text": "Hello  world again",
+   "n": 3
+  },
+  {
+   "text": "　lead and trail  ",
+   "n": 3
+  },
+  {
+   "text": "one",
+   "n": 1
+  },
+  {
+   "text": "",
+   "n": 0
+  },
+  {
+   "text": "  \n\t ",
+   "n": 0
+  },
+  {
+   "text": "a﻿b c​d",
+   "n": 3
+  },
+  {
+   "text": "On this day last year",
+   "n": 5
+  },
+  {
+   "text": "Two years",
+   "n": 2
+  },
+  {
+   "text": "x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x ",
+   "n": 1450
+  },
+  {
+   "text": "October words here",
+   "n": 3
+  },
+  {
+   "text": "negative ts",
+   "n": 2
+  },
+  {
+   "text": "",
+   "n": 0
+  },
+  {
+   "text": " ",
+   "n": 0
+  },
+  {
+   "text": "a",
+   "n": 1
+  },
+  {
+   "text": "a b",
+   "n": 2
+  },
+  {
+   "text": "x",
+   "n": 1
+  },
+  {
+   "text": "x᠎y",
+   "n": 1
+  },
+  {
+   "text": " z",
+   "n": 1
+  }
+ ],
+ "totalWords": 1472,
+ "journaledDays": 11,
+ "longestStreak": 5,
+ "streaks": [
+  {
+   "now": 1794220200000,
+   "n": 3
+  },
+  {
+   "now": 1794306600000,
+   "n": 3
+  },
+  {
+   "now": 1794393000000,
+   "n": 0
+  },
+  {
+   "now": 1793961000000,
+   "n": 0
+  },
+  {
+   "now": 1794783600000,
+   "n": 0
+  },
+  {
+   "now": 1794787200000,
+   "n": 0
+  }
+ ],
+ "monthWords": [
+  {
+   "year": 2026,
+   "month": 10,
+   "n": 1460
+  },
+  {
+   "year": 2026,
+   "month": 9,
+   "n": 3
+  },
+  {
+   "year": 2025,
+   "month": 10,
+   "n": 5
+  },
+  {
+   "year": 1969,
+   "month": 11,
+   "n": 2
+  }
+ ],
+ "compact": [
+  {
+   "n": 0,
+   "out": "0"
+  },
+  {
+   "n": 999,
+   "out": "999"
+  },
+  {
+   "n": 1000,
+   "out": "1k"
+  },
+  {
+   "n": 1049,
+   "out": "1k"
+  },
+  {
+   "n": 1050,
+   "out": "1.1k"
+  },
+  {
+   "n": 1449,
+   "out": "1.4k"
+  },
+  {
+   "n": 1450,
+   "out": "1.4k"
+  },
+  {
+   "n": 1951,
+   "out": "2k"
+  },
+  {
+   "n": 1999,
+   "out": "2k"
+  },
+  {
+   "n": 2000,
+   "out": "2k"
+  },
+  {
+   "n": 9950,
+   "out": "9.9k"
+  },
+  {
+   "n": 10000,
+   "out": "10k"
+  },
+  {
+   "n": 12345,
+   "out": "12.3k"
+  },
+  {
+   "n": 999949,
+   "out": "999.9k"
+  },
+  {
+   "n": 999950,
+   "out": "1000k"
+  },
+  {
+   "n": 1234567,
+   "out": "1234.6k"
+  }
+ ],
+ "onThisDay": [
+  {
+   "month": 10,
+   "day": 9,
+   "year": 2026,
+   "ids": [
+    "last-year",
+    "two-years"
+   ]
+  },
+  {
+   "month": 10,
+   "day": 9,
+   "year": 2025,
+   "ids": [
+    "two-years"
+   ]
+  },
+  {
+   "month": 11,
+   "day": 31,
+   "year": 1970,
+   "ids": [
+    "epoch-before"
+   ]
+  }
+ ],
+ "daily": [
+  {
+   "now": 1794220200000,
+   "weeks": 3,
+   "counts": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "now": 1794306600000,
+   "weeks": 3,
+   "counts": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "now": 1794393000000,
+   "weeks": 3,
+   "counts": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "now": 1793961000000,
+   "weeks": 3,
+   "counts": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    1,
+    1
+   ]
+  },
+  {
+   "now": 1794783600000,
+   "weeks": 3,
+   "counts": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "now": 1794787200000,
+   "weeks": 3,
+   "counts": [
+    1,
+    1,
+    1,
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  }
+ ]
+}
