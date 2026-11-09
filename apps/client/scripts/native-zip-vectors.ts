@@ -19,16 +19,17 @@ export function verifyZip(write: boolean): void {
     const dist = 1 + ((r() << 8 | r()) % Math.min(32768, varied.length)), len = 3 + (r() % 256);
     for (let j = 0; j < len; j++) varied.push(varied[varied.length - dist]);
   }
-  const archives = [0, 1, 6, 9].map((level) => {
+  const archives = ([0, 1, 6, 9] as const).map((level) => {
+    const mtime = new Date(Date.UTC(2026, 10, 9, 13, 0, 0)); // fixed, so the archive bytes are reproducible
     const zip = zipSync({
-      'Journal.json': [strToU8(JSON.stringify({ entries: [{ text: '# Hi', uuid: 'U1' }] })), { level }],
-      'photos/': new Uint8Array(0),
-      'photos/0123456789abcdef.jpeg': [noise, { level }],
-      'Export/videos/abc.mov': [text, { level }],
-      '12': [tiny, { level }],
-      'varied.bin': [Uint8Array.from(varied.slice(0, 60000)), { level }],
-      'Résumé 日本.txt': [strToU8('naïve'), { level }],
-      'empty.txt': [new Uint8Array(0), { level }],
+      'Journal.json': [strToU8(JSON.stringify({ entries: [{ text: '# Hi', uuid: 'U1' }] })), { level, mtime }],
+      'photos/': [new Uint8Array(0), { mtime }],
+      'photos/0123456789abcdef.jpeg': [noise, { level, mtime }],
+      'Export/videos/abc.mov': [text, { level, mtime }],
+      '12': [tiny, { level, mtime }],
+      'varied.bin': [Uint8Array.from(varied.slice(0, 60000)), { level, mtime }],
+      'Résumé 日本.txt': [strToU8('naïve'), { level, mtime }],
+      'empty.txt': [new Uint8Array(0), { level, mtime }],
     });
     const files = Object.entries(unzipSync(zip)).map(([name, data]) => ({ name, size: data.length, base64: Buffer.from(data).toString('base64') }));
     return { level, zip: Buffer.from(zip).toString('base64'), files };
