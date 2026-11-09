@@ -19,6 +19,7 @@ import { verifyDayOne } from './native-dayone-vectors';
 import { verifyZip } from './native-zip-vectors';
 import { verifyDayOneArchive } from './native-dayone-archive-vectors';
 import { verifyVideo } from './native-video-vectors';
+import { verifyAudio } from './native-audio-vectors';
 import { verifyDayOneImport } from './native-dayone-import-vectors';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { wordlist } from '@scure/bip39/wordlists/english.js';
@@ -103,6 +104,7 @@ verifyDayOne(process.argv.includes('--write'));
 verifyZip(process.argv.includes('--write'));
 verifyDayOneArchive(process.argv.includes('--write'));
 verifyVideo(process.argv.includes('--write'));
+verifyAudio(process.argv.includes('--write'));
 await verifyDayOneImport(process.argv.includes('--write'));
 await verifyExport(process.argv.includes('--write'));
 
