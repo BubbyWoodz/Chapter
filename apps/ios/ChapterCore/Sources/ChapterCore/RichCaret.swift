@@ -13,7 +13,7 @@ public struct RichCaret: Codable, Equatable, Hashable {
 public extension RichDocument {
     static let textblockTypes: Set<String> = ["paragraph", "heading", "codeBlock"]
 
-    private func nodeValue(at path: [Int]) -> JSONValue? {
+    internal func nodeValue(at path: [Int]) -> JSONValue? {
         var value = root
         for index in path {
             let children = value["content"].array
@@ -66,13 +66,13 @@ public extension RichDocument {
     }
     /// ProseMirror joins adjacent text nodes with the same marks; with node-first
     /// content only the trailing seam can create a new pair. The original node's fields win.
-    private static func join(_ a: JSONValue, _ b: JSONValue, keepFirst: Bool) -> JSONValue? {
+    internal static func join(_ a: JSONValue, _ b: JSONValue, keepFirst: Bool) -> JSONValue? {
         guard a["type"].string == "text", b["type"].string == "text", let ka = marksKey(a), ka == marksKey(b),
               case .object(var fields) = keepFirst ? a : b else { return nil }
         fields["text"] = .string((a["text"].string ?? "") + (b["text"].string ?? ""))
         return .object(fields)
     }
-    private mutating func replacing(_ path: [Int], with replacement: [JSONValue]) throws {
+    internal mutating func replacing(_ path: [Int], with replacement: [JSONValue]) throws {
         func go(_ node: JSONValue, _ rest: ArraySlice<Int>) throws -> JSONValue {
             guard case .object(var fields) = node, let first = rest.first else { throw ChapterError.unsupported }
             var children = node["content"].array

@@ -197,12 +197,13 @@ struct RichEntryEditor: View {
     let entry: VaultRecord
     @Environment(\.dismiss) private var dismiss
     private var live: VaultRecord? { model.snapshot.records.first { $0.id == entry.id && !$0.deleted && $0.kind == "entry" } }
+    private static var rangeSupported: Bool { if #available(iOS 18.0, *) { return true } else { return false } }
     var body: some View {
         NavigationStack {
             List {
                 if let live, let raw = live.body["bodyJson"]?.string, let document = try? RichDocument(json: raw) {
                     Section {
-                        Text("Changes preserve original custom nodes and formatting. Text and formatting drafts are saved encrypted; Apply updates the entry. New blocks support headings, lists, quotes and code. In a text run, place the cursor to insert an entry link or template there, or select text to format just that part (iOS 18). Tables without merged cells can gain or lose rows and columns.")
+                        Text("Changes preserve original custom nodes and formatting. Text and formatting drafts are saved encrypted; Apply updates the entry. New blocks support headings, lists, quotes and code. In a text run, place the cursor to insert an entry link or template there, or select text to format just that part; Format across runs selects text spanning several runs (iOS 18). Tables without merged cells can gain or lose rows and columns.")
                         let pending = model.snapshot.richDrafts?.first { $0.entryID == live.id && $0.newBlockStyle != nil }
                         NavigationLink { RichDraftEditor(draft: pending ?? RichDraft.newBlock(entryID: live.id, expectedDocument: raw)) } label: { Label("Add block", systemImage: "plus") }.accessibilityIdentifier("rich.add-block")
                     }
@@ -219,6 +220,16 @@ struct RichEntryEditor: View {
                             }
                         }
                     }
+                    let formattable = document.formattableBlocks
+                    if !formattable.isEmpty && Self.rangeSupported {
+                        Section("Format across runs") {
+                            Text("Select text spanning several differently formatted runs of a paragraph or heading, then apply formatting like the original toolbar.")
+                            ForEach(formattable, id: \.self) { path in
+                                NavigationLink { RichRangeFormatter(entryID: live.id, block: path) } label: { Text((try? document.formattingText(block: path)) ?? "").lineLimit(2) }
+                                    .accessibilityIdentifier("rich.range." + path.map(String.init).joined(separator: "/"))
+                            }
+                        }
+                    }
                     Section("Text and empty blocks") {
                         ForEach(document.editableTextNodes) { leaf in
                             let draft = model.snapshot.richDrafts?.first { $0.entryID == live.id && $0.path == leaf.path && $0.newBlockStyle == nil }
@@ -229,6 +240,72 @@ struct RichEntryEditor: View {
                     }
                 } else { Text("This entry is no longer available for editing. Saved drafts remain in Settings.") }
             }.modifier(ChapterScreenSurface()).navigationTitle("Edit rich entry").toolbar { ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } } }
+        }
+    }
+}
+
+/// Formatting across a textblock's runs. The text is shown for selection only
+/// (non-text inline nodes appear as U+FFFC, one position each, like ProseMirror);
+/// typing is ignored here so positions always match the saved document.
+struct RichRangeFormatter: View {
+    @EnvironmentObject private var model: VaultModel
+    let entryID: String
+    let block: [Int]
+    @State private var status: String?
+    @State private var selectAllRequest = 0
+    @State private var selected: Range<Int>?
+    private let formats = [("bold", "Bold"), ("italic", "Italic"), ("underline", "Underline"), ("strike", "Strikethrough"), ("code", "Inline code")]
+    private var live: VaultRecord? { model.snapshot.records.first { $0.id.utf8.elementsEqual(entryID.utf8) && !$0.deleted && $0.kind == "entry" } }
+    private var text: String? { live?.body["bodyJson"]?.string.flatMap { try? RichDocument(json: $0) }.flatMap { try? $0.formattingText(block: block) } }
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                if let text {
+                    if #available(iOS 18.0, *) {
+                        RangeSelectingText(text: text, selectAllRequest: selectAllRequest, selected: $selected)
+                            .font(chapterFont(.prose, skin: model.snapshot.appearance?.skin ?? "paper", size: 18))
+                            .frame(minHeight: 160).scrollContentBackground(.hidden)
+                            .background(chapterToken("paper", preference: model.snapshot.appearance ?? .standard))
+                            .accessibilityLabel("Text across runs").accessibilityHint("Select text to format. Typing here is ignored; edit words in each run.")
+                    }
+                    Button { selectAllRequest += 1 } label: { Label("Select all text", systemImage: "selection.pin.in.out").frame(minHeight: 44) }
+                        .buttonStyle(.bordered).accessibilityIdentifier("rich.range.select-all")
+                    ForEach(formats, id: \.0) { type, title in
+                        Button { apply(type) } label: { Text(title).frame(maxWidth: .infinity, minHeight: 44, alignment: .leading) }
+                            .buttonStyle(.bordered).disabled(selected == nil).accessibilityIdentifier("rich.range.format." + type)
+                    }
+                    Text(status ?? (selected == nil ? "Select some text first." : "Formatting applies to the selection and saves the entry, like the original toolbar."))
+                        .font(.footnote).accessibilityIdentifier("rich.range.status")
+                } else { Text("This text is no longer available. Your writing was kept.").accessibilityIdentifier("rich.range.unavailable") }
+            }.padding()
+        }.modifier(ChapterScreenSurface()).navigationTitle("Format across runs")
+    }
+    private func apply(_ type: String) {
+        guard let record = live, let selected else { return }
+        do { try model.toggleRangeMark(record, type: type, block: block, range: selected); status = "Formatting updated." }
+        catch { status = "That selection can’t take this formatting (for example inside inline code). Nothing was changed." }
+    }
+}
+@available(iOS 18.0, *)
+private struct RangeSelectingText: View {
+    let text: String
+    let selectAllRequest: Int
+    @Binding var selected: Range<Int>?
+    @State private var shown = ""
+    @State private var selection: TextSelection?
+    var body: some View {
+        TextEditor(text: $shown, selection: Binding(get: { selection }, set: { value in
+            selection = value; selected = shown == text ? CaretTrackingEditor.range(value, in: text) : nil
+        }))
+        .autocorrectionDisabled()
+        .onAppear { shown = text }
+        // Typing is undone at once, so a selection always refers to the saved text.
+        .onChange(of: shown) { _, now in if now != text { shown = text; selection = nil; selected = nil } }
+        .onChange(of: text) { _, newText in shown = newText; selection = nil; selected = nil }
+        .onChange(of: selectAllRequest) { _, _ in
+            shown = text
+            let all = TextSelection(range: text.startIndex..<text.endIndex)
+            selection = all; selected = CaretTrackingEditor.range(all, in: text)
         }
     }
 }

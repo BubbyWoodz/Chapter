@@ -1,0 +1,2121 @@
+[
+  {
+    "name": "bold across bold and plain",
+    "doc": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "ab",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "cd"
+            },
+            {
+              "type": "text",
+              "text": "ef",
+              "marks": [
+                {
+                  "type": "bold"
+                },
+                {
+                  "type": "italic"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "gh",
+              "marks": [
+                {
+                  "type": "italic"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "block": [
+      0
+    ],
+    "from": 0,
+    "to": 4,
+    "mark": "bold",
+    "expected": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ],
+              "text": "abcd"
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                },
+                {
+                  "type": "italic"
+                }
+              ],
+              "text": "ef"
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "italic"
+                }
+              ],
+              "text": "gh"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "bold all bold runs removes",
+    "doc": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "ab",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "cd",
+              "marks": [
+                {
+                  "type": "bold"
+                },
+                {
+                  "type": "underline"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "ef",
+              "marks": [
+                {
+                  "type": "bold"
+                },
+                {
+                  "type": "strike"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "block": [
+      0
+    ],
+    "from": 0,
+    "to": 6,
+    "mark": "bold",
+    "expected": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "ab"
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "underline"
+                }
+              ],
+              "text": "cd"
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "strike"
+                }
+              ],
+              "text": "ef"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "bold partial runs adds",
+    "doc": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "ab",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "cd"
+            },
+            {
+              "type": "text",
+              "text": "ef",
+              "marks": [
+                {
+                  "type": "bold"
+                },
+                {
+                  "type": "italic"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "gh",
+              "marks": [
+                {
+                  "type": "italic"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "block": [
+      0
+    ],
+    "from": 1,
+    "to": 5,
+    "mark": "bold",
+    "expected": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ],
+              "text": "abcd"
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                },
+                {
+                  "type": "italic"
+                }
+              ],
+              "text": "ef"
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "italic"
+                }
+              ],
+              "text": "gh"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "italic across three runs",
+    "doc": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "ab",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "cd"
+            },
+            {
+              "type": "text",
+              "text": "ef",
+              "marks": [
+                {
+                  "type": "bold"
+                },
+                {
+                  "type": "italic"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "gh",
+              "marks": [
+                {
+                  "type": "italic"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "block": [
+      0
+    ],
+    "from": 1,
+    "to": 7,
+    "mark": "italic",
+    "expected": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ],
+              "text": "a"
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                },
+                {
+                  "type": "italic"
+                }
+              ],
+              "text": "b"
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "italic"
+                }
+              ],
+              "text": "cd"
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                },
+                {
+                  "type": "italic"
+                }
+              ],
+              "text": "ef"
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "italic"
+                }
+              ],
+              "text": "gh"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "italic all italic removes",
+    "doc": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "ab",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "cd"
+            },
+            {
+              "type": "text",
+              "text": "ef",
+              "marks": [
+                {
+                  "type": "bold"
+                },
+                {
+                  "type": "italic"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "gh",
+              "marks": [
+                {
+                  "type": "italic"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "block": [
+      0
+    ],
+    "from": 4,
+    "to": 8,
+    "mark": "italic",
+    "expected": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ],
+              "text": "ab"
+            },
+            {
+              "type": "text",
+              "text": "cd"
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ],
+              "text": "ef"
+            },
+            {
+              "type": "text",
+              "text": "gh"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "underline whole paragraph",
+    "doc": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "ab",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "cd"
+            },
+            {
+              "type": "text",
+              "text": "ef",
+              "marks": [
+                {
+                  "type": "bold"
+                },
+                {
+                  "type": "italic"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "gh",
+              "marks": [
+                {
+                  "type": "italic"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "block": [
+      0
+    ],
+    "from": 0,
+    "to": 8,
+    "mark": "underline",
+    "expected": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                },
+                {
+                  "type": "underline"
+                }
+              ],
+              "text": "ab"
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "underline"
+                }
+              ],
+              "text": "cd"
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                },
+                {
+                  "type": "italic"
+                },
+                {
+                  "type": "underline"
+                }
+              ],
+              "text": "ef"
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "italic"
+                },
+                {
+                  "type": "underline"
+                }
+              ],
+              "text": "gh"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "bold over bold and code removes bold",
+    "doc": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "ab",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "cd",
+              "marks": [
+                {
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "ef"
+            }
+          ]
+        }
+      ]
+    },
+    "block": [
+      0
+    ],
+    "from": 0,
+    "to": 4,
+    "mark": "bold",
+    "expected": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "ab"
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "code"
+                }
+              ],
+              "text": "cd"
+            },
+            {
+              "type": "text",
+              "text": "ef"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "bold over plain and code adds to plain",
+    "doc": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "ab",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "cd",
+              "marks": [
+                {
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "ef"
+            }
+          ]
+        }
+      ]
+    },
+    "block": [
+      0
+    ],
+    "from": 2,
+    "to": 6,
+    "mark": "bold",
+    "expected": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ],
+              "text": "ab"
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "code"
+                }
+              ],
+              "text": "cd"
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ],
+              "text": "ef"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "code over bold and plain",
+    "doc": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "ab",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "cd",
+              "marks": [
+                {
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "ef"
+            }
+          ]
+        }
+      ]
+    },
+    "block": [
+      0
+    ],
+    "from": 0,
+    "to": 6,
+    "mark": "code",
+    "expected": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "code"
+                }
+              ],
+              "text": "abcdef"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "code all code removes",
+    "doc": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "abcd",
+              "marks": [
+                {
+                  "type": "code"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "block": [
+      0
+    ],
+    "from": 0,
+    "to": 4,
+    "mark": "code",
+    "expected": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "abcd"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "bold all code no-op",
+    "doc": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "abcd",
+              "marks": [
+                {
+                  "type": "code"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "block": [
+      0
+    ],
+    "from": 0,
+    "to": 4,
+    "mark": "bold",
+    "expected": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "code"
+                }
+              ],
+              "text": "abcd"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "bold across link",
+    "doc": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "go ",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "here",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://example.invalid",
+                    "target": "_blank",
+                    "rel": "noopener noreferrer nofollow",
+                    "class": null
+                  }
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": " now"
+            }
+          ]
+        }
+      ]
+    },
+    "block": [
+      0
+    ],
+    "from": 0,
+    "to": 11,
+    "mark": "bold",
+    "expected": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ],
+              "text": "go "
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://example.invalid",
+                    "target": "_blank",
+                    "rel": "noopener noreferrer nofollow",
+                    "class": null,
+                    "title": null
+                  }
+                },
+                {
+                  "type": "bold"
+                }
+              ],
+              "text": "here"
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ],
+              "text": " now"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "italic across link",
+    "doc": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "go ",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "here",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://example.invalid",
+                    "target": "_blank",
+                    "rel": "noopener noreferrer nofollow",
+                    "class": null
+                  }
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": " now"
+            }
+          ]
+        }
+      ]
+    },
+    "block": [
+      0
+    ],
+    "from": 1,
+    "to": 9,
+    "mark": "italic",
+    "expected": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ],
+              "text": "g"
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                },
+                {
+                  "type": "italic"
+                }
+              ],
+              "text": "o "
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://example.invalid",
+                    "target": "_blank",
+                    "rel": "noopener noreferrer nofollow",
+                    "class": null,
+                    "title": null
+                  }
+                },
+                {
+                  "type": "italic"
+                }
+              ],
+              "text": "here"
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "italic"
+                }
+              ],
+              "text": " n"
+            },
+            {
+              "type": "text",
+              "text": "ow"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "bold across atoms",
+    "doc": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "a"
+            },
+            {
+              "type": "entryLink",
+              "attrs": {
+                "entryId": "e",
+                "label": "E"
+              }
+            },
+            {
+              "type": "text",
+              "text": "b"
+            },
+            {
+              "type": "inlineMath",
+              "attrs": {
+                "latex": "x^2"
+              }
+            },
+            {
+              "type": "text",
+              "text": "c"
+            }
+          ]
+        }
+      ]
+    },
+    "block": [
+      0
+    ],
+    "from": 0,
+    "to": 5,
+    "mark": "bold",
+    "expected": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ],
+              "text": "a"
+            },
+            {
+              "type": "entryLink",
+              "attrs": {
+                "entryId": "e",
+                "label": "E"
+              },
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ],
+              "text": "b"
+            },
+            {
+              "type": "inlineMath",
+              "attrs": {
+                "latex": "x^2"
+              },
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ],
+              "text": "c"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "bold within atoms partial",
+    "doc": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "a"
+            },
+            {
+              "type": "entryLink",
+              "attrs": {
+                "entryId": "e",
+                "label": "E"
+              }
+            },
+            {
+              "type": "text",
+              "text": "b"
+            },
+            {
+              "type": "inlineMath",
+              "attrs": {
+                "latex": "x^2"
+              }
+            },
+            {
+              "type": "text",
+              "text": "c"
+            }
+          ]
+        }
+      ]
+    },
+    "block": [
+      0
+    ],
+    "from": 1,
+    "to": 4,
+    "mark": "bold",
+    "expected": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "a"
+            },
+            {
+              "type": "entryLink",
+              "attrs": {
+                "entryId": "e",
+                "label": "E"
+              },
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ],
+              "text": "b"
+            },
+            {
+              "type": "inlineMath",
+              "attrs": {
+                "latex": "x^2"
+              },
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "c"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "bold around bold atom removes",
+    "doc": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "a",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "entryLink",
+              "attrs": {
+                "entryId": "e",
+                "label": "E"
+              }
+            },
+            {
+              "type": "text",
+              "text": "b",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "block": [
+      0
+    ],
+    "from": 0,
+    "to": 3,
+    "mark": "bold",
+    "expected": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "a"
+            },
+            {
+              "type": "entryLink",
+              "attrs": {
+                "entryId": "e",
+                "label": "E"
+              }
+            },
+            {
+              "type": "text",
+              "text": "b"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "strike emoji runs",
+    "doc": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "👩🏽‍💻",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "x👍y"
+            }
+          ]
+        }
+      ]
+    },
+    "block": [
+      0
+    ],
+    "from": 0,
+    "to": 10,
+    "mark": "strike",
+    "expected": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                },
+                {
+                  "type": "strike"
+                }
+              ],
+              "text": "👩🏽‍💻"
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "strike"
+                }
+              ],
+              "text": "x👍"
+            },
+            {
+              "type": "text",
+              "text": "y"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "bold after emoji",
+    "doc": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "👩🏽‍💻",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "x👍y"
+            }
+          ]
+        }
+      ]
+    },
+    "block": [
+      0
+    ],
+    "from": 7,
+    "to": 10,
+    "mark": "bold",
+    "expected": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ],
+              "text": "👩🏽‍💻x👍"
+            },
+            {
+              "type": "text",
+              "text": "y"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "italic across hard break",
+    "doc": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "ab"
+            },
+            {
+              "type": "entryLink",
+              "attrs": {
+                "entryId": "old",
+                "label": "Old"
+              }
+            },
+            {
+              "type": "text",
+              "text": "cd",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "a"
+            },
+            {
+              "type": "hardBreak"
+            },
+            {
+              "type": "text",
+              "text": "b"
+            }
+          ]
+        }
+      ]
+    },
+    "block": [
+      1
+    ],
+    "from": 0,
+    "to": 3,
+    "mark": "italic",
+    "expected": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "ab"
+            },
+            {
+              "type": "entryLink",
+              "attrs": {
+                "entryId": "old",
+                "label": "Old"
+              }
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ],
+              "text": "cd"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "italic"
+                }
+              ],
+              "text": "a"
+            },
+            {
+              "type": "hardBreak",
+              "marks": [
+                {
+                  "type": "italic"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "italic"
+                }
+              ],
+              "text": "b"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "bold over entry link and bold",
+    "doc": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "ab"
+            },
+            {
+              "type": "entryLink",
+              "attrs": {
+                "entryId": "old",
+                "label": "Old"
+              }
+            },
+            {
+              "type": "text",
+              "text": "cd",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "a"
+            },
+            {
+              "type": "hardBreak"
+            },
+            {
+              "type": "text",
+              "text": "b"
+            }
+          ]
+        }
+      ]
+    },
+    "block": [
+      0
+    ],
+    "from": 1,
+    "to": 5,
+    "mark": "bold",
+    "expected": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "a"
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ],
+              "text": "b"
+            },
+            {
+              "type": "entryLink",
+              "attrs": {
+                "entryId": "old",
+                "label": "Old"
+              },
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ],
+              "text": "cd"
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "a"
+            },
+            {
+              "type": "hardBreak"
+            },
+            {
+              "type": "text",
+              "text": "b"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "italic nested quote",
+    "doc": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "blockquote",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "qu",
+                  "marks": [
+                    {
+                      "type": "italic"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": "ote"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph"
+        }
+      ]
+    },
+    "block": [
+      0,
+      0
+    ],
+    "from": 1,
+    "to": 5,
+    "mark": "italic",
+    "expected": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "blockquote",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "marks": [
+                    {
+                      "type": "italic"
+                    }
+                  ],
+                  "text": "quote"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph"
+        }
+      ]
+    }
+  },
+  {
+    "name": "single run heading",
+    "doc": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Hello world"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Head"
+            }
+          ]
+        },
+        {
+          "type": "paragraph"
+        }
+      ]
+    },
+    "block": [
+      1
+    ],
+    "from": 1,
+    "to": 3,
+    "mark": "underline",
+    "expected": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Hello world"
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "attrs": {
+            "level": 2
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "H"
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "underline"
+                }
+              ],
+              "text": "ea"
+            },
+            {
+              "type": "text",
+              "text": "d"
+            }
+          ]
+        },
+        {
+          "type": "paragraph"
+        }
+      ]
+    }
+  },
+  {
+    "name": "bold before italic rank across runs",
+    "doc": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "ab",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "cd"
+            },
+            {
+              "type": "text",
+              "text": "ef",
+              "marks": [
+                {
+                  "type": "bold"
+                },
+                {
+                  "type": "italic"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "gh",
+              "marks": [
+                {
+                  "type": "italic"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "block": [
+      0
+    ],
+    "from": 4,
+    "to": 8,
+    "mark": "bold",
+    "expected": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ],
+              "text": "ab"
+            },
+            {
+              "type": "text",
+              "text": "cd"
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "bold"
+                },
+                {
+                  "type": "italic"
+                }
+              ],
+              "text": "efgh"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "bold across the public fixture paragraph",
+    "doc": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Hello ",
+              "marks": [
+                {
+                  "type": "bold"
+                },
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://example.invalid",
+                    "target": "_blank",
+                    "rel": "noopener noreferrer nofollow",
+                    "class": null
+                  }
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "world 👩🏽‍💻",
+              "marks": [
+                {
+                  "type": "code"
+                },
+                {
+                  "type": "italic"
+                },
+                {
+                  "type": "strike"
+                },
+                {
+                  "type": "underline"
+                }
+              ]
+            },
+            {
+              "type": "inlineMath",
+              "attrs": {
+                "latex": "x^2"
+              }
+            },
+            {
+              "type": "entryLink",
+              "attrs": {
+                "entryId": "entry-target",
+                "label": "Related"
+              }
+            },
+            {
+              "type": "hardBreak"
+            }
+          ]
+        }
+      ]
+    },
+    "block": [
+      0
+    ],
+    "from": 0,
+    "to": 22,
+    "mark": "bold",
+    "expected": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "link",
+                  "attrs": {
+                    "href": "https://example.invalid",
+                    "target": "_blank",
+                    "rel": "noopener noreferrer nofollow",
+                    "class": null,
+                    "title": null
+                  }
+                }
+              ],
+              "text": "Hello "
+            },
+            {
+              "type": "text",
+              "marks": [
+                {
+                  "type": "code"
+                },
+                {
+                  "type": "italic"
+                },
+                {
+                  "type": "strike"
+                },
+                {
+                  "type": "underline"
+                }
+              ],
+              "text": "world 👩🏽‍💻"
+            },
+            {
+              "type": "inlineMath",
+              "attrs": {
+                "latex": "x^2"
+              }
+            },
+            {
+              "type": "entryLink",
+              "attrs": {
+                "entryId": "entry-target",
+                "label": "Related"
+              }
+            },
+            {
+              "type": "hardBreak"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "code block no-op",
+    "doc": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "codeBlock",
+          "attrs": {
+            "language": "swift"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "let x"
+            }
+          ]
+        },
+        {
+          "type": "paragraph"
+        }
+      ]
+    },
+    "block": [
+      0
+    ],
+    "from": 0,
+    "to": 3,
+    "mark": "bold",
+    "expected": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "codeBlock",
+          "attrs": {
+            "language": "swift"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "let x"
+            }
+          ]
+        },
+        {
+          "type": "paragraph"
+        }
+      ]
+    }
+  }
+]

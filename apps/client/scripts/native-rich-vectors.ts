@@ -169,7 +169,43 @@ export function verifyRichFixture(write: boolean, identity: {dataKey:Uint8Array}
   ['bold in table cell','nested',[1,0,0,0,0],1,3,'bold'], ['bold in code block no-op','block',[0,0],0,3,'bold'],
  ];
  const selCases = selInputs.map(([name,docName,leaf,from,to,mark]) => ({name, doc:selDocs[docName], leaf, from, to, mark, expected:toggleInEditor(selDocs[docName],leaf,from,to,mark)}));
- // Table editing: the original toolbar's prosemirror-tables commands, run by the
+ // Multi-run formatting: the same toggleMark over a selection spanning a textblock's
+// runs (block-relative ProseMirror positions; non-text inline nodes count 1).
+const rangeInEditor = (docJSON:JSONContent, block:number[], from:number, to:number, mark:string):JSONContent => {
+ const editor = new Editor({extensions:buildExtensions(''), content:docJSON});
+ assert.deepEqual(JSON.parse(JSON.stringify(editor.getJSON())),JSON.parse(JSON.stringify(caretSchema.nodeFromJSON(docJSON).toJSON())),'TipTap load changed a range fixture');
+ const base = leafPos(docJSON, block) + 1;
+ editor.chain().setTextSelection({from:base + from, to:base + to}).toggleMark(mark).run();
+ const out = JSON.parse(JSON.stringify(editor.getJSON())) as JSONContent; editor.destroy(); return out;
+};
+const rangeDocs:Record<string,JSONContent> = {
+ ...selDocs,
+ mixed:{type:'doc',content:[cp(ct('ab',bold),ct('cd'),ct('ef',[{type:'bold'},{type:'italic'}]),ct('gh',[{type:'italic'}]))]},
+ allBold:{type:'doc',content:[cp(ct('ab',bold),ct('cd',[{type:'bold'},{type:'underline'}]),ct('ef',[{type:'bold'},{type:'strike'}]))]},
+ boldCode:{type:'doc',content:[cp(ct('ab',bold),ct('cd',[{type:'code'}]),ct('ef'))]},
+ codeOnly:{type:'doc',content:[cp(ct('abcd',[{type:'code'}]))]},
+ linkRun:{type:'doc',content:[cp(ct('go ',bold),ct('here',link),ct(' now'))]},
+ atoms:{type:'doc',content:[cp(ct('a'),{type:'entryLink',attrs:{entryId:'e',label:'E'}},ct('b'),{type:'inlineMath',attrs:{latex:'x^2'}},ct('c'))]},
+ boldAtom:{type:'doc',content:[cp(ct('a',bold),{type:'entryLink',attrs:{entryId:'e',label:'E'}},ct('b',bold))]},
+ emojiRuns:{type:'doc',content:[cp(ct('👩🏽‍💻',bold),ct('x👍y'))]},
+ nestedRuns:{type:'doc',content:[{type:'blockquote',content:[cp(ct('qu',[{type:'italic'}]),ct('ote'))]},cp()]},
+ publicParagraph:{type:'doc',content:[cp(ct('Hello ',[{type:'bold'},...link]),ct('world 👩🏽‍💻',[{type:'code'},{type:'italic'},{type:'strike'},{type:'underline'}]),{type:'inlineMath',attrs:{latex:'x^2'}},{type:'entryLink',attrs:{entryId:'entry-target',label:'Related'}},{type:'hardBreak'})]},
+};
+const rangeInputs:[string,string,number[],number,number,string][] = [
+ ['bold across bold and plain','mixed',[0],0,4,'bold'], ['bold all bold runs removes','allBold',[0],0,6,'bold'], ['bold partial runs adds','mixed',[0],1,5,'bold'],
+ ['italic across three runs','mixed',[0],1,7,'italic'], ['italic all italic removes','mixed',[0],4,8,'italic'], ['underline whole paragraph','mixed',[0],0,8,'underline'],
+ ['bold over bold and code removes bold','boldCode',[0],0,4,'bold'], ['bold over plain and code adds to plain','boldCode',[0],2,6,'bold'], ['code over bold and plain','boldCode',[0],0,6,'code'],
+ ['code all code removes','codeOnly',[0],0,4,'code'], ['bold all code no-op','codeOnly',[0],0,4,'bold'], ['bold across link','linkRun',[0],0,11,'bold'],
+ ['italic across link','linkRun',[0],1,9,'italic'], ['bold across atoms','atoms',[0],0,5,'bold'], ['bold within atoms partial','atoms',[0],1,4,'bold'],
+ ['bold around bold atom removes','boldAtom',[0],0,3,'bold'], ['strike emoji runs','emojiRuns',[0],0,10,'strike'], ['bold after emoji','emojiRuns',[0],7,10,'bold'],
+ ['italic across hard break','leaves',[1],0,3,'italic'], ['bold over entry link and bold','leaves',[0],1,5,'bold'], ['italic nested quote','nestedRuns',[0,0],1,5,'italic'],
+ ['single run heading','plain',[1],1,3,'underline'], ['bold before italic rank across runs','mixed',[0],4,8,'bold'], ['bold across the public fixture paragraph','publicParagraph',[0],0,22,'bold'], ['code block no-op','block',[0],0,3,'bold'],
+];
+const rangeCases = rangeInputs.map(([name,docName,block,from,to,mark]) => ({name, doc:rangeDocs[docName], block, from, to, mark, expected:rangeInEditor(rangeDocs[docName],block,from,to,mark)}));
+const rangeURL = new URL('../../ios/ChapterCore/Tests/ChapterCoreTests/Fixtures/rich-range-format.json',import.meta.url);
+if (write) writeFileSync(rangeURL,JSON.stringify(rangeCases,null,2)+'\n');
+else assert.deepEqual(JSON.parse(readFileSync(rangeURL,'utf8')),JSON.parse(JSON.stringify(rangeCases)),'Native range-format fixtures must equal the actual TipTap toggleMark');
+// Table editing: the original toolbar's prosemirror-tables commands, run by the
  // real TipTap Editor with the cursor inside one cell (row, column).
  const cellPos = (docJSON:JSONContent, table:number[], row:number, col:number):number => leafPos(docJSON,[...table,row,col,0]) + 1;
  const tableCommand = (docJSON:JSONContent, table:number[], row:number, col:number, command:string):JSONContent => {
@@ -257,6 +293,10 @@ export function verifyRichFixture(write: boolean, identity: {dataKey:Uint8Array}
   assert.equal(nativeSel.length,selCases.length);
   nativeSel.forEach((doc,i) => assert.deepEqual(JSON.parse(JSON.stringify(webSchema.nodeFromJSON(doc).toJSON())),JSON.parse(JSON.stringify(selCases[i].expected)),'Native selection formatting differs from TipTap: '+selCases[i].name));
   console.log('Native selection formatting equals the actual TipTap toggleMark on all '+selCases.length+' cases.');
+  const nativeRanges = JSON.parse(readFileSync(nativePath+'.rich-range-format','utf8')) as JSONContent[];
+  assert.equal(nativeRanges.length,rangeCases.length);
+  nativeRanges.forEach((doc,i) => assert.deepEqual(JSON.parse(JSON.stringify(webSchema.nodeFromJSON(doc).toJSON())),JSON.parse(JSON.stringify(rangeCases[i].expected)),'Native multi-run formatting differs from TipTap: '+rangeCases[i].name));
+  console.log('Native multi-run formatting equals the actual TipTap toggleMark on all '+rangeCases.length+' cases.');
   const nativeTables = JSON.parse(readFileSync(nativePath+'.rich-table-edit','utf8')) as JSONContent[];
   assert.equal(nativeTables.length,tableEditCases.length);
   nativeTables.forEach((doc,i) => assert.deepEqual(JSON.parse(JSON.stringify(webSchema.nodeFromJSON(doc).toJSON())),JSON.parse(JSON.stringify(tableEditCases[i].expected)),'Native table edit differs from prosemirror-tables: '+tableEditCases[i].name));

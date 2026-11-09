@@ -332,6 +332,28 @@ final class ChapterUITests: XCTestCase {
         XCTAssertEqual(editor.value as? String," heading");XCTAssertEqual(app.staticTexts["rich.format-summary"].label,"Formatting: Bold")
         attach(app,name:"Actual native run outside the selection keeps the original bold")
     }
+    func testFormatAcrossRunsAppliesOriginalToggleMarkOverSeveralRuns() throws {
+        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture"];app.launch()
+        let entry=app.staticTexts["Public rich fixture"];XCTAssertTrue(entry.waitForExistence(timeout:10));entry.tap()
+        app.buttons["Edit"].tap();XCTAssertTrue(app.navigationBars["Edit rich entry"].waitForExistence(timeout:5))
+        let hello=app.buttons["rich.run.1/0"],world=app.buttons["rich.run.1/1"],summary=app.staticTexts["rich.format-summary"]
+        reveal(hello,in:app);hello.tap();XCTAssertTrue(summary.waitForExistence(timeout:5));XCTAssertEqual(summary.label,"Formatting: Bold")
+        app.navigationBars["Edit text"].buttons["Edit rich entry"].tap()
+        let range=app.buttons["rich.range.1"];reveal(range,in:app);range.tap()
+        XCTAssertTrue(app.navigationBars["Format across runs"].waitForExistence(timeout:5))
+        XCTAssertTrue(app.textViews["Text across runs"].exists)
+        let bold=app.buttons["rich.range.format.bold"];XCTAssertTrue(bold.exists);XCTAssertFalse(bold.isEnabled,"Nothing is selected yet")
+        app.buttons["rich.range.select-all"].tap();XCTAssertTrue(bold.isEnabled)
+        attach(app,name:"Actual native selection spanning bold-link, code and inline nodes")
+        // TipTap: bold plus code-excluded text covers the selection, so bold is removed everywhere.
+        bold.tap();XCTAssertEqual(app.staticTexts["rich.range.status"].label,"Formatting updated.")
+        app.navigationBars["Format across runs"].buttons["Edit rich entry"].tap()
+        reveal(hello,in:app);hello.tap();XCTAssertTrue(summary.waitForExistence(timeout:5));XCTAssertEqual(summary.label,"Formatting: Plain text")
+        app.navigationBars["Edit text"].buttons["Edit rich entry"].tap()
+        reveal(world,in:app);world.tap();XCTAssertTrue(summary.waitForExistence(timeout:5))
+        XCTAssertEqual(summary.label,"Formatting: Italic, Underline, Strikethrough, Inline code","The code run keeps its own marks")
+        attach(app,name:"Actual native multi-run toggle kept the other run's marks")
+    }
     func testNativeRichRenderingEditingAndTaskPersistence() throws {
         let app = XCUIApplication(); app.launchArguments = ["--chapter-rich-fixture"]; app.launch()
         let entry = app.staticTexts["Public rich fixture"]
