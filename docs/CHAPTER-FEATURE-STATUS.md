@@ -13,13 +13,13 @@ the exact revision; a failing strict accessibility audit remains a release block
 | Notebooks | Browse/create; rename, subtitle, original color and cover metadata editing; real non-destructive move-between-notebooks with optimistic stale-write rejection | Four actual Apple notebook tests, actual Swift→web ciphertext decoding and real native UI Save/persist test PASS at 6c7908c in run 42513126159. Unknown fields/IDs preserved. Move whole-document preservation, stale/deleted/overflow and actual Swift→web reverse decoding PASS at fd3d1ad (42519352453); real Move UI PASS atc810740 in42521928122. Updated native-Button controls verify separately. Recoverable downloaded-set notebook cascade + guarded original-ID restore now implemented; EIGHT new Apple core/fault/Unicode/capacity tests, real native TLS/Go/Postgres cascade/restore/shared-media and actual original-web decrypt/router PASS at be6189b (42525592332/42525592525); new native screen flow verifies separately. Permanent/shared-media purge missing. Archive/reorder are not present in the reviewed original notebook API; do not invent a wire format or claim those synced. |
 | Local discovery | Text/label substring search, day calendar, entry/day counts | Full query, heatmap/stats/streak/badge parity missing |
 | Native rich viewing | Styled inline marks, headings, paragraphs, lists/tasks, quotes/code, approximate tables, source math, simplified media/location/interview cards | New web-generated golden document and actual Foundation logic tests. Actual Apple core tests and Simulator compile passed at b8ba3d9; actual rich UI/task/text-run edit passed in run 42511652869; strict onboarding audits still fail; unknown nodes kept opaque |
-| Rich editing | Existing text-run/task editing, five whole-run format toggles, nine-style new block authoring and re-editable empty known blocks; patch original JSON | New tests assert full tree/unknown attrs/marks/media IDs retained, stale writes rejected, Unicode/empty-run behavior. Actual Apple authoring/encrypted draft migration and original schema/reverse-codec PASS at98885d0 (42518974244); universal Simulator app builds. New real authoring UI and all strict audits remain required/pending. New explicit-save rich title/date/individual-label controls preserve exact rich JSON and unknown label schemas; actual Apple core, new Swift ciphertext→original-web decoder, original Go verifier and universal Simulator app build PASS ata0f2b1d in42522662183; real new metadata UI and subsequent Unicode/fault-injection improvements verify separately. Native whole-block Arrange screen/drag/context/VoiceOver operations now implemented with byte-exact checkpoints and retained drafts; actual Apple six new tests, original Swift→web decoding and universal Simulator build PASS at5b2ac8f in42528312711; actual Arrange screen gates pending (see CHAPTER-RICH-STRUCTURE.md). No full selection-based editor, nested restructuring, arbitrary-position insertion or full custom-node editor |
+| Rich editing | Existing text-run/task editing, five whole-run format toggles, nine-style new block authoring and re-editable empty known blocks; patch original JSON | New tests assert full tree/unknown attrs/marks/media IDs retained, stale writes rejected, Unicode/empty-run behavior. Actual Apple authoring/encrypted draft migration and original schema/reverse-codec PASS at98885d0 (42518974244); universal Simulator app builds. New real authoring UI and all strict audits remain required/pending. New explicit-save rich title/date/individual-label controls preserve exact rich JSON and unknown label schemas; actual Apple core, new Swift ciphertext→original-web decoder, original Go verifier and universal Simulator app build PASS ata0f2b1d in42522662183; real new metadata UI and subsequent Unicode/fault-injection improvements verify separately. Native whole-block Arrange screen/drag/context/VoiceOver operations now implemented with byte-exact checkpoints and retained drafts; actual Apple six new tests, original Swift→web decoding and universal Simulator build PASS at5b2ac8f in42528312711; actual Arrange screen gates pending (see CHAPTER-RICH-STRUCTURE.md). Selection formatting inside a run and across a paragraph’s or heading’s runs, at-cursor link/template insertion and unmerged-table editing are verified against the real TipTap/prosemirror-tables (see the dated sections below). No typing across runs, nested restructuring or full custom-node editor |
 | Rich local drafts | Encrypted autosaved text/formatting/new-block drafts; resume in Settings; explicit apply rejects changed/deleted/wrong-ID records | New native migration/encrypted recovery tests and real Debug fixture UI edit test added; device failure/restart/disk-full acceptance not complete |
 | Rich cross-client sync | Same encrypted record protocol after patch, regenerate bodyText with actual web docToText semantics | Native-produced edited ciphertext must open in actual web decoder with entire expected tree/media IDs. Passed at b8ba3d9 in macOS CI; not a live server/browser round trip |
 | Entry links/Markdown/math | Stored link labels and LaTeX source retained; external web/mail links require explicit confirmation | Backlink/navigation UI, Markdown/source editing and exact native math typesetting missing; no silent external fetches |
 | Media download | Explicit authenticated chunk download, encrypted durable ciphertext cache, offline cached/pending previews, Quick Look, protected temporary plaintext | Native/web media crypto checks; 128 MiB cap, OS codec limits; real-stack/device playback and cleanup not certified |
 | Media authoring/offline | Files + selected Photos image import; original 1 MiB chunk crypto; durable encrypted upload queue; retry/lost-finalize-ack recovery; upload-before-reference ordering | 34 native tests, actual web chunk/attachment-record decoding and Simulator build passed at b1c0826. 128 MiB cap. Camera/audio/video capture, large-file/codec parity and actual device/provider interruption acceptance still missing |
-| Templates/interview types | Opaque sync/preservation only | Native management/application UI missing |
+| Templates/interview types | Native template manager (create/rename/delete), the original built-ins in all 12 web languages, start an entry from a template and insert one at the cursor; interview types are preserved opaquely | Actual Apple template, built-in and language UI tests pass (42607615562). Rich template body editing and interview-type management missing |
 | AI/Q&A/guided/freeform interviews | NOT implemented | Native configuration, explicit destination consent and operator-policy behavior missing |
 | Audio/transcription/video/films | Read-only simplified cards/transcripts + existing attachment preview | Recording, per-question capture, STT, film rendering/editor all missing |
 | Locations/maps | Read-only place names and explicit encrypted attachment previews | Native insertion/editing/snapshot flows and explicit network consent missing |
@@ -72,6 +72,39 @@ the exact revision; a failing strict accessibility audit remains a release block
   is treated as unproven until it passes again. No audit is waived; re-verification pending.
 
 <!-- Times are commit times in America/Los_Angeles; earlier labels this night ran ahead of the clock and were corrected. -->
+## Apple run on 0ca803f and connection-screen fix — November 9, 2026, 3:49 AM PST
+
+Native run 42607615562 (0ca803f): all 140 core tests passed on Apple (including
+RichTableEditTests and ChapterLocaleTests); strict vector steps passed (selection
+23/23, table editing 24/24, built-ins in all 12 locales). New UI tests passed:
+selection formatting, built-in templates, language choice, cursor insertion and the
+template manager. The temporary bisection isolated the connection-screen finding:
+only the variant adding a long wrapping body Text row to the passing Form reproduced
+"Dynamic Type font sizes are partially unsupported". d59bab7 makes every wrapping
+text row on the connection screen grow vertically and removes the bisection view,
+launch flag and test. The table UI test now reveals the off-screen Delete table row
+(the only other failure). Both strict production audits remain required and must
+pass on the next run. bdadc98 fixes a pre-existing millisecond timing flake in the
+template-rename test (one fixed instant for both compared renames).
+
+Local verification before every push: the full ChapterCore suite (146 tests) now
+runs on Linux with test-only shims, and its native outputs pass the same strict
+web decoder/TipTap checks CI runs. Apple remains the authority for SwiftUI, UI
+tests and audits.
+
+## Multi-run formatting — November 9, 2026, 3:30 AM PST
+
+cb396b2: Format across runs (iOS 18) selects text that spans several differently
+formatted runs of a paragraph or heading and applies the original toolbar's
+toggleMark over that range: TipTap isMarkActive coverage (marked text plus text
+whose marks exclude the mark), canSetMark, ProseMirror addMark/removeMark over every
+inline node (entry links and math included) and fragment joining. 25 cases are
+generated by the real TipTap Editor; the native output also passes the strict web
+schema check; 6/6 mutants are killed. Native refuses rather than guesses: surrogate
+splits, code blocks, no-op toggles and adding code over links or unknown marks.
+Typing in that view is ignored, so a selection always refers to the saved text;
+words are still edited per run.
+
 ## Apple run on a71a314 — November 9, 2026, 3:14 AM PST
 
 Native run 42605056777 stopped in core tests. `testFormattingRetainsOpaqueMarksAndCodeFollowsOriginalSchema` failed because d986a6b re-sorted whole mark sets, which moved an unknown future mark behind the known ones. The test correctly requires that native formatting never reorders existing marks.
