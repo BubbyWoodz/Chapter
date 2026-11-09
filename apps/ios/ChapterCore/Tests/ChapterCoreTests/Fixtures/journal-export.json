@@ -1,0 +1,592 @@
+{
+ "now": 1794230400123,
+ "journal": {
+  "id": "public-notebook",
+  "name": "Café Notes — été 2026",
+  "subtitle": "Public",
+  "color": "#B0563A",
+  "cover": "grid",
+  "count": 0,
+  "last": "",
+  "createdAt": 1700000000000,
+  "updatedAt": 1700000005000
+ },
+ "entries": [
+  {
+   "id": "e2-newer",
+   "journalId": "public-notebook",
+   "title": "Second",
+   "bodyText": "Second body",
+   "labels": [
+    "b"
+   ],
+   "createdAt": 1700000200000,
+   "updatedAt": 1700000300000,
+   "deleted": false,
+   "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Links to first\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"entryLink\",\"attrs\":{\"entryId\":\"e1/old!\",\"label\":\"First\"}},{\"type\":\"entryLink\",\"attrs\":{\"entryId\":\"\"}}]},{\"type\":\"mediaAttachment\",\"attrs\":{\"id\":\"shared01\",\"kind\":\"image\",\"mime\":\"image/png\",\"name\":\"pic.png\",\"bytes\":3,\"createdAt\":1700000100000,\"width\":2,\"height\":1}},{\"type\":\"mediaAttachment\",\"attrs\":{\"id\":\"missing02\",\"kind\":\"audio\",\"mime\":\"audio/webm;codecs=opus\",\"bytes\":9,\"createdAt\":\"x\"}}]}"
+  },
+  {
+   "id": "e1/old!",
+   "journalId": "public-notebook",
+   "title": "First",
+   "bodyText": "First body",
+   "labels": [],
+   "createdAt": 1700000100000,
+   "updatedAt": 1700000100000,
+   "deleted": false,
+   "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Hello\"}]},{\"type\":\"mediaGallery\",\"attrs\":{\"images\":[{\"id\":\"shared01\",\"mime\":\"image/png\",\"name\":\"\",\"createdAt\":1650000000000},{\"id\":\"\"},{\"id\":\"gal/../02\",\"mime\":\"image/heic\",\"createdAt\":1650000000001}]}},{\"type\":\"blockquote\",\"content\":[{\"type\":\"locationMap\",\"attrs\":{\"map\":{\"id\":\"map03\",\"mime\":\"image/png\",\"createdAt\":1650000000002},\"photo\":null}}]},{\"type\":\"videoInterview\",\"attrs\":{\"cards\":[{\"clip\":{\"id\":\"clip04\",\"kind\":\"video\",\"mime\":\"video/mp4\",\"durationMs\":1500,\"createdAt\":1650000000003}},{\"clip\":null},\"x\"],\"film\":{\"id\":\"film05\",\"mime\":\"video/quicktime\",\"name\":\"film.MOV\",\"createdAt\":1650000000004}}}]}",
+   "attachments": [
+    {
+     "id": "legacy06",
+     "kind": "file",
+     "mime": "application/x-unknown",
+     "name": "notes.TAR",
+     "bytes": 4,
+     "createdAt": 1600000000000
+    },
+    {
+     "id": "clip04",
+     "kind": "video",
+     "mime": "video/mp4"
+    },
+    {
+     "id": ""
+    }
+   ]
+  },
+  {
+   "id": "e3",
+   "journalId": "public-notebook",
+   "title": "Malformed",
+   "bodyText": "line one\n\nline three",
+   "labels": [
+    "x",
+    "y"
+   ],
+   "createdAt": 1700000150000,
+   "updatedAt": 1700000150000,
+   "deleted": false,
+   "bodyJson": "{not json"
+  },
+  {
+   "id": "e4",
+   "journalId": "public-notebook",
+   "title": "Number body",
+   "bodyText": "n",
+   "labels": [],
+   "createdAt": 1700000160000,
+   "updatedAt": 1700000160000,
+   "deleted": false,
+   "bodyJson": "42"
+  },
+  {
+   "id": "gone",
+   "journalId": "public-notebook",
+   "title": "Deleted",
+   "bodyText": "x",
+   "labels": [],
+   "createdAt": 1700000000000,
+   "updatedAt": 1700000000000,
+   "deleted": true
+  },
+  {
+   "id": "other",
+   "journalId": "elsewhere",
+   "title": "Other notebook",
+   "bodyText": "x",
+   "labels": [],
+   "createdAt": 1700000000000,
+   "updatedAt": 1700000000000,
+   "deleted": false
+  }
+ ],
+ "available": {
+  "shared01": [
+   1,
+   2,
+   3
+  ],
+  "map03": [
+   9,
+   8,
+   7,
+   6
+  ],
+  "clip04": [
+   0,
+   255
+  ],
+  "film05": [
+   5
+  ],
+  "legacy06": [
+   4,
+   4,
+   4,
+   4
+  ],
+  "gal/../02": [
+   2
+  ]
+ },
+ "filename": "mneme-cafe-notes-ete-2026-2026-11-09.zip",
+ "files": {
+  "media/shared01.png": "AQID",
+  "media/gal02.heic": "Ag==",
+  "media/map03.png": "CQgHBg==",
+  "media/clip04.mp4": "AP8=",
+  "media/film05.mov": "BQ==",
+  "media/legacy06.tar": "BAQEBA==",
+  "entries/e1old.json": {
+   "id": "e1/old!",
+   "journalId": "public-notebook",
+   "title": "First",
+   "createdAt": "2023-11-14T22:15:00.000Z",
+   "updatedAt": "2023-11-14T22:15:00.000Z",
+   "labels": [],
+   "body": {
+    "type": "doc",
+    "content": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "Hello"
+       }
+      ]
+     },
+     {
+      "type": "mediaGallery",
+      "attrs": {
+       "images": [
+        {
+         "id": "shared01",
+         "mime": "image/png",
+         "name": "",
+         "createdAt": 1650000000000
+        },
+        {
+         "id": ""
+        },
+        {
+         "id": "gal/../02",
+         "mime": "image/heic",
+         "createdAt": 1650000000001
+        }
+       ]
+      }
+     },
+     {
+      "type": "blockquote",
+      "content": [
+       {
+        "type": "locationMap",
+        "attrs": {
+         "map": {
+          "id": "map03",
+          "mime": "image/png",
+          "createdAt": 1650000000002
+         },
+         "photo": null
+        }
+       }
+      ]
+     },
+     {
+      "type": "videoInterview",
+      "attrs": {
+       "cards": [
+        {
+         "clip": {
+          "id": "clip04",
+          "kind": "video",
+          "mime": "video/mp4",
+          "durationMs": 1500,
+          "createdAt": 1650000000003
+         }
+        },
+        {
+         "clip": null
+        },
+        "x"
+       ],
+       "film": {
+        "id": "film05",
+        "mime": "video/quicktime",
+        "name": "film.MOV",
+        "createdAt": 1650000000004
+       }
+      }
+     }
+    ]
+   },
+   "media": [
+    {
+     "id": "shared01",
+     "path": "media/shared01.png",
+     "kind": "image",
+     "mime": "image/png",
+     "bytes": 3,
+     "createdAt": "2022-04-15T05:20:00.000Z",
+     "entryId": "e1/old!"
+    },
+    {
+     "id": "gal/../02",
+     "path": "media/gal02.heic",
+     "kind": "image",
+     "mime": "image/heic",
+     "bytes": 1,
+     "createdAt": "2022-04-15T05:20:00.001Z",
+     "entryId": "e1/old!"
+    },
+    {
+     "id": "map03",
+     "path": "media/map03.png",
+     "kind": "image",
+     "mime": "image/png",
+     "bytes": 4,
+     "createdAt": "2022-04-15T05:20:00.002Z",
+     "entryId": "e1/old!"
+    },
+    {
+     "id": "clip04",
+     "path": "media/clip04.mp4",
+     "kind": "video",
+     "mime": "video/mp4",
+     "bytes": 2,
+     "durationMs": 1500,
+     "createdAt": "2022-04-15T05:20:00.003Z",
+     "entryId": "e1/old!"
+    },
+    {
+     "id": "film05",
+     "path": "media/film05.mov",
+     "kind": "video",
+     "mime": "video/quicktime",
+     "bytes": 1,
+     "name": "film.MOV",
+     "createdAt": "2022-04-15T05:20:00.004Z",
+     "entryId": "e1/old!"
+    },
+    {
+     "id": "legacy06",
+     "path": "media/legacy06.tar",
+     "kind": "file",
+     "mime": "application/x-unknown",
+     "bytes": 4,
+     "name": "notes.TAR",
+     "createdAt": "2020-09-13T12:26:40.000Z",
+     "entryId": "e1/old!"
+    }
+   ],
+   "links": []
+  },
+  "entries/e3.json": {
+   "id": "e3",
+   "journalId": "public-notebook",
+   "title": "Malformed",
+   "createdAt": "2023-11-14T22:15:50.000Z",
+   "updatedAt": "2023-11-14T22:15:50.000Z",
+   "labels": [
+    "x",
+    "y"
+   ],
+   "body": {
+    "type": "doc",
+    "content": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "line one"
+       }
+      ]
+     },
+     {
+      "type": "paragraph"
+     },
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "line three"
+       }
+      ]
+     }
+    ]
+   },
+   "media": [],
+   "links": []
+  },
+  "entries/e4.json": {
+   "id": "e4",
+   "journalId": "public-notebook",
+   "title": "Number body",
+   "createdAt": "2023-11-14T22:16:00.000Z",
+   "updatedAt": "2023-11-14T22:16:00.000Z",
+   "labels": [],
+   "body": {
+    "type": "doc",
+    "content": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "n"
+       }
+      ]
+     }
+    ]
+   },
+   "media": [],
+   "links": []
+  },
+  "entries/e2-newer.json": {
+   "id": "e2-newer",
+   "journalId": "public-notebook",
+   "title": "Second",
+   "createdAt": "2023-11-14T22:16:40.000Z",
+   "updatedAt": "2023-11-14T22:18:20.000Z",
+   "labels": [
+    "b"
+   ],
+   "body": {
+    "type": "doc",
+    "content": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "Links to first"
+       }
+      ]
+     },
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "entryLink",
+        "attrs": {
+         "entryId": "e1/old!",
+         "label": "First"
+        }
+       },
+       {
+        "type": "entryLink",
+        "attrs": {
+         "entryId": ""
+        }
+       }
+      ]
+     },
+     {
+      "type": "mediaAttachment",
+      "attrs": {
+       "id": "shared01",
+       "kind": "image",
+       "mime": "image/png",
+       "name": "pic.png",
+       "bytes": 3,
+       "createdAt": 1700000100000,
+       "width": 2,
+       "height": 1
+      }
+     },
+     {
+      "type": "mediaAttachment",
+      "attrs": {
+       "id": "missing02",
+       "kind": "audio",
+       "mime": "audio/webm;codecs=opus",
+       "bytes": 9,
+       "createdAt": "x"
+      }
+     }
+    ]
+   },
+   "media": [
+    {
+     "id": "shared01",
+     "path": "media/shared01.png",
+     "kind": "image",
+     "mime": "image/png",
+     "bytes": 3,
+     "createdAt": "2022-04-15T05:20:00.000Z",
+     "entryId": "e1/old!"
+    }
+   ],
+   "links": [
+    "e1/old!"
+   ]
+  },
+  "mneme-export.json": {
+   "format": "mneme-journal-export",
+   "formatVersion": 1,
+   "generator": {
+    "app": "Mneme",
+    "version": "test"
+   },
+   "exportedAt": "2026-11-09T13:20:00.123Z",
+   "journal": {
+    "id": "public-notebook",
+    "name": "Café Notes — été 2026",
+    "subtitle": "Public",
+    "color": "#B0563A",
+    "cover": "grid",
+    "createdAt": "2023-11-14T22:13:20.000Z",
+    "updatedAt": "2023-11-14T22:13:25.000Z"
+   },
+   "counts": {
+    "entries": 4,
+    "media": 6,
+    "missingMedia": 1
+   },
+   "entries": [
+    {
+     "id": "e1/old!",
+     "path": "entries/e1old.json",
+     "title": "First",
+     "createdAt": "2023-11-14T22:15:00.000Z",
+     "updatedAt": "2023-11-14T22:15:00.000Z",
+     "labels": [],
+     "media": [
+      "shared01",
+      "gal/../02",
+      "map03",
+      "clip04",
+      "film05",
+      "legacy06"
+     ]
+    },
+    {
+     "id": "e3",
+     "path": "entries/e3.json",
+     "title": "Malformed",
+     "createdAt": "2023-11-14T22:15:50.000Z",
+     "updatedAt": "2023-11-14T22:15:50.000Z",
+     "labels": [
+      "x",
+      "y"
+     ],
+     "media": []
+    },
+    {
+     "id": "e4",
+     "path": "entries/e4.json",
+     "title": "Number body",
+     "createdAt": "2023-11-14T22:16:00.000Z",
+     "updatedAt": "2023-11-14T22:16:00.000Z",
+     "labels": [],
+     "media": []
+    },
+    {
+     "id": "e2-newer",
+     "path": "entries/e2-newer.json",
+     "title": "Second",
+     "createdAt": "2023-11-14T22:16:40.000Z",
+     "updatedAt": "2023-11-14T22:18:20.000Z",
+     "labels": [
+      "b"
+     ],
+     "media": [
+      "shared01"
+     ]
+    }
+   ],
+   "media": [
+    {
+     "id": "shared01",
+     "path": "media/shared01.png",
+     "kind": "image",
+     "mime": "image/png",
+     "bytes": 3,
+     "createdAt": "2022-04-15T05:20:00.000Z",
+     "entryId": "e1/old!"
+    },
+    {
+     "id": "gal/../02",
+     "path": "media/gal02.heic",
+     "kind": "image",
+     "mime": "image/heic",
+     "bytes": 1,
+     "createdAt": "2022-04-15T05:20:00.001Z",
+     "entryId": "e1/old!"
+    },
+    {
+     "id": "map03",
+     "path": "media/map03.png",
+     "kind": "image",
+     "mime": "image/png",
+     "bytes": 4,
+     "createdAt": "2022-04-15T05:20:00.002Z",
+     "entryId": "e1/old!"
+    },
+    {
+     "id": "clip04",
+     "path": "media/clip04.mp4",
+     "kind": "video",
+     "mime": "video/mp4",
+     "bytes": 2,
+     "durationMs": 1500,
+     "createdAt": "2022-04-15T05:20:00.003Z",
+     "entryId": "e1/old!"
+    },
+    {
+     "id": "film05",
+     "path": "media/film05.mov",
+     "kind": "video",
+     "mime": "video/quicktime",
+     "bytes": 1,
+     "name": "film.MOV",
+     "createdAt": "2022-04-15T05:20:00.004Z",
+     "entryId": "e1/old!"
+    },
+    {
+     "id": "legacy06",
+     "path": "media/legacy06.tar",
+     "kind": "file",
+     "mime": "application/x-unknown",
+     "bytes": 4,
+     "name": "notes.TAR",
+     "createdAt": "2020-09-13T12:26:40.000Z",
+     "entryId": "e1/old!"
+    }
+   ],
+   "missingMedia": [
+    {
+     "id": "missing02",
+     "entryId": "e2-newer",
+     "reason": "unavailable"
+    }
+   ]
+  },
+  "README.md": "# Café Notes — été 2026\n\nA Mneme journal export — 4 entries and 6 media files,\nwritten on 2026-11-09.\n\nThis archive holds your **decrypted** content. Treat it like the journal itself.\n\n## Layout\n\n- `mneme-export.json` — the table of contents: the journal, every entry, every media file.\n- `entries/<id>.json` — one file per entry. `body` is the content of record (a\n  ProseMirror/TipTap document); `markdown` is the same thing rendered readably.\n- `media/<id>.<ext>` — the pictures, recordings and attachments, decrypted.\n\n## Format\n\n`mneme-journal-export`, version 1. The full specification — every field and\nevery document node type — is at:\n\n  https://github.com/mneme-blog/mneme/blob/main/docs/EXPORT-FORMAT.md\n\nIt is a stable, documented format: anyone can write an importer for it.\n\n## Incomplete\n\n1 media file could not be included — not on the\ndevice that made this export, and not fetchable. They are listed under\n`missingMedia` in the manifest. Export again from a device that holds them, or\nwhile online, to get a complete archive.\n"
+ },
+ "slugs": [
+  {
+   "name": "Café Notes — été 2026",
+   "slug": "cafe-notes-ete-2026"
+  },
+  {
+   "name": "日本語",
+   "slug": "journal"
+  },
+  {
+   "name": "  --Hello__World--  ",
+   "slug": "hello-world"
+  },
+  {
+   "name": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "slug": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  },
+  {
+   "name": "Ǆemal ﬁle",
+   "slug": "dzemal-file"
+  }
+ ]
+}
