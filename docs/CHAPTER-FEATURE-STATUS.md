@@ -71,7 +71,8 @@ the exact revision; a failing strict accessibility audit remains a release block
   audit passed on dd19955 but failed on 869c075 with unchanged visible layout, so it
   is treated as unproven until it passes again. No audit is waived; re-verification pending.
 
-## Custom-block markers match the original preview — November 9, 2026, 1:00 AM PST
+<!-- Times are commit times in America/Los_Angeles; earlier labels this night ran ahead of the clock and were corrected. -->
+## Custom-block markers match the original preview — November 9, 2026, 12:56 AM PST
 
 - Location and video-interview blocks now use the original DocPreview labels and
   truthiness (`📍 from||Location[ → to]`, `🎬 name||Video interview[ · N
@@ -80,7 +81,7 @@ the exact revision; a failing strict accessibility audit remains a release block
   1 new Foundation test (33 total) PASS; UI label checks pending Apple. Maps,
   clips and math are still not rendered as images/KaTeX natively.
 
-## Native "start from template" — November 9, 2026, 12:56 AM PST
+## Native "start from template" — November 9, 2026, 12:55 AM PST
 
 - Journal → New from template lists synced templates (name || "Untitled
   template", text preview) and a notebook picker. Use mirrors the original web
@@ -95,7 +96,7 @@ the exact revision; a failing strict accessibility audit remains a release block
   existing entry at the cursor, and the web's local-only built-in seeds (those
   appear natively once edited on the web, because only then are they synced).
 
-## Apple results for 7bee115 and accessibility bisection — November 9, 2026, 1:05 AM PST
+## Apple results for 7bee115 and accessibility bisection — November 9, 2026, 12:51 AM PST
 
 - Native 42584833292: complete Apple core, the mandatory web vectors step (now
   including the native link-insertion schema/collector/preview cross-check), the
@@ -112,7 +113,7 @@ the exact revision; a failing strict accessibility audit remains a release block
   without bottom action inset, without nav title, without privacy overlay). Seams
   are DEBUG-only; release behavior is unchanged. Strict audits remain required.
 
-## Original tables rendered as the exact merged grid — November 9, 2026, 12:35 AM PST
+## Original tables rendered as the exact merged grid — November 9, 2026, 12:22 AM PST
 
 - New core `RichTableLayout` mirrors the actual prosemirror-tables `findWidth`/
   `computeMap`: colspan, rowspan, collisions, overlong rowspans, missing and zero-
@@ -127,7 +128,7 @@ the exact revision; a failing strict accessibility audit remains a release block
   width repair is not emulated (conflicting widths show natural widths).
 - New UI test for header/merged geometry pending Apple verification.
 
-## Native entry-link authoring — November 9, 2026, 12:25 AM PST
+## Native entry-link authoring — November 9, 2026, 12:17 AM PST
 
 - More → Link to another entry: picker mirrors original web `[[` filtering/order/
   limit; inserts the exact original entryLink node (+ trailing space) as a new
@@ -137,7 +138,7 @@ the exact revision; a failing strict accessibility audit remains a release block
   mandatory on Apple CI). New functional UI test pending Apple verification.
   Cursor-position insertion remains unimplemented.
 
-## Apple verification of dd19955 — November 9, 2026, 12:15 AM PST
+## Apple verification of dd19955 — November 9, 2026, 12:11 AM PST
 
 - Live TLS/Postgres/S3 relay (42580870048) GREEN, including the new concurrent
   reference-after-DELETE repair restoring byte-identical original ciphertext.
