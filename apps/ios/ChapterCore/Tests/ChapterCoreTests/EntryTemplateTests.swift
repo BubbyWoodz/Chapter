@@ -61,6 +61,39 @@ final class EntryTemplateTests: XCTestCase {
         let entry = VaultRecord(id: "e", clock: 1, body: ["title": .string("x")])
         XCTAssertThrowsError(try entry.deletingTemplate(expected: entry)); XCTAssertThrowsError(try entry.renamingTemplate(expected: entry, name: "x"))
     }
+    func testTemplateBodyEditsLikeTheOriginalTemplateEditor() throws {
+        // Web updateTemplate → mutateSeeded: same rich editor as entries; only bodyJson,
+        // bodyText and updatedAt change. Entry links, media and nested templates are not offered.
+        let json = #"{"type":"doc","content":[{"type":"heading","attrs":{"level":2},"content":[{"type":"text","text":"Plan"}]},{"type":"paragraph","content":[{"type":"text","text":"Prompt","marks":[{"type":"bold"}]}]},{"type":"table","content":[{"type":"tableRow","content":[{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"Day"}]}]}]},{"type":"tableRow","content":[{"type":"tableCell","content":[{"type":"paragraph"}]}]}]},{"type":"futureNode","attrs":{"keep":[1]}}]}"#
+        let template = VaultRecord(id: "tpl", clock: 10, body: ["kind": .string("template"), "name": .string(" Weekly "), "bodyJson": .string(json), "bodyText": .string("stale"), "builtin": .string("weekly"), "future": .object(["keep": .bool(true)]), "createdAt": .number(1), "updatedAt": .number(10)])
+        let now = Date(timeIntervalSince1970: 1773536400)
+        let edited = try RichDraft(entryID: "tpl", path: [1, 0], expectedDocument: json, text: "Three wins").applying(to: template, now: now)
+        XCTAssertEqual(edited.clock, 1773536400000); XCTAssertEqual(edited.body["updatedAt"], .number(1773536400000)); XCTAssertTrue(edited.dirty)
+        for key in ["kind", "name", "builtin", "future", "createdAt"] { XCTAssertEqual(edited.body[key], template.body[key], key) }
+        let doc = try RichDocument(json: edited.body["bodyJson"]!.string!)
+        XCTAssertEqual(edited.body["bodyText"]?.string, doc.plainText)
+        XCTAssertEqual(doc.root["content"].array[1]["content"].array[0], try JSONDecoder().decode(JSONValue.self, from: Data(#"{"type":"text","text":"Three wins","marks":[{"type":"bold"}]}"#.utf8)), "Run marks kept")
+        XCTAssertEqual(doc.root["content"].array[3], try JSONDecoder().decode(JSONValue.self, from: Data(#"{"type":"futureNode","attrs":{"keep":[1]}}"#.utf8)), "Unknown node kept")
+        let raw = edited.body["bodyJson"]!.string!
+        let grown = try edited.applyingTableCommand(.addRowAfter, table: [2], row: 1, column: 0, expected: raw, now: now.addingTimeInterval(1))
+        XCTAssertEqual(try RichDocument(json: grown.body["bodyJson"]!.string!).root["content"].array[2]["content"].array.count, 3)
+        var snapshot = VaultSnapshot(); snapshot.records = [grown]
+        let moved = try snapshot.reorderRichBlocks(expected: grown, from: IndexSet(integer: 0), to: 2, now: now.addingTimeInterval(2))
+        XCTAssertEqual(try RichDocument(json: moved.body["bodyJson"]!.string!).root["content"].array[1]["type"].string, "heading")
+        if let output = ProcessInfo.processInfo.environment["CHAPTER_NATIVE_OUTPUT"] { try JSONEncoder().encode(moved.body).write(to: URL(fileURLWithPath: output + ".template-rich-edit")) }
+        // Not offered by the web template editor: refused on templates, still allowed on entries.
+        let target = VaultRecord(id: "e", clock: 1, body: ["title": .string("Target")])
+        let movedRaw = moved.body["bodyJson"]!.string!
+        XCTAssertThrowsError(try moved.insertingEntryLink(to: target, at: RichCaret(block: [0], offset: 0), expected: movedRaw))
+        XCTAssertThrowsError(try moved.addingEntryLink(to: target, expected: movedRaw))
+        XCTAssertThrowsError(try moved.insertingTemplate(moved, at: RichCaret(block: [0], offset: 0), expected: movedRaw))
+        let entry = VaultRecord(id: "host", clock: 1, body: ["title": .string("Host"), "bodyJson": .string(movedRaw), "bodyText": .string("")])
+        XCTAssertNoThrow(try entry.insertingTemplate(moved, at: RichCaret(block: [0], offset: 0), expected: movedRaw))
+        // Stale or deleted templates refuse rather than overwrite.
+        XCTAssertThrowsError(try RichDraft(entryID: "tpl", path: [1, 0], expectedDocument: json, text: "x").applying(to: moved))
+        var gone = moved; gone.deleted = true
+        XCTAssertThrowsError(try RichDraft(entryID: "tpl", path: [1, 0], expectedDocument: movedRaw, text: "x").applying(to: gone))
+    }
     func testBuiltinSeedsMatchOriginalWebAndRetireOrForkLikeSupersedeAndMutateSeeded() throws {
         let seeds = BuiltinTemplates.bundled
         XCTAssertEqual(seeds.map(\.slug), ["daily", "gratitude", "dream", "experiment", "study", "weekly"])

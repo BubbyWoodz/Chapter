@@ -7,7 +7,7 @@ extension VaultSnapshot {
     @discardableResult public mutating func reorderRichBlocks(expected: VaultRecord, from offsets: IndexSet, to destination: Int, now: Date = Date()) throws -> VaultRecord {
         guard records.filter({ $0.id == expected.id }).count == 1,
               let index = records.firstIndex(where: { $0.id == expected.id }),
-              records[index].kind == "entry", !records[index].deleted,
+              records[index].kind == "entry" || records[index].kind == "template", !records[index].deleted,
               let raw = records[index].body["bodyJson"]?.string else { throw ChapterError.conflict }
         try records[index].requiringUnchanged(expected: expected)
         var document = try RichDocument(json: raw)

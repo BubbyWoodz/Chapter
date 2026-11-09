@@ -175,7 +175,7 @@ public extension RichDocument {
 public extension VaultRecord {
     /// Original wikilink insertEntryLink at the cursor: [entryLink, " "].
     func insertingEntryLink(to target: VaultRecord, at caret: RichCaret, expected: String, now: Date = Date()) throws -> VaultRecord {
-        guard target.kind == "entry", !target.deleted, !Data(target.id.utf8).elementsEqual(id.utf8), !target.id.isEmpty else { throw ChapterError.unsupported }
+        guard kind == "entry", target.kind == "entry", !target.deleted, !Data(target.id.utf8).elementsEqual(id.utf8), !target.id.isEmpty else { throw ChapterError.unsupported }
         let link: JSONValue = .object(["type": .string("entryLink"), "attrs": .object(["entryId": .string(target.id), "label": .string(EntryLinkAuthoring.label(for: target))])])
         return try editingRichDocument(expected: expected, now: now) { try $0.insertInline([link, .object(["type": .string("text"), "text": .string(" ")])], at: caret) }
     }
@@ -186,7 +186,7 @@ public extension VaultRecord {
     /// Original Editor insertTemplate: the template's top-level blocks at the cursor.
     /// A template without a readable rich body inserts nothing (refused here).
     func insertingTemplate(_ template: VaultRecord, at caret: RichCaret, expected: String, now: Date = Date()) throws -> VaultRecord {
-        guard template.kind == "template", !template.deleted, let json = template.body["bodyJson"]?.string else { throw ChapterError.unsupported }
+        guard kind == "entry", template.kind == "template", !template.deleted, let json = template.body["bodyJson"]?.string else { throw ChapterError.unsupported }
         let blocks = try RichDocument(json: json).root["content"].array
         guard !blocks.isEmpty else { throw ChapterError.unsupported }
         return try editingRichDocument(expected: expected, now: now) { try $0.insertBlocks(blocks, at: caret) }

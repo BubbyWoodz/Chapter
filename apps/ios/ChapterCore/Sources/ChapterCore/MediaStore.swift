@@ -112,7 +112,7 @@ public final class EncryptedMediaFiles {
 }
 extension VaultSnapshot {
     public mutating func attach(_ upload: MediaUpload, entryID: String, expectedDocument: String) throws {
-        guard let index = records.firstIndex(where: { $0.id == entryID }), MediaLimits.validID(upload.id) else { throw ChapterError.conflict }
+        guard let index = records.firstIndex(where: { $0.id == entryID }), records[index].kind == "entry", MediaLimits.validID(upload.id) else { throw ChapterError.conflict }
         try upload.validate()
         guard !(mediaUploads ?? []).contains(where: { $0.id == upload.id }) else { throw ChapterError.conflict }
         let updated = try records[index].editingRichDocument(expected: expectedDocument) { doc in try doc.appendMedia(upload.attributes) }

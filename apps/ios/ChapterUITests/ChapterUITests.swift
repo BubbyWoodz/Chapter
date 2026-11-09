@@ -185,6 +185,28 @@ final class ChapterUITests: XCTestCase {
         let interview=app.staticTexts["custom.videoInterview"];reveal(interview,in:app);XCTAssertEqual(interview.label,"🎬 Public interview · 1 question")
         attach(app,name:"Actual native original custom-block markers")
     }
+    func testTemplateBodyIsEditedWithTheRichEditorLikeTheWebTemplateEditor() throws {
+        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture","--chapter-template-fixture"];app.launch()
+        let start=app.buttons["journal.fromTemplate"];XCTAssertTrue(start.waitForExistence(timeout:10));start.tap()
+        let actions=app.buttons["template.actions.public-template"];XCTAssertTrue(actions.waitForExistence(timeout:5));actions.tap()
+        let edit=app.buttons["template.edit"];XCTAssertTrue(edit.waitForExistence(timeout:5));edit.tap()
+        XCTAssertTrue(app.navigationBars["Edit template"].waitForExistence(timeout:5),"Web templates.editTitle")
+        let prompt=app.buttons["rich.run.1/0"];reveal(prompt,in:app);prompt.tap()
+        let editor=app.textViews["Formatted text run"];XCTAssertTrue(editor.waitForExistence(timeout:5))
+        editor.coordinate(withNormalizedOffset:CGVector(dx:0.95,dy:0.5)).tap();editor.typeText(" today")
+        XCTAssertFalse(app.buttons["rich.insert-link"].exists,"The web template editor offers no entry links");XCTAssertFalse(app.buttons["rich.insert-template"].exists)
+        attach(app,name:"Actual native template body run editor without link or template insertion")
+        app.navigationBars.buttons["Save"].tap()
+        XCTAssertTrue(app.navigationBars["Edit template"].waitForExistence(timeout:5))
+        XCTAssertTrue(app.buttons["rich.table.2"].exists,"Template tables use the same table editor")
+        try audit(app)
+        app.navigationBars["Edit template"].buttons["Done"].tap()
+        let use=app.buttons["template.use.public-template"];XCTAssertTrue(use.waitForExistence(timeout:5))
+        XCTAssertTrue(use.label.contains("Public template prompt today"),"Preview shows the edited bodyText: "+use.label)
+        use.tap()
+        XCTAssertTrue(app.staticTexts["Public template prompt today"].waitForExistence(timeout:5),"A new entry carries the edited template body")
+        attach(app,name:"Actual native entry started from the edited template")
+    }
     func testSyncedTemplateStartsNewEntryWithExactContentAndOriginalDefaultTitle() throws {
         let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture","--chapter-template-fixture"];app.launch()
         let start=app.buttons["journal.fromTemplate"];XCTAssertTrue(start.waitForExistence(timeout:10));start.tap()

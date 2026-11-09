@@ -192,7 +192,8 @@ public struct RichNode: Identifiable {
 
 extension VaultRecord {
     public func editingRichDocument(expected: String, now: Date = Date(), edit: (inout RichDocument) throws -> Void) throws -> VaultRecord {
-        guard kind == "entry", !deleted, body["bodyJson"]?.string.map({ Data($0.utf8) == Data(expected.utf8) }) == true else { throw ChapterError.conflict }
+        // Entries and synced templates: the web edits both with the same rich editor.
+        guard kind == "entry" || kind == "template", !deleted, body["bodyJson"]?.string.map({ Data($0.utf8) == Data(expected.utf8) }) == true else { throw ChapterError.conflict }
         var document = try RichDocument(json: expected); try edit(&document)
         document = try RichDocument(json: document.encoded())
         var next = self

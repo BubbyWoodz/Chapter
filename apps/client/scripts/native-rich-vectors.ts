@@ -285,6 +285,15 @@ else assert.deepEqual(JSON.parse(readFileSync(rangeURL,'utf8')),JSON.parse(JSON.
   webSchema.nodeFromJSON(templateDoc).check();
   assert.equal(template.bodyText,docToText(templateDoc),'Native template preview text must equal the original web docToText');
   console.log('Native template creation equals the original web createTemplate fields, schema and preview text.');
+  const templateEdit = JSON.parse(readFileSync(nativePath+'.template-rich-edit','utf8')) as Record<string,unknown>;
+  assert.deepEqual(Object.keys(templateEdit).sort(),['bodyJson','bodyText','builtin','createdAt','future','kind','name','updatedAt'],'A native template body edit keeps exactly the stored fields');
+  assert.equal(templateEdit.name,' Weekly ');assert.equal(templateEdit.builtin,'weekly');assert.equal(templateEdit.createdAt,1);
+  const editedDoc = JSON.parse(templateEdit.bodyJson as string) as JSONContent;
+  // The preserved unknown block is opaque to the web schema; every known node must check.
+  webSchema.nodeFromJSON({...editedDoc,content:(editedDoc.content ?? []).filter((n) => n.type !== 'futureNode')}).check();
+  assert.ok((editedDoc.content ?? []).some((n) => n.type === 'futureNode'),'The unknown block is preserved');
+  assert.equal(templateEdit.bodyText,docToText(editedDoc),'Native template body edit preview text must equal the original web docToText');
+  console.log('Native template body edits pass the original web schema and docToText.');
   const nativeCarets = JSON.parse(readFileSync(nativePath+'.rich-caret','utf8')) as JSONContent[];
   assert.equal(nativeCarets.length,caretCases.length);
   nativeCarets.forEach((doc,i) => assert.deepEqual(JSON.parse(JSON.stringify(webSchema.nodeFromJSON(doc).toJSON())),JSON.parse(JSON.stringify(caretCases[i].expected)),'Native at-cursor insertion differs from ProseMirror: '+caretCases[i].name));

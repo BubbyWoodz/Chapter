@@ -95,7 +95,8 @@ public extension VaultRecord {
     /// Compare-and-set on the exact original document bytes; refuses self,
     /// deleted, non-entry and missing targets without mutating anything.
     func addingEntryLink(to target:VaultRecord,expected:String,now:Date=Date()) throws -> VaultRecord {
-        guard target.kind=="entry",!target.deleted,!Data(target.id.utf8).elementsEqual(id.utf8) else {throw ChapterError.unsupported}
+        // The web template editor offers no entry links, media or nested templates.
+        guard kind=="entry",target.kind=="entry",!target.deleted,!Data(target.id.utf8).elementsEqual(id.utf8) else {throw ChapterError.unsupported}
         return try editingRichDocument(expected:expected,now:now) {try $0.appendEntryLink(entryID:target.id,label:EntryLinkAuthoring.label(for:target))}
     }
 }
