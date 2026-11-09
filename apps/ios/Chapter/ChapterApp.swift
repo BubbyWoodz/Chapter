@@ -77,32 +77,36 @@ struct ConnectView: View {
         NavigationStack {
             // Footnotes use the full ink colour: secondary grey failed the strict
             // contrast audit ("Contrast nearly passed") on Apple CI (3bcde6e).
-            // Every text is an ordinary Form row in a scaling text style, like the
-            // unmodified Form reproduction that passes the strict audit. Apple CI
+            // Every text uses a scaling text style. Apple CI
             // (cd787e8) showed system Section header/footer text only partially
             // scales ("Dynamic Type font sizes are partially unsupported" on the
             // UNLOCK VAULT header at XXXL and the phrase footer), and the earlier
             // fixedSize rows with overriding field labels failed outright.
             // A Debug bisection on Apple CI (0ca803f, run 42607615562) isolated the
-            // remaining finding to a long wrapping body Text row in a Form; every
-            // wrapping text row therefore grows vertically instead of being capped.
-            Form {
-                Section {
-                    Text("Your journal. Your server.").font(.title2).accessibilityAddTraits(.isHeader).accessibilityIdentifier("connection.heading")
-                    Text("Connect directly over your local network or Tailscale. No Chapter account is required.").fixedSize(horizontal: false, vertical: true)
-                    Text("Native preview: feature coverage is incomplete. Use the web app for advanced features and recovery-phrase creation/rotation.").font(.footnote).fixedSize(horizontal: false, vertical: true)
-                }
-                Section {
-                    Text("Server").font(.headline).accessibilityAddTraits(.isHeader)
-                    TextField("Server URL", text: $server).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityIdentifier("connection.server").focused($focusedField,equals:.server).submitLabel(.next).onSubmit {focusedField = .phrase}
-                    Text("HTTPS with a trusted certificate is required, including on Tailscale. Include your server’s path prefix.").font(.footnote).fixedSize(horizontal: false, vertical: true)
-                }
-                Section {
-                    Text("Unlock vault").font(.headline).accessibilityAddTraits(.isHeader)
-                    SecureField("12-word recovery phrase", text: $phrase).accessibilityIdentifier("connection.phrase").focused($focusedField,equals:.phrase).submitLabel(.done).onSubmit {focusedField=nil}.textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
-                    Text("The phrase stays on this device and is not saved. A device passcode is required to protect offline journals. Face ID or device authentication protects the local storage key.").font(.footnote).fixedSize(horizontal: false, vertical: true)
-                }
-                if let message = model.message { Section { Text(message).fixedSize(horizontal: false, vertical: true).accessibilityLabel("Connection status: \(message)").accessibilityIdentifier("connection.status") } }
+            // remaining finding to long wrapping Text rows in a Form, and growing those
+            // rows did not help (run 42614136563, "element: unknown"). A Form is a lazy
+            // list: once the rows outgrow the screen, cells leave the hierarchy while the
+            // audit resizes text. This screen is therefore a non-lazy ScrollView/VStack
+            // of grouped cards, so every element exists at every text size.
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    ConnectCard {
+                        Text("Your journal. Your server.").font(.title2).accessibilityAddTraits(.isHeader).accessibilityIdentifier("connection.heading")
+                        Text("Connect directly over your local network or Tailscale. No Chapter account is required.")
+                        Text("Native preview: feature coverage is incomplete. Use the web app for advanced features and recovery-phrase creation/rotation.").font(.footnote)
+                    }
+                    ConnectCard {
+                        Text("Server").font(.headline).accessibilityAddTraits(.isHeader)
+                        TextField("Server URL", text: $server).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled().frame(minHeight: 44).accessibilityIdentifier("connection.server").focused($focusedField,equals:.server).submitLabel(.next).onSubmit {focusedField = .phrase}
+                        Text("HTTPS with a trusted certificate is required, including on Tailscale. Include your server’s path prefix.").font(.footnote)
+                    }
+                    ConnectCard {
+                        Text("Unlock vault").font(.headline).accessibilityAddTraits(.isHeader)
+                        SecureField("12-word recovery phrase", text: $phrase).frame(minHeight: 44).accessibilityIdentifier("connection.phrase").focused($focusedField,equals:.phrase).submitLabel(.done).onSubmit {focusedField=nil}.textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
+                        Text("The phrase stays on this device and is not saved. A device passcode is required to protect offline journals. Face ID or device authentication protects the local storage key.").font(.footnote)
+                    }
+                    if let message = model.message { ConnectCard { Text(message).accessibilityLabel("Connection status: \(message)").accessibilityIdentifier("connection.status") } }
+                }.padding()
             }.modifier(ChapterScreenSurface()).navigationTitle("Chapter").scrollDismissesKeyboard(.interactively)
                 .safeAreaInset(edge:.bottom) {
                     Button {
@@ -122,6 +126,37 @@ struct ConnectView: View {
                         .accessibilityIdentifier("connection.unlock").padding().background(.regularMaterial)
                 }
         }
+    }
+}
+
+/// The entry's text as one large selectable block, with Copy (web common.copy).
+struct SelectableEntryText: View {
+    @EnvironmentObject private var model: VaultModel
+    @Environment(\.dismiss) private var dismiss
+    let title: String, text: String
+    @State private var copied = false
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                Text(text.isEmpty ? title : text).font(chapterFont(.prose, skin: model.snapshot.appearance?.skin ?? "paper", size: 18)).textSelection(.enabled)
+                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .topLeading).padding().accessibilityIdentifier("entry.selectableText")
+            }.modifier(ChapterScreenSurface()).navigationTitle("Select text").navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button(model.t("common.done")) { dismiss() } }
+                ToolbarItem(placement: .primaryAction) { Button(copied ? model.t("common.copied") : model.t("common.copy")) { UIPasteboard.general.string = text; copied = true }.accessibilityIdentifier("entry.copyText") }
+            }
+        }
+    }
+}
+
+/// One grouped card of the connection screen: the inset-grouped Form look, without a lazy list.
+private struct ConnectCard<Content: View>: View {
+    @EnvironmentObject private var model: VaultModel
+    @ViewBuilder let content: Content
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) { content }
+            .frame(maxWidth: .infinity, alignment: .leading).padding()
+            .background(chapterToken("surface", preference: model.snapshot.appearance ?? .standard), in: RoundedRectangle(cornerRadius: 12))
     }
 }
 
@@ -242,6 +277,7 @@ struct EntryDetail: View {
     @State private var linking = false
     @State private var showingActions = false
     @State private var showingPlainEdit = false
+    @State private var selectingText = false
     @State private var previewURL: URL?
     @State private var loadingMedia: String?
     @State private var mediaError: String?
@@ -260,6 +296,7 @@ struct EntryDetail: View {
                             VStack(alignment:.leading) {
                                 Button("Title, date and labels") { showingActions = false; editingMetadata = true }.frame(minHeight:44)
                                 Button(model.t("journals.picker.heading")) { showingActions = false; moving = true }.frame(minHeight:44).disabled(model.journals.isEmpty)
+                                Button("Select text") { showingActions = false; selectingText = true }.frame(minHeight:44).accessibilityIdentifier("entry.selectText")
                                 Button("Link to another entry") { showingActions = false; linking = true }.frame(minHeight:44)
                                     .disabled(entry.body["bodyJson"]?.string.flatMap({ try? RichDocument(json: $0) }) == nil).accessibilityIdentifier("entry.addLink")
                                 Button(model.t("editor.delete.confirmLabel"),role:.destructive) { showingActions = false; deletionExpected = entry; deleting = true }.frame(minHeight:44)
@@ -276,7 +313,7 @@ struct EntryDetail: View {
                         if let notebook = model.journals.first(where: { $0.journalID == entry.journalID }) { Text("Notebook: " + notebook.title).font(.footnote).accessibilityIdentifier("entry.notebook") }
                         if let raw = entry.body["bodyJson"]?.string, let document = try? RichDocument(json: raw) {
                             RichDocumentView(entry: entry, document: document)
-                        } else { Text(entry.text).font(chapterFont(.prose,skin:model.snapshot.appearance?.skin ?? "paper",size:18)).textSelection(.enabled) }
+                        } else { Text(entry.text).font(chapterFont(.prose,skin:model.snapshot.appearance?.skin ?? "paper",size:18)) }
                         let links=entry.uniqueLinkedEntryIDs
                         if !links.isEmpty {
                             Text("Linked entries").font(.headline).accessibilityAddTraits(.isHeader)
@@ -331,6 +368,7 @@ struct EntryDetail: View {
                     else if let raw = entry.body["bodyJson"]?.string, (try? RichDocument(json: raw)) != nil { RichEntryEditor(entry: entry) }
                 }
                 .sheet(isPresented: $moving) { MoveEntryView(entry: entry) }
+                .sheet(isPresented: $selectingText) { SelectableEntryText(title: entry.title, text: entry.text) }
                 .sheet(isPresented: $linking) { EntryLinkPicker(entry: entry) }
                 .sheet(isPresented: $editingMetadata) { EntryMetadataEditor(entry: entry) }
                 .confirmationDialog("Delete this entry on all synced devices?", isPresented: $deleting, titleVisibility: .visible) {

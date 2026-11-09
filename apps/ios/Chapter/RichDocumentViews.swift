@@ -69,6 +69,9 @@ struct RichDocumentView: View {
     private func render(_ node: RichNode) -> AnyView {
         switch node.type {
         case "doc", "listItem", "taskList": return AnyView(children(node))
+        // Blocks are not individually selectable: a selectable one-line Text is an
+        // interactive element under the 44 pt hit-area audit (run 42614136563).
+        // The entry's "Select text" sheet offers selection and copy instead.
         case "paragraph", "heading":
             let level = node.value["attrs"]["level"].number ?? 2
             let font: Font = node.type == "heading"
@@ -82,7 +85,7 @@ struct RichDocumentView: View {
                     .accessibilityAddTraits(node.type == "heading" ? .isHeader : []))
             }
             let content = inline(node, font: font)
-            return AnyView(Text(content.characters.isEmpty ? AttributedString(" ") : content).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading).accessibilityAddTraits(node.type == "heading" ? .isHeader : []))
+            return AnyView(Text(content.characters.isEmpty ? AttributedString(" ") : content).frame(maxWidth: .infinity, alignment: .leading).accessibilityAddTraits(node.type == "heading" ? .isHeader : []))
         case "bulletList", "orderedList":
             let raw = node.value["attrs"]["start"].number ?? 1
             let start = raw >= 0 && raw <= 1_000_000 ? (Int(exactly: raw) ?? 1) : 1
@@ -101,7 +104,7 @@ struct RichDocumentView: View {
                 children(node)
             })
         case "blockquote": return AnyView(HStack(alignment: .top) { Rectangle().fill(Color.secondary).frame(width: 3); children(node) }.fixedSize(horizontal: false, vertical: true).padding(.leading, 6))
-        case "codeBlock": return AnyView(ScrollView(.horizontal) { Text(node.children.map(\.text).joined()).font(chapterFont(.mono,skin:model.snapshot.appearance?.skin ?? "paper",size:16)).textSelection(.enabled) }.padding().background(chapterToken("surface",preference:model.snapshot.appearance ?? .standard), in: RoundedRectangle(cornerRadius: 8)))
+        case "codeBlock": return AnyView(ScrollView(.horizontal) { Text(node.children.map(\.text).joined()).font(chapterFont(.mono,skin:model.snapshot.appearance?.skin ?? "paper",size:16)) }.padding().background(chapterToken("surface",preference:model.snapshot.appearance ?? .standard), in: RoundedRectangle(cornerRadius: 8)))
         case "horizontalRule": return AnyView(Divider().accessibilityLabel("Separator"))
         case "table":
             guard let grid = RichTableLayout(table: node) else { return AnyView(ScrollView(.horizontal) { children(node) }.accessibilityLabel("Table; this layout could not be read exactly and is simplified")) }
@@ -127,13 +130,13 @@ struct RichDocumentView: View {
         case "blockMath" where ChapterMath.resourceDirectory != nil && KaTeXRenderer.shared.html(node.value["attrs"]["latex"].string ?? "", kind: .block) != nil:
             let latex = node.value["attrs"]["latex"].string ?? ""
             return AnyView(ChapterMathView(bodyHTML: KaTeXRenderer.shared.html(latex, kind: .block) ?? "", block: true, heading: nil))
-        case "blockMath": return AnyView(Text(node.value["attrs"]["latex"].string ?? "").font(chapterFont(.mono,skin:model.snapshot.appearance?.skin ?? "paper",size:16)).textSelection(.enabled).accessibilityLabel("LaTeX formula: " + (node.value["attrs"]["latex"].string ?? "")))
+        case "blockMath": return AnyView(Text(node.value["attrs"]["latex"].string ?? "").font(chapterFont(.mono,skin:model.snapshot.appearance?.skin ?? "paper",size:16)).accessibilityLabel("LaTeX formula: " + (node.value["attrs"]["latex"].string ?? "")))
         case "mediaAttachment", "mediaGallery": return AnyView(Label(node.value["attrs"]["name"].string ?? "Encrypted media — use attachment preview below", systemImage: "paperclip").foregroundStyle(.secondary))
         case "locationMap" where LocationCardData(node.value["attrs"]) != nil:
             return AnyView(LocationCardView(card: LocationCardData(node.value["attrs"])!))
         // Web nodeData() renders nothing for a malformed card; native keeps a visible
         // marker so stored data is never silently hidden (it is preserved unchanged).
-        case "locationMap": return AnyView(customChip(RichCustomBlockLabel.location(node.value["attrs"])).textSelection(.enabled).accessibilityIdentifier("custom.location"))
+        case "locationMap": return AnyView(customChip(RichCustomBlockLabel.location(node.value["attrs"])).accessibilityIdentifier("custom.location"))
         case "videoInterview": return AnyView(VStack(alignment: .leading, spacing: 8) {
             customChip(RichCustomBlockLabel.videoInterview(node.value["attrs"])).accessibilityIdentifier("custom.videoInterview")
             ForEach(Array(node.value["attrs"]["cards"].array.enumerated()), id: \.offset) { _, card in
@@ -396,6 +399,16 @@ struct RichEntryEditor: View {
                             }
                         }
                     }
+                    Section("Text and empty blocks") {
+                        ForEach(document.editableTextNodes) { leaf in
+                            let draft = model.snapshot.richDrafts?.first { $0.entryID == live.id && $0.path == leaf.path && $0.newBlockStyle == nil }
+                                ?? RichDraft(entryID: live.id, path: leaf.path, expectedDocument: raw, text: leaf.text)
+                            NavigationLink { RichDraftEditor(draft: draft) } label: { Text(leaf.text.isEmpty ? "Empty " + leaf.type : leaf.text).lineLimit(3) }
+                                .accessibilityIdentifier("rich.run." + leaf.id)
+                        }
+                    }
+                    // Below the text runs: List rows are lazy, and tests and people expect
+                    // the runs first (run 42614136563 could not find rich.run.0/0 above it).
                     let formattable = document.formattableBlocks
                     if !formattable.isEmpty && Self.rangeSupported {
                         Section("Format across runs") {
@@ -404,14 +417,6 @@ struct RichEntryEditor: View {
                                 NavigationLink { RichRangeFormatter(entryID: live.id, block: path) } label: { Text((try? document.formattingText(block: path)) ?? "").lineLimit(2) }
                                     .accessibilityIdentifier("rich.range." + path.map(String.init).joined(separator: "/"))
                             }
-                        }
-                    }
-                    Section("Text and empty blocks") {
-                        ForEach(document.editableTextNodes) { leaf in
-                            let draft = model.snapshot.richDrafts?.first { $0.entryID == live.id && $0.path == leaf.path && $0.newBlockStyle == nil }
-                                ?? RichDraft(entryID: live.id, path: leaf.path, expectedDocument: raw, text: leaf.text)
-                            NavigationLink { RichDraftEditor(draft: draft) } label: { Text(leaf.text.isEmpty ? "Empty " + leaf.type : leaf.text).lineLimit(3) }
-                                .accessibilityIdentifier("rich.run." + leaf.id)
                         }
                     }
                 } else { Text("This entry is no longer available for editing. Saved drafts remain in Settings.") }
