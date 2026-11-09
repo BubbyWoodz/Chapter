@@ -38,7 +38,7 @@ public enum ChapterStats {
         }
         return best
     }
-    static func utcParts(_ ts: Double) -> DateComponents {
+    public static func utcParts(_ ts: Double) -> DateComponents {
         var calendar = Calendar(identifier: .gregorian); calendar.timeZone = TimeZone(identifier: "UTC")!
         return calendar.dateComponents([.year, .month, .day, .weekday], from: Date(timeIntervalSince1970: ts / 1000))
     }

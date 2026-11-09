@@ -57,6 +57,7 @@ export async function verifyUIStrings(write: boolean): Promise<void> {
         if (m[0].includes('+')) for (const id of m[1] === 'prefs.mode.' ? ['light', 'dark', 'system'] : m[1] === 'prefs.skin.' ? ['paper', 'modern', 'terminal', 'forest', 'blossom', 'lavender'] : m[1] === 'prefs.palette.' ? ['terracotta', 'moss', 'sea', 'twilight', 'plum', 'rose'] : m[1] === 'journals.cover.' ? ['lines', 'dots', 'grid', 'plain', 'photo'] : [null]) { assert.ok(id, 'Unknown dynamic key prefix ' + m[1]); used.add(m[1] + id); }
         else used.add(m[1]);
       }
+      for (const m of text.matchAll(/\btp\("([^"\\]+)"/g)) used.add(m[1] + '#other');
     }
     for (const key of used) assert.ok(key in en, 'Native app uses a key the web catalog lacks: ' + key);
     assert.ok(used.size >= 30, 'Expected the native screens to use the web catalog');

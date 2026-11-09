@@ -277,6 +277,8 @@ final class ChapterUITests: XCTestCase {
             XCTAssertTrue(app.tabBars.buttons[calendar].exists);XCTAssertTrue(app.tabBars.buttons[notebooks].exists)
             app.tabBars.buttons[calendar].tap();XCTAssertTrue(app.navigationBars[calendar].waitForExistence(timeout:5))
             let stat=app.descendants(matching:.any).matching(NSPredicate(format:"label BEGINSWITH %@",days)).firstMatch;reveal(stat,in:app);XCTAssertTrue(stat.exists,locale+": calendar stat uses prefs.stat.days")
+            let heat=app.descendants(matching:.any)["calendar.heatmap"];reveal(heat,in:app)
+            XCTAssertTrue(heat.exists && heat.label.contains(locale=="de" ? "17 Wochen":"17 أسابيع"),locale+": 17-week heatmap uses tp(calendar.weeks)")
             tab.tap();XCTAssertTrue(app.navigationBars[settings].waitForExistence(timeout:5))
             XCTAssertTrue(app.staticTexts[language].exists || app.otherElements[language].exists,locale+": language section header")
             let mode=app.buttons["appearance.mode"];reveal(mode,in:app);mode.tap()

@@ -149,6 +149,38 @@ struct SelectableEntryText: View {
     }
 }
 
+/// Web Calendar Heatmap: one column per Monday-first UTC week, cells capped at 3.
+struct WritingHeatmap: View {
+    @EnvironmentObject private var model: VaultModel
+    let counts: [Int]
+    var body: some View {
+        let preference = model.snapshot.appearance ?? .standard
+        let colors = [chapterToken("line", preference: preference), chapterToken("accent-soft", preference: preference), chapterToken("accent", preference: preference).opacity(0.45), chapterToken("accent", preference: preference)]
+        let weeks = counts.count / 7
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 3) {
+                ForEach(0..<weeks, id: \.self) { week in
+                    VStack(spacing: 3) {
+                        ForEach(0..<7, id: \.self) { day in
+                            RoundedRectangle(cornerRadius: 3).fill(colors[min(counts[week * 7 + day], 3)]).aspectRatio(1, contentMode: .fit)
+                        }
+                    }
+                }
+            }.accessibilityHidden(true)
+            HStack {
+                Text(model.tp("calendar.weeks", count: weeks))
+                Spacer()
+                Text(model.t("calendar.heatLess"))
+                ForEach(0..<4, id: \.self) { i in RoundedRectangle(cornerRadius: 2.5).fill(colors[i]).frame(width: 9, height: 9).accessibilityHidden(true) }
+                Text(model.t("calendar.heatMore"))
+            }.font(chapterFont(.ui, skin: preference.skin, size: 11, relativeTo: .caption2)).foregroundStyle(.secondary)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityValue("\(counts.filter { $0 > 0 }.count) / \(counts.count)")
+        .accessibilityIdentifier("calendar.heatmap")
+    }
+}
+
 /// Web Preferences "Your writing": six stats from state/stats.ts, counted on the device.
 struct WritingStatsSection: View {
     @EnvironmentObject private var model: VaultModel
@@ -671,10 +703,35 @@ struct CalendarView: View {
         NavigationStack {
             List {
                 DatePicker("Date", selection: $day, displayedComponents: .date).datePickerStyle(.graphical)
-                Section("Entries on this day") { ForEach(model.entries.filter { Calendar.current.isDate($0.date, inSameDayAs: day) }) { entry in
-                    NavigationLink { EntryDetail(entryID:entry.id) } label: { ChapterEntryCard(entry:entry) }
-                        .listRowBackground(Color.clear).listRowSeparator(.hidden)
-                } }
+                let dayEntries = model.entries.filter { Calendar.current.isDate($0.date, inSameDayAs: day) }
+                Section("Entries on this day") {
+                    ForEach(dayEntries) { entry in
+                        NavigationLink { EntryDetail(entryID:entry.id) } label: { ChapterEntryCard(entry:entry) }
+                            .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                    }
+                    if dayEntries.isEmpty { Text(model.t("calendar.empty.day")).accessibilityIdentifier("calendar.emptyDay") }
+                }
+                // Web OnThisDay: the same UTC month/day in earlier years, newest first, at most 3.
+                let parts = Calendar.current.dateComponents([.year, .month, .day], from: day)
+                let memories = ChapterStats.onThisDay(ChapterStats.items(model.entries), month: (parts.month ?? 1) - 1, day: parts.day ?? 1, year: parts.year ?? 1970).prefix(3)
+                if !memories.isEmpty {
+                    Section(model.t("calendar.onThisDay")) {
+                        ForEach(Array(memories), id: \.id) { item in
+                            if let entry = model.entries.first(where: { $0.id == item.id }) {
+                                NavigationLink { EntryDetail(entryID: entry.id) } label: {
+                                    HStack(alignment: .firstTextBaseline, spacing: 12) {
+                                        Text(String(ChapterStats.utcParts(item.createdAt).year ?? 0)).font(chapterFont(.mono, skin: model.snapshot.appearance?.skin ?? "paper", size: 12, relativeTo: .caption))
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(entry.title).font(chapterFont(.heading, skin: model.snapshot.appearance?.skin ?? "paper", size: 15, relativeTo: .body))
+                                            Text(item.bodyText).font(.footnote).lineLimit(1)
+                                        }
+                                    }.frame(minHeight: 44)
+                                }.accessibilityIdentifier("calendar.memory." + entry.id)
+                            }
+                        }
+                    }
+                }
+                Section { WritingHeatmap(counts: ChapterStats.dailyCounts(ChapterStats.items(model.entries), now: Date().timeIntervalSince1970 * 1000, weeks: 17)) }
                 Section("On this device") { LabeledContent(model.t("prefs.stat.entries"), value: "\(model.entries.count)")
                     // Web journaledDays: distinct UTC days, the calendar grid's boundaries.
                     LabeledContent(model.t("prefs.stat.days"), value: "\(ChapterStats.journaledDays(ChapterStats.items(model.entries)))") }
@@ -878,6 +935,9 @@ private struct NotebookCover: View {
 func chapterToken(_ name:String,preference:SharedAppearance)->Color {
     Color(uiColor:UIColor { traits in
         let dark=preference.mode=="dark" || (preference.mode=="system" && traits.userInterfaceStyle == .dark)
+        if let accent=AppearanceCatalog.accentToken(name,palette:preference.palette,dark:dark) {
+            return UIColor(red:CGFloat(accent.r)/255,green:CGFloat(accent.g)/255,blue:CGFloat(accent.b)/255,alpha:CGFloat(accent.a))
+        }
         let hex=AppearanceCatalog.tokens(preference,dark:dark)[name].string ?? (dark ? "#181612":"#F4EEE2")
         let value=UInt64(hex.trimmingCharacters(in:CharacterSet(charactersIn:"#")),radix:16) ?? 0
         return UIColor(red:CGFloat((value>>16)&255)/255,green:CGFloat((value>>8)&255)/255,blue:CGFloat(value&255)/255,alpha:1)

@@ -26,6 +26,22 @@ public enum AppearanceCatalog {
         return json
     }()
     public static func tokens(_ preference: SharedAppearance, dark: Bool) -> JSONValue { value["skins"][preference.skin][dark ? "dark":"light"] }
+    /// Web useTheme accent tokens from the palette accent: --accent, --accent-ink =
+    /// darken(accent, dark ? 0 : 0.16), --accent-soft = hexA(accent, dark ? 0.2 : 0.12),
+    /// --accent-line = hexA(accent, 0.28). Returns 0–255 RGB and alpha.
+    public static func accentToken(_ name: String, palette: String, dark: Bool) -> (r: Int, g: Int, b: Int, a: Double)? {
+        let hex = (value["palettes"][palette].string ?? value["palettes"]["terracotta"].string ?? "#B0563A").replacingOccurrences(of: "#", with: "")
+        guard hex.count == 6, let v = Int(hex, radix: 16) else { return nil }
+        let r = (v >> 16) & 255, g = (v >> 8) & 255, b = v & 255
+        func darken(_ c: Int, _ amt: Double) -> Int { Int((Double(c) * (1 - amt)).rounded(.toNearestOrAwayFromZero)) } // Math.round on non-negative values
+        switch name {
+        case "accent": return (r, g, b, 1)
+        case "accent-ink": let amt = dark ? 0 : 0.16; return (darken(r, amt), darken(g, amt), darken(b, amt), 1)
+        case "accent-soft": return (r, g, b, dark ? 0.2 : 0.12)
+        case "accent-line": return (r, g, b, 0.28)
+        default: return nil
+        }
+    }
 }
 extension VaultSnapshot {
     public var appearanceRecord: VaultRecord? {

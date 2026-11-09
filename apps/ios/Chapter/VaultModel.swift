@@ -17,6 +17,7 @@ import ChapterCore
     var language: ChapterLocale? { ChapterLocales.bundled.map { ChapterLocales.resolve(stored: localeID, in: $0) } }
     /// The web's own interface text (src/i18n catalogs) in the chosen language.
     func t(_ key: String, _ params: [String: String] = [:]) -> String { ChapterStrings.bundled.t(key, params, locale: localeID) }
+    func tp(_ base: String, count: Int, _ params: [String: String] = [:]) -> String { ChapterStrings.bundled.tp(base, count: Double(count), params, locale: localeID) }
     func setLanguage(_ id: String) {
         guard let catalog = ChapterLocales.bundled, catalog.locales.contains(where: { $0.id == id }) else { return }
         localeID = id; UserDefaults.standard.set(id, forKey: "chapter.locale")

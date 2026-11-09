@@ -437,5 +437,91 @@
     0
    ]
   }
+ ],
+ "accents": [
+  {
+   "palette": "terracotta",
+   "dark": false,
+   "ink": "rgb(148,72,49)",
+   "soft": "rgba(176,86,58,0.12)",
+   "line": "rgba(176,86,58,0.28)"
+  },
+  {
+   "palette": "terracotta",
+   "dark": true,
+   "ink": "rgb(176,86,58)",
+   "soft": "rgba(176,86,58,0.2)",
+   "line": "rgba(176,86,58,0.28)"
+  },
+  {
+   "palette": "moss",
+   "dark": false,
+   "ink": "rgb(93,105,65)",
+   "soft": "rgba(111,125,77,0.12)",
+   "line": "rgba(111,125,77,0.28)"
+  },
+  {
+   "palette": "moss",
+   "dark": true,
+   "ink": "rgb(111,125,77)",
+   "soft": "rgba(111,125,77,0.2)",
+   "line": "rgba(111,125,77,0.28)"
+  },
+  {
+   "palette": "sea",
+   "dark": false,
+   "ink": "rgb(53,103,109)",
+   "soft": "rgba(63,123,130,0.12)",
+   "line": "rgba(63,123,130,0.28)"
+  },
+  {
+   "palette": "sea",
+   "dark": true,
+   "ink": "rgb(63,123,130)",
+   "soft": "rgba(63,123,130,0.2)",
+   "line": "rgba(63,123,130,0.28)"
+  },
+  {
+   "palette": "twilight",
+   "dark": false,
+   "ink": "rgb(77,82,122)",
+   "soft": "rgba(92,98,145,0.12)",
+   "line": "rgba(92,98,145,0.28)"
+  },
+  {
+   "palette": "twilight",
+   "dark": true,
+   "ink": "rgb(92,98,145)",
+   "soft": "rgba(92,98,145,0.2)",
+   "line": "rgba(92,98,145,0.28)"
+  },
+  {
+   "palette": "plum",
+   "dark": false,
+   "ink": "rgb(122,69,105)",
+   "soft": "rgba(145,82,125,0.12)",
+   "line": "rgba(145,82,125,0.28)"
+  },
+  {
+   "palette": "plum",
+   "dark": true,
+   "ink": "rgb(145,82,125)",
+   "soft": "rgba(145,82,125,0.2)",
+   "line": "rgba(145,82,125,0.28)"
+  },
+  {
+   "palette": "rose",
+   "dark": false,
+   "ink": "rgb(163,71,97)",
+   "soft": "rgba(194,85,115,0.12)",
+   "line": "rgba(194,85,115,0.28)"
+  },
+  {
+   "palette": "rose",
+   "dark": true,
+   "ink": "rgb(194,85,115)",
+   "soft": "rgba(194,85,115,0.2)",
+   "line": "rgba(194,85,115,0.28)"
+  }
  ]
 }

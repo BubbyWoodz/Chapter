@@ -3,6 +3,8 @@
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
 import * as stats from '../src/state/stats';
+import { darken, hexA } from '../src/ui/color';
+import { PALETTES } from '../src/hooks/useTheme';
 import type { JournalEntry } from '../src/sync/engine';
 
 const D = 86_400_000;
@@ -24,6 +26,8 @@ const entries = raw.map(([id, createdAt, bodyText]) => ({ id, createdAt, bodyTex
 const nows = [base, base + D, base + 2 * D, base - 3 * D, Date.UTC(2026, 10, 15, 23, 0), Date.UTC(2026, 10, 16, 0, 0)];
 
 export function verifyStats(write: boolean): void {
+  const bundled = JSON.parse(readFileSync(new URL('../../ios/ChapterCore/Sources/ChapterCore/Resources/appearance-v1.json', import.meta.url), 'utf8')) as { palettes: Record<string, string> };
+  assert.deepEqual(bundled.palettes, Object.fromEntries(PALETTES.map((p) => [p.id, p.accent])), 'Native palettes must equal the web PALETTES');
   const words = raw.map(([, , text]) => text).concat(['', ' ', 'a', 'a b', '\u0085x', 'x\u180Ey', '\u2029z']);
   const fixture = {
     entries: raw.map(([id, createdAt, bodyText]) => ({ id, createdAt, bodyText })),
@@ -34,6 +38,8 @@ export function verifyStats(write: boolean): void {
     compact: [0, 999, 1000, 1049, 1050, 1449, 1450, 1951, 1999, 2000, 9950, 10000, 12345, 999949, 999950, 1234567].map((n) => ({ n, out: stats.compactCount(n) })),
     onThisDay: [[10, 9, 2026], [10, 9, 2025], [11, 31, 1970]].map(([m, d, y]) => ({ month: m, day: d, year: y, ids: stats.onThisDay(entries, m, d, y).map((e) => e.id) })),
     daily: nows.map((now) => ({ now, weeks: 3, counts: stats.dailyCounts(entries, now, 3) })),
+    // Web useTheme accent tokens per palette (for the native chapterToken).
+    accents: PALETTES.map((p) => [p.id, p.accent] as const).flatMap(([palette, accent]) => [false, true].map((dark) => ({ palette, dark, ink: darken(accent, dark ? 0 : 0.16), soft: hexA(accent, dark ? 0.2 : 0.12), line: hexA(accent, 0.28) }))),
   };
   const url = new URL('../../ios/ChapterCore/Tests/ChapterCoreTests/Fixtures/writing-stats.json', import.meta.url);
   if (write) writeFileSync(url, JSON.stringify(fixture, null, 1) + '\n');
