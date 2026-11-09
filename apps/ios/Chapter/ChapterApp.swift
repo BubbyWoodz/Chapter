@@ -249,13 +249,17 @@ struct EntryList: View {
     @State private var created: String?
     let journal: String?
     init(journal: String? = nil) { self.journal = journal }
-    var filtered: [VaultRecord] { model.entries.filter(matches) }
-    private func matches(_ entry: VaultRecord) -> Bool {
-        if let journal, entry.journalID != journal { return false }
-        guard !query.isEmpty else { return true }
-        let labelText = entry.labels.joined(separator: " ")
-        let searchable = [entry.title, entry.text, labelText].joined(separator: " ")
-        return searchable.localizedCaseInsensitiveContains(query)
+    private var scoped: [VaultRecord] { model.entries.filter { journal == nil || $0.journalID == journal } }
+    /// Web Search sheet results (search/core port): ranked title → label → date → content,
+    /// with the matched field and a body snippet. An empty query keeps the full list.
+    private var hits: [ChapterSearch.Hit]? {
+        guard !ChapterSearch.normalize(query).isEmpty else { return nil }
+        return ChapterSearch.searchHits(ChapterSearch.entries(scoped), query: query, locale: model.language?.id ?? "en")
+    }
+    var filtered: [VaultRecord] {
+        guard let hits else { return scoped }
+        let byID = Dictionary(scoped.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        return hits.compactMap { byID[$0.id] }
     }
     private var notebook: VaultRecord? { model.journals.first { $0.journalID == journal } }
     @ViewBuilder var body: some View {
@@ -274,15 +278,21 @@ struct EntryList: View {
                     }
                 }.padding(.vertical,8).listRowBackground(Color.clear).listRowSeparator(.hidden)
             }
-            if filtered.isEmpty { Text(query.isEmpty ? "No downloaded entries. Sync or create your first entry." : "No matching entries.").listRowBackground(Color.clear) }
+            if filtered.isEmpty { Text(hits == nil ? "No downloaded entries. Sync or create your first entry." : model.t("shell.search.empty", ["query": query])).listRowBackground(Color.clear).accessibilityIdentifier("search.empty") }
+            let found = Dictionary((hits ?? []).map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
             ForEach(filtered) { entry in
-                NavigationLink { EntryDetail(entryID: entry.id) } label: { ChapterEntryCard(entry:entry) }
+                NavigationLink { EntryDetail(entryID: entry.id) } label: {
+                    VStack(alignment: .leading, spacing: 6) {
+                        ChapterEntryCard(entry:entry)
+                        if let hit = found[entry.id] { SearchHitDetail(hit: hit) }
+                    }
+                }
                     .listRowBackground(Color.clear).listRowSeparator(.hidden)
                     .listRowInsets(EdgeInsets(top:6,leading:16,bottom:6,trailing:16))
             }
         }.listStyle(.plain)
         .modifier(ChapterScreenSurface()).navigationTitle(notebook?.title ?? "Journal")
-        .searchable(text:$query,prompt:"Search this device")
+        .searchable(text:$query,prompt:model.t("shell.search.placeholder"))
         .refreshable { await model.sync() }
         .toolbar {
             ToolbarItem(placement:.topBarTrailing) { Button { compose=true } label: { Label(model.t("shell.newEntry"),systemImage:"square.and.pencil") } }
@@ -1363,5 +1373,31 @@ struct NewNotebookSheet: View {
             dismiss()
             if let entry { onEntry(entry.id) }
         } catch { self.error = error.localizedDescription }
+    }
+}
+
+
+/// Web Search row extras: the matched-field tag (not shown for content) and the body snippet.
+struct SearchHitDetail: View {
+    @EnvironmentObject private var model: VaultModel
+    let hit: ChapterSearch.Hit
+    private var fieldName: String {
+        switch hit.field { case .title: return model.t("shell.search.field.title"); case .label: return model.t("shell.search.field.label"); case .date: return model.t("shell.search.field.date"); case .content: return model.t("shell.search.field.content") }
+    }
+    var body: some View {
+        let skin = model.snapshot.appearance?.skin ?? "paper"
+        VStack(alignment: .leading, spacing: 4) {
+            if hit.field != .content {
+                Text(fieldName.uppercased())
+                    .font(chapterFont(.mono, skin: skin, size: 10, relativeTo: .caption2)).tracking(0.5)
+                    .padding(.horizontal, 6).padding(.vertical, 1)
+                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(chapterToken("line", preference: model.snapshot.appearance ?? .standard)))
+                    .accessibilityIdentifier("search.field." + hit.field.rawValue)
+            }
+            if let snippet = hit.snippet {
+                Text(snippet).font(chapterFont(.ui, skin: skin, size: 12.5, relativeTo: .footnote)).foregroundStyle(.secondary).lineLimit(2)
+                    .accessibilityIdentifier("search.snippet")
+            }
+        }.padding(.horizontal, 4).accessibilityElement(children: .combine)
     }
 }

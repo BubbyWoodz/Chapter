@@ -269,6 +269,18 @@ final class ChapterUITests: XCTestCase {
         created.tap()
         XCTAssertTrue(app.staticTexts["One intention"].waitForExistence(timeout:5),"A native-created template starts an entry with its content")
     }
+    func testSearchRanksAndTagsLikeTheWebSearchSheet() throws {
+        // Web search/core port: the matched field is tagged, and no match shows shell.search.empty with the query.
+        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture"];app.launch()
+        let entry=app.staticTexts["Public rich fixture"];XCTAssertTrue(entry.waitForExistence(timeout:10))
+        let search=app.searchFields.firstMatch;XCTAssertTrue(search.waitForExistence(timeout:5))
+        XCTAssertEqual(search.placeholderValue,"Search titles, content, labels, dates…")
+        search.tap();search.typeText("public RICH")
+        XCTAssertTrue(entry.waitForExistence(timeout:5));XCTAssertTrue(app.descendants(matching:.any)["search.field.title"].firstMatch.exists,"Title match is tagged like the web")
+        attach(app,name:"Actual native search with the web field tag")
+        search.typeText(" zzqq")
+        let empty=app.staticTexts["search.empty"];XCTAssertTrue(empty.waitForExistence(timeout:5));XCTAssertTrue(empty.label.contains("“public RICH zzqq”"))
+    }
     func testNewNotebookSheetMatchesTheWebNewJournalSheet() throws {
         // Web NewJournalSheet: name, JCOLORS swatch, cover, "Start from" a template opening its first entry.
         let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture"];app.launch()
