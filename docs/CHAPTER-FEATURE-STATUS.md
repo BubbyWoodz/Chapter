@@ -72,6 +72,12 @@ the exact revision; a failing strict accessibility audit remains a release block
   is treated as unproven until it passes again. No audit is waived; re-verification pending.
 
 <!-- Times are commit times in America/Los_Angeles; earlier labels this night ran ahead of the clock and were corrected. -->
+## Apple results for cd787e8; real Dynamic Type element found — November 9, 2026, 1:31 AM PST
+
+- **Audits on Native 42591403122 (cd787e8):** the strict audits still failed, but the finding changed from "unsupported" (no element) to "**partially** unsupported", and the audit now attaches the element. That element was the system Section **footer** (phrase note) in the normal audit and the system Section **header** "UNLOCK VAULT" at XXXL.
+- **What that rules in and out:** the fields with overriding labels and the fixedSize rows were the earlier full failure. Here the remaining failing elements were only the system header/footer text, which apparently grows only part of the way.
+- **Fix:** all connection text is now ordinary Form rows in scaling text styles (title2, body, headline with the header trait, footnote secondary), with no fixedSize and no system header/footer. The audit stays strict: three fresh launches at the normal size plus XXXL.
+
 ## Original built-in templates — November 9, 2026, 1:19 AM PST
 
 - **Seeds:** the six web seeds (Daily reflection, Three small things, Dream log, Experiment log, Study notes, Weekly review) ship as `Resources/builtin-templates.json`. The real web `seedBuiltinTemplates` generates that file, and the vectors script re-verifies it on every run. The native preview text equals the web `docToText` for all six, including the table and task lists.

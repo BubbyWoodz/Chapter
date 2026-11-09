@@ -74,32 +74,27 @@ struct ConnectView: View {
     @FocusState private var focusedField:Field?
     var body: some View {
         NavigationStack {
-            // Native Form pattern (Section header/footer, system fonts, label taken
-            // from the field's own placeholder). The previous hand-built header rows
-            // with fixedSize text, explicit field fonts and overriding accessibility
-            // labels were the only difference from the unmodified Form reproduction
-            // that passes the strict Dynamic Type audit; the non-gating bisection
-            // ruled out the toolbar background, bottom action, title and overlay.
+            // Every text is an ordinary Form row in a scaling text style, like the
+            // unmodified Form reproduction that passes the strict audit. Apple CI
+            // (cd787e8) showed system Section header/footer text only partially
+            // scales ("Dynamic Type font sizes are partially unsupported" on the
+            // UNLOCK VAULT header at XXXL and the phrase footer), and the earlier
+            // fixedSize rows with overriding field labels failed outright.
             Form {
                 Section {
                     Text("Your journal. Your server.").font(.title2).accessibilityAddTraits(.isHeader).accessibilityIdentifier("connection.heading")
                     Text("Connect directly over your local network or Tailscale. No Chapter account is required.")
-                } footer: {
-                    Text("Native preview: feature coverage is incomplete. Use the web app for advanced features and recovery-phrase creation/rotation.")
+                    Text("Native preview: feature coverage is incomplete. Use the web app for advanced features and recovery-phrase creation/rotation.").font(.footnote).foregroundStyle(.secondary)
                 }
                 Section {
+                    Text("Server").font(.headline).accessibilityAddTraits(.isHeader)
                     TextField("Server URL", text: $server).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityIdentifier("connection.server").focused($focusedField,equals:.server).submitLabel(.next).onSubmit {focusedField = .phrase}
-                } header: {
-                    Text("Server")
-                } footer: {
-                    Text("HTTPS with a trusted certificate is required, including on Tailscale. Include your server’s path prefix.")
+                    Text("HTTPS with a trusted certificate is required, including on Tailscale. Include your server’s path prefix.").font(.footnote).foregroundStyle(.secondary)
                 }
                 Section {
+                    Text("Unlock vault").font(.headline).accessibilityAddTraits(.isHeader)
                     SecureField("12-word recovery phrase", text: $phrase).accessibilityIdentifier("connection.phrase").focused($focusedField,equals:.phrase).submitLabel(.done).onSubmit {focusedField=nil}.textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
-                } header: {
-                    Text("Unlock vault")
-                } footer: {
-                    Text("The phrase stays on this device and is not saved. A device passcode is required to protect offline journals. Face ID or device authentication protects the local storage key.")
+                    Text("The phrase stays on this device and is not saved. A device passcode is required to protect offline journals. Face ID or device authentication protects the local storage key.").font(.footnote).foregroundStyle(.secondary)
                 }
                 if let message = model.message { Section { Text(message).accessibilityLabel("Connection status: \(message)").accessibilityIdentifier("connection.status") } }
             }.modifier(ChapterScreenSurface()).navigationTitle("Chapter").scrollDismissesKeyboard(.interactively)
