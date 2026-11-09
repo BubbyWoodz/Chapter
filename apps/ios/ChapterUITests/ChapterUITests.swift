@@ -207,6 +207,30 @@ final class ChapterUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Public template prompt today"].waitForExistence(timeout:5),"A new entry carries the edited template body")
         attach(app,name:"Actual native entry started from the edited template")
     }
+    func testBuiltinTemplateBodyForksOnlyWhenTheFirstChangeIsSaved() throws {
+        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture"];app.launch()
+        let start=app.buttons["journal.fromTemplate"];XCTAssertTrue(start.waitForExistence(timeout:10));start.tap()
+        let actions=app.buttons["template.actions.builtin:daily"];XCTAssertTrue(actions.waitForExistence(timeout:5))
+        // Open and close without a change: the built-in stays a pristine seed.
+        actions.tap();app.buttons["template.edit"].tap()
+        XCTAssertTrue(app.navigationBars["Edit template"].waitForExistence(timeout:5))
+        app.navigationBars["Edit template"].buttons["Done"].tap()
+        XCTAssertTrue(app.buttons["template.use.builtin:daily"].waitForExistence(timeout:5),"No change, no fork")
+        // The first saved change forks it into a synced template carrying the edit.
+        actions.tap();app.buttons["template.edit"].tap()
+        XCTAssertTrue(app.navigationBars["Edit template"].waitForExistence(timeout:5))
+        let run=app.buttons.matching(NSPredicate(format:"identifier BEGINSWITH 'rich.run.'")).firstMatch
+        XCTAssertTrue(run.waitForExistence(timeout:5));run.tap()
+        let editor=app.textViews["Formatted text run"];XCTAssertTrue(editor.waitForExistence(timeout:5))
+        editor.coordinate(withNormalizedOffset:CGVector(dx:0.95,dy:0.5)).tap();editor.typeText(" Zq7")
+        app.navigationBars.buttons["Save"].tap()
+        XCTAssertTrue(app.navigationBars["Edit template"].waitForExistence(timeout:5))
+        app.navigationBars["Edit template"].buttons["Done"].tap()
+        XCTAssertTrue(app.buttons["template.use.builtin:daily"].waitForNonExistence(timeout:5),"The edited fork retires the seed")
+        let fork=app.buttons.matching(NSPredicate(format:"identifier BEGINSWITH 'template.use.' AND label CONTAINS 'Zq7'")).firstMatch
+        XCTAssertTrue(fork.waitForExistence(timeout:5),"A synced template carries the edit")
+        attach(app,name:"Actual native built-in template forked by its first body edit")
+    }
     func testSyncedTemplateStartsNewEntryWithExactContentAndOriginalDefaultTitle() throws {
         let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture","--chapter-template-fixture"];app.launch()
         let start=app.buttons["journal.fromTemplate"];XCTAssertTrue(start.waitForExistence(timeout:10));start.tap()

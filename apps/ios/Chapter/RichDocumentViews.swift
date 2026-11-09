@@ -320,7 +320,7 @@ struct RichTableEditor: View {
     @State private var column = 0
     @State private var error: String?
     @State private var confirmDelete = false
-    private var live: VaultRecord? { model.snapshot.records.first { $0.id == entryID && !$0.deleted && ($0.kind == "entry" || $0.kind == "template") } }
+    private var live: VaultRecord? { model.editableRecord(entryID) }
     private var rows: [[JSONValue]]? { live?.body["bodyJson"]?.string.flatMap { try? RichDocument(json: $0) }?.editableTableRows(at: path) }
     var body: some View {
         Form {
@@ -375,7 +375,7 @@ struct RichEntryEditor: View {
     @EnvironmentObject private var model: VaultModel
     let entry: VaultRecord
     @Environment(\.dismiss) private var dismiss
-    private var live: VaultRecord? { model.snapshot.records.first { $0.id == entry.id && !$0.deleted && ($0.kind == "entry" || $0.kind == "template") } }
+    private var live: VaultRecord? { model.editableRecord(entry.id) }
     private static var rangeSupported: Bool { if #available(iOS 18.0, *) { return true } else { return false } }
     var body: some View {
         NavigationStack {
@@ -436,7 +436,7 @@ struct RichRangeFormatter: View {
     @State private var selectAllRequest = 0
     @State private var selected: Range<Int>?
     private let formats = [("bold", "Bold"), ("italic", "Italic"), ("underline", "Underline"), ("strike", "Strikethrough"), ("code", "Inline code")]
-    private var live: VaultRecord? { model.snapshot.records.first { $0.id.utf8.elementsEqual(entryID.utf8) && !$0.deleted && ($0.kind == "entry" || $0.kind == "template") } }
+    private var live: VaultRecord? { model.editableRecord(entryID) }
     private var text: String? { live?.body["bodyJson"]?.string.flatMap { try? RichDocument(json: $0) }.flatMap { try? $0.formattingText(block: block) } }
     var body: some View {
         ScrollView {
@@ -632,7 +632,7 @@ struct RichDraftEditor: View {
             else { TemplateInsertPicker(entry: item.entry, caret: item.caret) { dismiss() } }
         }
     }
-    private var isTemplate: Bool { model.snapshot.records.first { $0.id == current.entryID }?.kind == "template" }
+    private var isTemplate: Bool { model.editableRecord(current.entryID)?.kind == "template" }
     /// Saves pending text first (so the cursor refers to what you see), then
     /// maps the editor cursor onto the original document for the picker.
     private func prepare(link: Bool) {
@@ -646,7 +646,7 @@ struct RichDraftEditor: View {
     }
     /// Saves pending text first, so positions refer to exactly what you see.
     private func committed() throws -> (VaultRecord, String) {
-        func live() -> VaultRecord? { model.snapshot.records.first { $0.id == current.entryID && !$0.deleted && ($0.kind == "entry" || $0.kind == "template") } }
+        func live() -> VaultRecord? { model.editableRecord(current.entryID) }
         guard let record = live(), let raw = record.body["bodyJson"]?.string else { throw ChapterError.conflict }
         let leaf = try RichDocument(json: raw).editableTextNodes.first { $0.path == current.path }
         let leafText = leaf?.type == "text" ? leaf?.text : ""

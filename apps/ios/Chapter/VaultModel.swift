@@ -124,7 +124,7 @@ import ChapterCore
     func lock() {
         generation = UUID(); scheduledSync?.cancel(); scheduledSync = nil; backoff = SyncBackoff(); mediaErrors = [:]; mediaImport?.cancel(); mediaImport = nil; mediaFiles = nil; playbackFiles.forEach { try? FileManager.default.removeItem(at: $0) }; playbackFiles = []; relay?.cancel(); relay = nil; identity = nil; store = nil
         if let root = try? EncryptedSnapshotStore.applicationDirectory() { try? FileManager.default.removeItem(at: root.appendingPathComponent("ImportStaging", isDirectory: true)) }
-        snapshot = VaultSnapshot(); lastCompletePullID = nil; appearanceInitialized = false; unlocked = false; syncing = false; connecting = false; message = nil
+        snapshot = VaultSnapshot(); seedForks = [:]; lastCompletePullID = nil; appearanceInitialized = false; unlocked = false; syncing = false; connecting = false; message = nil
     }
     private func commit(_ next: VaultSnapshot) throws {
         guard let store else { throw ChapterError.storage }
@@ -277,23 +277,42 @@ import ChapterCore
         guard draft.journal == "default" || journals.contains(where: { $0.journalID == draft.journal }) else { throw ChapterError.conflict }
         return try saveEntry(existing: asNew ? nil : draft.expected, title: draft.title, text: draft.text, labels: draft.labels, date: draft.date, journal: draft.journal, recovery: draft)
     }
+    /// Built-in body editing (web mutateSeeded on first change): the fork exists only
+    /// in memory until a change is applied, then joins the snapshot in that same commit.
+    /// Opening and closing the editor without a change creates and syncs nothing.
+    @Published private(set) var seedForks: [String: VaultRecord] = [:]
+    func prepareSeedEdit(_ seed: BuiltinTemplate) throws -> VaultRecord {
+        let live = try liveSeed(seed)
+        if let open = seedForks.values.first(where: { $0.body["builtin"]?.string == live.slug && $0.body["bodyJson"] == .string(live.bodyJson) }) { return open }
+        let fork = try BuiltinTemplates.fork(live, id: UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased(), clock: try nextClock())
+        seedForks[fork.id] = fork; return fork
+    }
+    /// The live record an editor works on: a stored entry/template, or a prepared seed fork.
+    func editableRecord(_ id: String) -> VaultRecord? {
+        snapshot.records.first { $0.id.utf8.elementsEqual(id.utf8) && !$0.deleted && ($0.kind == "entry" || $0.kind == "template") } ?? seedForks[id]
+    }
+    private func materializeSeedFork(_ next: inout VaultSnapshot, _ id: String) {
+        guard !next.records.contains(where: { $0.id.utf8.elementsEqual(id.utf8) }), let fork = seedForks[id] else { return }
+        next.records.append(fork)
+    }
+    private func seedForkCommitted(_ id: String) { if snapshot.records.contains(where: { $0.id == id }) { seedForks[id] = nil } }
     func saveRichDraft(_ draft: RichDraft) throws {
         var next = snapshot; var drafts = next.richDrafts ?? []
         if let i = drafts.firstIndex(where: { $0.id == draft.id }) { drafts[i] = draft } else { drafts.append(draft) }
         next.richDrafts = drafts; try commit(next)
     }
     func applyRichDraft(_ draft: RichDraft) throws {
-        var next = snapshot
+        var next = snapshot; materializeSeedFork(&next, draft.entryID)
         guard let i = next.records.firstIndex(where: { $0.id == draft.entryID }) else { throw ChapterError.conflict }
         next.records[i] = try draft.applying(to: next.records[i])
         next.richDrafts = (next.richDrafts ?? []).filter { $0.id != draft.id }
-        try commit(next); scheduleSync()
+        try commit(next); seedForkCommitted(draft.entryID); scheduleSync()
     }
     func reorderRichBlocks(_ expected: VaultRecord, from offsets: IndexSet, to destination: Int) throws -> VaultRecord {
         guard unlocked else { throw ChapterError.storage }
-        var next = snapshot
+        var next = snapshot; materializeSeedFork(&next, expected.id)
         let saved = try next.reorderRichBlocks(expected: expected, from: offsets, to: destination)
-        try commit(next); scheduleSync(); return saved
+        try commit(next); seedForkCommitted(expected.id); scheduleSync(); return saved
     }
     /// Inserts the original web entryLink node. Compare-and-set on the exact
     /// document bytes seen when the picker opened; a concurrent edit refuses.
@@ -317,25 +336,25 @@ import ChapterCore
     }
     func applyTableCommand(_ expected: VaultRecord, command: RichTableCommand, table: [Int], row: Int, column: Int) throws {
         guard unlocked else { throw ChapterError.storage }
-        var next = snapshot
+        var next = snapshot; materializeSeedFork(&next, expected.id)
         guard let raw = expected.body["bodyJson"]?.string, let i = next.records.firstIndex(where: { $0.id.utf8.elementsEqual(expected.id.utf8) }) else { throw ChapterError.conflict }
         next.records[i] = try next.records[i].applyingTableCommand(command, table: table, row: row, column: column, expected: raw)
-        try commit(next); scheduleSync()
+        try commit(next); seedForkCommitted(expected.id); scheduleSync()
     }
     func toggleSelectionMark(_ expected: VaultRecord, type: String, leaf: [Int], range: Range<Int>) throws {
         guard unlocked else { throw ChapterError.storage }
-        var next = snapshot
+        var next = snapshot; materializeSeedFork(&next, expected.id)
         guard let raw = expected.body["bodyJson"]?.string, let i = next.records.firstIndex(where: { $0.id.utf8.elementsEqual(expected.id.utf8) }) else { throw ChapterError.conflict }
         next.records[i] = try next.records[i].togglingMark(type, leaf: leaf, utf16Range: range, expected: raw)
-        try commit(next); scheduleSync()
+        try commit(next); seedForkCommitted(expected.id); scheduleSync()
     }
     /// Original toolbar toggleMark over a selection spanning a paragraph's or heading's runs.
     func toggleRangeMark(_ expected: VaultRecord, type: String, block: [Int], range: Range<Int>) throws {
         guard unlocked else { throw ChapterError.storage }
-        var next = snapshot
+        var next = snapshot; materializeSeedFork(&next, expected.id)
         guard let raw = expected.body["bodyJson"]?.string, let i = next.records.firstIndex(where: { $0.id.utf8.elementsEqual(expected.id.utf8) }) else { throw ChapterError.conflict }
         next.records[i] = try next.records[i].togglingMark(type, block: block, range: range, expected: raw)
-        try commit(next); scheduleSync()
+        try commit(next); seedForkCommitted(expected.id); scheduleSync()
     }
     func insertTemplate(_ expected: VaultRecord, template: VaultRecord, at caret: RichCaret) throws {
         guard unlocked else { throw ChapterError.storage }

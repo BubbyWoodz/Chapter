@@ -94,6 +94,23 @@ final class EntryTemplateTests: XCTestCase {
         var gone = moved; gone.deleted = true
         XCTAssertThrowsError(try RichDraft(entryID: "tpl", path: [1, 0], expectedDocument: movedRaw, text: "x").applying(to: gone))
     }
+    func testBuiltinBodyEditForksOnFirstChangeLikeMutateSeeded() throws {
+        // The app holds the fork in memory and stores it with the first applied change.
+        let seed = try XCTUnwrap(BuiltinTemplates.bundled.first { $0.slug == "daily" })
+        let fork = try BuiltinTemplates.fork(seed, id: "fork", clock: 1773536400000)
+        var snapshot = VaultSnapshot()
+        XCTAssertEqual(BuiltinTemplates.pristine(BuiltinTemplates.bundled, records: snapshot.records).count, BuiltinTemplates.bundled.count, "Nothing stored before a change")
+        let leaf = try XCTUnwrap(RichDocument(json: seed.bodyJson).editableTextNodes.first { $0.type == "text" })
+        snapshot.records.append(fork)
+        let edited = try RichDraft(entryID: "fork", path: leaf.path, expectedDocument: seed.bodyJson, text: "Edited prompt").applying(to: fork, now: Date(timeIntervalSince1970: 1773536401))
+        XCTAssertEqual(edited.body["builtin"]?.string, "daily"); XCTAssertEqual(edited.body["name"]?.string, seed.name); XCTAssertTrue(edited.dirty)
+        XCTAssertEqual(edited.body["createdAt"], .number(1773536400000)); XCTAssertEqual(edited.body["updatedAt"], .number(1773536401000))
+        XCTAssertEqual(edited.body["bodyText"]?.string, try RichDocument(json: edited.body["bodyJson"]!.string!).plainText)
+        XCTAssertTrue(edited.body["bodyText"]!.string!.contains("Edited prompt"))
+        snapshot.records[0] = edited
+        XCTAssertFalse(BuiltinTemplates.pristine(BuiltinTemplates.bundled, records: snapshot.records).contains { $0.slug == "daily" }, "The edited fork retires the seed on every device")
+        XCTAssertEqual(Set(edited.body.keys), ["kind", "name", "bodyText", "bodyJson", "builtin", "createdAt", "updatedAt"], "Exactly the templateCodec fields")
+    }
     func testBuiltinSeedsMatchOriginalWebAndRetireOrForkLikeSupersedeAndMutateSeeded() throws {
         let seeds = BuiltinTemplates.bundled
         XCTAssertEqual(seeds.map(\.slug), ["daily", "gratitude", "dream", "experiment", "study", "weekly"])

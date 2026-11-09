@@ -712,7 +712,7 @@ struct SettingsView: View {
                     Button("Lock vault", role: .destructive) { model.lock() }
                 }
                 Section("Not yet implemented") {
-                    Text("Typing across several runs at once (each run is edited separately; formatting can span runs), exact custom media/interview card rendering, editing tables with merged cells, editing built-in template bodies (synced templates are editable), camera/audio/video capture, large media and unsupported playback codecs, interviews/AI/transcription, import/export, maps, translated interface text, badges, reminders, vault deletion/rotation and operator tools. The web app remains available for these. This preview is not full parity or an independently audited secure product.")
+                    Text("Typing across several runs at once (each run is edited separately; formatting can span runs), exact custom media/interview card rendering, editing tables with merged cells, camera/audio/video capture, large media and unsupported playback codecs, interviews/AI/transcription, import/export, maps, translated interface text, badges, reminders, vault deletion/rotation and operator tools. The web app remains available for these. This preview is not full parity or an independently audited secure product.")
                 }
                 Section("Open source") { NavigationLink("Original font licenses") { ChapterFontLicenses() }; Link("Source and AGPL-3.0 license", destination: URL(string: "https://github.com/BubbyWoodz/Chapter")!) }
             }.modifier(ChapterScreenSurface()).navigationTitle(model.t("common.settings"))
@@ -963,10 +963,14 @@ struct TemplatePicker: View {
             }.buttonStyle(.borderless).accessibilityIdentifier("template.use." + target.id).accessibilityHint("Starts a new entry with this template")
             Menu {
                 Button { renaming = target } label: { Label(model.t("common.rename"), systemImage: "pencil") }.accessibilityIdentifier("template.rename")
-                // Web TemplateEditor body editing, for synced templates with a rich body.
-                // (Built-ins would first have to fork into a synced record; not offered yet.)
-                if case .synced(let record) = target, record.body["bodyJson"]?.string != nil {
+                // Web TemplateEditor body editing for synced templates and built-ins.
+                switch target {
+                case .synced(let record) where record.body["bodyJson"]?.string != nil:
                     Button { editingBody = BodyTarget(id: record.id) } label: { Label(model.t("templates.action.edit"), systemImage: "square.and.pencil") }.accessibilityIdentifier("template.edit")
+                case .seed(let seed):
+                    // Forks into a synced template only when the first change is applied.
+                    Button { do { editingBody = BodyTarget(id: try model.prepareSeedEdit(seed).id) } catch { self.error = error.localizedDescription } } label: { Label(model.t("templates.action.edit"), systemImage: "square.and.pencil") }.accessibilityIdentifier("template.edit")
+                default: EmptyView()
                 }
                 Button(role: .destructive) { armedDelete = target } label: { Label(model.t("common.delete"), systemImage: "trash") }.accessibilityIdentifier("template.delete")
             } label: {
@@ -993,7 +997,7 @@ struct TemplatePicker: View {
             }
             .sheet(isPresented: $creating) { TemplateEditor(initialName: "", isNew: true) { name, text in try model.createTemplate(name: name, text: text) } }
             .sheet(item: $editingBody) { target in
-                if let record = model.snapshot.records.first(where: { $0.id == target.id && $0.kind == "template" && !$0.deleted }) { RichEntryEditor(entry: record) }
+                if let record = model.editableRecord(target.id), record.kind == "template" { RichEntryEditor(entry: record) }
             }
             .sheet(item: $renaming) { target in
                 TemplateEditor(initialName: target.storedName, isNew: false) { name, _ in
