@@ -42,6 +42,24 @@ public enum ChapterFilmTimeline {
         let long = JS.min(1280, JS.max(640, JS.round(short * ratio)))
         return landscape ? (even(long), even(short)) : (even(short), even(long))
     }
+    /// `containFit`: a source frame centred and letterboxed in the canonical box. A missing
+    /// (0, -0 or NaN) source dimension falls back to the box's own, as JavaScript's `||` does.
+    public static func containFit(sourceWidth: Double, sourceHeight: Double, width: Double, height: Double)
+        -> (x: Double, y: Double, width: Double, height: Double) {
+        let sw = sourceWidth == 0 || sourceWidth.isNaN ? width : sourceWidth
+        let sh = sourceHeight == 0 || sourceHeight.isNaN ? height : sourceHeight
+        let scale = JS.min(width / sw, height / sh)
+        let dw = JS.round(sw * scale)
+        let dh = JS.round(sh * scale)
+        let x = JS.round((width - dw) / 2)
+        let y = JS.round((height - dh) / 2)
+        return (x, y, dw, dh)
+    }
+    /// `filmBitrate`: the video bitrate for a frame size, clamped to 1–6 Mbit/s.
+    public static func bitrate(width: Double, height: Double, fps: Double = fps) -> Double {
+        let raw: Double = width * height * fps * 0.09
+        return JS.round(JS.min(6_000_000, JS.max(1_000_000, raw)))
+    }
 }
 
 public enum ChapterVideoInterview {

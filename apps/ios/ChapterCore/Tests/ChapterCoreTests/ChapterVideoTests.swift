@@ -63,6 +63,18 @@ final class ChapterVideoTests: XCTestCase {
             let r = ChapterFilmTimeline.canonicalSize(displayWidth: try n(s.get("w")), displayHeight: try n(s.get("h")))
             XCTAssertEqual(JSValue.object([("width", e(r.width)), ("height", e(r.height))]), s.get("out"), "size \(s.stringify())")
         }
+        XCTAssertEqual(items(f.get("fits")).count, 200)
+        for c in items(f.get("fits")) {
+            let r = ChapterFilmTimeline.containFit(sourceWidth: try n(c.get("sw")), sourceHeight: try n(c.get("sh")), width: try n(c.get("w")), height: try n(c.get("h")))
+            let got = JSValue.object([("x", e(r.x)), ("y", e(r.y)), ("width", e(r.width)), ("height", e(r.height))])
+            XCTAssertEqual(got, c.get("out"), "fit \(c.stringify())")
+        }
+        XCTAssertEqual(items(f.get("bitrates")).count, 16)
+        for c in items(f.get("bitrates")) {
+            let w = try n(c.get("w")), h = try n(c.get("h"))
+            let r = c.get("fps") == .null ? ChapterFilmTimeline.bitrate(width: w, height: h) : ChapterFilmTimeline.bitrate(width: w, height: h, fps: try n(c.get("fps")))
+            XCTAssertEqual(e(r), c.get("out"), "bitrate \(c.stringify())")
+        }
     }
 
     func testSessionCoercionAndRulesMatchTheWeb() throws {

@@ -4,7 +4,7 @@
 // real web functions, including JavaScript's loose edge cases (Number(), spread, NaN in Math.max).
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { planTimeline, estimateSeconds, canonicalSize, CARD_SECONDS, FILM_FPS } from '../src/video/timeline';
+import { planTimeline, estimateSeconds, canonicalSize, containFit, filmBitrate, CARD_SECONDS, FILM_FPS } from '../src/video/timeline';
 import {
   coerceVideoInterview, isAnswered, videoInterviewAttachments, isFilmStale, setTranscriptAttr, setFilmAttr,
 } from '../src/editor/videointerviewData';
@@ -24,6 +24,19 @@ const timelines: [number[], number, number][] = [
 const sizes: [number, number][] = [
   [1920, 1080], [1080, 1920], [720, 720], [640, 480], [480, 640], [4000, 100], [100, 4000], [641, 481], [1281, 721],
   [0, 0], [5, 0], [0, 5], [-1920, 1080], [1920, -1080], [NaN, 100], [3, 2], [2, 3], [1080.5, 1920.25], [1e9, 1], [1, 1e9],
+];
+
+// Source frames contain-fitted into canonical boxes (worker and realtime paths), including the
+// missing-dimension fallback (0, -0, NaN) and the half-pixel rounding of the centring offsets.
+const boxes: [number, number][] = [[1280, 720], [720, 1280], [720, 720], [640, 720], [1278, 720], [2, 2], [641, 361], [720, 0]];
+const sources: [number, number][] = [
+  [1920, 1080], [1080, 1920], [1280, 720], [720, 1280], [640, 480], [481, 641], [4000, 100], [100, 4000], [1, 1], [3, 1], [1, 3],
+  [0, 0], [0, 1080], [1920, 0], [-0, 5], [NaN, 720], [720, NaN], [-1920, 1080], [1920, -1080], [Infinity, 720], [1e-9, 1], [1279, 721], [1281, 719], [1, -2], [-2, 1],
+];
+const fits = boxes.flatMap(([bw, bh]) => sources.map(([sw, sh]) => [sw, sh, bw, bh] as [number, number, number, number]));
+const bitrates: [number, number, number | undefined][] = [
+  [1280, 720, undefined], [720, 1280, undefined], [720, 720, undefined], [640, 720, undefined], [2, 2, undefined], [1280, 720, 60],
+  [1280, 720, 24], [1920, 1080, 30], [0, 0, 30], [NaN, 720, 30], [1280, 720, NaN], [10000, 10000, 30], [400, 400, 30], [585, 633, 30], [1280.5, 720, 30], [1001, 601, 30],
 ];
 
 const clip = (o: Record<string, unknown> = {}): Record<string, unknown> => ({ id: 'c1', kind: 'video', mime: 'video/mp4', bytes: 1200, durationMs: 4200, width: 1080, height: 1920, createdAt: 1767225600000, ...o });
@@ -81,6 +94,8 @@ function build(): unknown {
     constants: { cardSeconds: CARD_SECONDS, fps: FILM_FPS },
     timelines: timelines.map(([d, fps, card]) => ({ durations: d, fps, card, out: planTimeline(d, fps, card), estimate: estimateSeconds(d, card) })),
     sizes: sizes.map(([w, h]) => ({ w, h, out: canonicalSize(w, h) })),
+    fits: fits.map(([sw, sh, w, h]) => ({ sw, sh, w, h, out: containFit(sw, sh, w, h) })),
+    bitrates: bitrates.map(([w, h, fps]) => ({ w, h, fps: fps ?? null, out: fps === undefined ? filmBitrate(w, h) : filmBitrate(w, h, fps) })),
     coerce: coerceCases.map((attrs) => {
       const out = tryIt(() => coerceVideoInterview(attrs as Record<string, unknown>));
       const derived = out && !('throws' in out)
@@ -99,5 +114,5 @@ export function verifyVideo(write: boolean): void {
   const url = new URL('../../ios/ChapterCore/Tests/ChapterCoreTests/Fixtures/video-interview.json', import.meta.url);
   if (write) writeFileSync(url, JSON.stringify(fixture, null, 1) + '\n');
   else assert.deepEqual(JSON.parse(readFileSync(url, 'utf8')), fixture, 'Native video vectors must equal the web video/timeline and video-interview data code');
-  console.log(`Native video vectors equal the web (${timelines.length} timelines, ${sizes.length} sizes, ${coerceCases.length} sessions, ${transcriptCalls.length + filmCalls.length} write-backs).`);
+  console.log(`Native video vectors equal the web (${timelines.length} timelines, ${sizes.length} sizes, ${fits.length} fits, ${bitrates.length} bitrates, ${coerceCases.length} sessions, ${transcriptCalls.length + filmCalls.length} write-backs).`);
 }

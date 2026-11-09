@@ -72,3 +72,27 @@ export function canonicalSize(displayWidth: number, displayHeight: number): { wi
   const long = Math.min(1280, Math.max(640, Math.round(short * ratio)));
   return landscape ? { width: even(long), height: even(short) } : { width: even(short), height: even(long) };
 }
+
+/**
+ * Contain-fit a source frame of `sourceWidth`×`sourceHeight` into the canonical
+ * box, centred and letterboxed on black. A missing (0/NaN) source dimension
+ * falls back to the box's own.
+ */
+export function containFit(
+  sourceWidth: number,
+  sourceHeight: number,
+  width: number,
+  height: number,
+): { x: number; y: number; width: number; height: number } {
+  const sw = sourceWidth || width;
+  const sh = sourceHeight || height;
+  const scale = Math.min(width / sw, height / sh);
+  const dw = Math.round(sw * scale);
+  const dh = Math.round(sh * scale);
+  return { x: Math.round((width - dw) / 2), y: Math.round((height - dh) / 2), width: dw, height: dh };
+}
+
+/** The film's video bitrate for a canonical frame size, clamped to 1–6 Mbit/s. */
+export function filmBitrate(width: number, height: number, fps: number = FILM_FPS): number {
+  return Math.round(Math.min(6_000_000, Math.max(1_000_000, width * height * fps * 0.09)));
+}

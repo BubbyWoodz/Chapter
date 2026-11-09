@@ -17,7 +17,7 @@ import { renderTitleCard } from './cards';
 import type { FilmJob, FilmResult, RenderProgress } from './film';
 import { RenderCanceled } from './film';
 import { pickMimeType } from '../ui/recorder';
-import { canonicalSize } from './timeline';
+import { canonicalSize, containFit } from './timeline';
 
 /** Read one clip's natural size and duration without decoding it fully. */
 function probeClip(blob: Blob): Promise<{ width: number; height: number; durationMs: number }> {
@@ -168,12 +168,10 @@ export function renderRealtime(
             el.onended = () => resolve();
             const draw = (): void => {
               if (el.ended || canceled) return;
-              const scale = Math.min(width / (el.videoWidth || width), height / (el.videoHeight || height));
-              const dw = Math.round((el.videoWidth || width) * scale);
-              const dh = Math.round((el.videoHeight || height) * scale);
+              const fit = containFit(el.videoWidth, el.videoHeight, width, height);
               ctx.fillStyle = '#000';
               ctx.fillRect(0, 0, width, height);
-              ctx.drawImage(el, Math.round((width - dw) / 2), Math.round((height - dh) / 2), dw, dh);
+              ctx.drawImage(el, fit.x, fit.y, fit.width, fit.height);
               tick('encode');
               requestAnimationFrame(draw);
             };
