@@ -709,11 +709,12 @@ struct LinkedEntryDestination:View {
     var body:some View {
         if let downloaded,!downloaded.deleted {EntryDetail(entryID:entryID)}
         else {
-            VStack(alignment:.leading,spacing:16) {
+            ScrollView {VStack(alignment:.leading,spacing:16) {
                 Label(downloaded?.deleted == true ? "Linked entry is deleted":"Linked entry is not downloaded",systemImage:"link").font(.title2).accessibilityAddTraits(.isHeader)
                 Text(downloaded?.deleted == true ? "Look in Settings for a retained recovery copy. Opening a link never silently restores or overwrites writing.":"The original link is preserved. Sync your own server to download available entries; offline links only open entries already on this device.")
                 if model.canSync {Button {Task{await model.sync()}} label:{if model.syncing {ProgressView("Syncing your server")} else {Text("Sync your server")}}.disabled(model.syncing)}
-            }.padding().frame(maxWidth:.infinity,alignment:.leading).modifier(ChapterScreenSurface()).navigationTitle("Linked entry").accessibilityIdentifier("entry.link-unavailable")
+            }.padding().frame(maxWidth:.infinity,alignment:.leading).accessibilityIdentifier("entry.link-unavailable")}
+                .frame(maxWidth:.infinity,maxHeight:.infinity).modifier(ChapterScreenSurface()).navigationTitle("Linked entry")
         }
     }
 }

@@ -439,7 +439,7 @@ struct EntryDetail: View {
                             if !(model.snapshot.mediaUploads ?? []).isEmpty { Text("Attachments waiting to upload: \(model.snapshot.mediaUploads?.count ?? 0). Their entry references are not sent until upload completes.").font(.footnote) }
                         }
                         if let mediaError { Text(mediaError).font(.footnote).foregroundStyle(.red).accessibilityIdentifier("media.error") }
-                        if !entry.editablePlainText { Text("Rich structure is preserved. Native editing supports formatted runs, adding text blocks, and inserting links or templates at the cursor. Formatting a selected range, existing block restructuring and custom-node editing remain incomplete.").font(.footnote).foregroundStyle(.secondary) }
+                        if !entry.editablePlainText { Text("Rich structure is preserved. Native editing supports formatted runs, formatting a selection, adding and arranging whole blocks, simple table editing, and inserting links or templates at the cursor. Restructuring inside a block and custom-node editing remain incomplete.").font(.footnote).foregroundStyle(.secondary) }
                     }.padding().frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .toolbar {
@@ -838,7 +838,7 @@ struct SettingsView: View {
                     Button("Lock vault", role: .destructive) { model.lock() }
                 }
                 Section("Not yet implemented") {
-                    Text("Typing across several runs at once (each run is edited separately; formatting can span runs), exact custom media/interview card rendering, editing tables with merged cells, camera/audio/video capture, large media and unsupported playback codecs, interviews/AI/transcription, import/export, maps, translated interface text, badges, reminders, vault deletion/rotation and operator tools. The web app remains available for these. This preview is not full parity or an independently audited secure product.")
+                    Text("Typing across several runs at once (each run is edited separately; formatting can span runs), exact custom media/interview card rendering, editing tables with merged cells, camera/audio/video capture, large media and unsupported playback codecs, interviews, AI and transcription, maps, reminders, translating every screen (some text is still English), vault deletion/rotation and operator tools. The web app remains available for these. This preview is not full parity or an independently audited secure product.")
                 }
                 Section("Open source") { NavigationLink("Original font licenses") { ChapterFontLicenses() }; Link("Source and AGPL-3.0 license", destination: URL(string: "https://github.com/BubbyWoodz/Chapter")!) }
             }.modifier(ChapterScreenSurface()).navigationTitle(model.t("common.settings"))
