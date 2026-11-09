@@ -32,4 +32,47 @@ public enum EntryTemplates {
         if let json = template.body["bodyJson"]?.string { body["bodyJson"] = .string(json) }
         return VaultRecord(id: id, clock: clock, body: body, dirty: true)
     }
+    /// Web TemplateEditorView save: `name.trim() || t('templates.untitled')`.
+    public static func savedName(_ input: String) -> String {
+        let value = input.trimmingCharacters(in: EntryLinkAuthoring.ecmaWhitespace)
+        return value.isEmpty ? "Untitled template" : value
+    }
+    /// Original web `createTemplate`: kind/name/bodyText/bodyJson/createdAt/updatedAt.
+    /// An untouched body keeps bodyJson absent and bodyText "" (web `json || undefined`).
+    /// Native body authoring is plain paragraphs; rich template bodies stay web-authored.
+    public static func newTemplate(name: String, text: String, id: String, clock: Int64) throws -> VaultRecord {
+        guard !id.isEmpty, text.utf8.count <= 1_000_000 else { throw ChapterError.unsupported }
+        try ProtocolNumbers.validate(clock)
+        let now = Double(clock)
+        var body: [String: JSONValue] = ["kind": .string("template"), "name": .string(savedName(name)), "bodyText": .string(""), "createdAt": .number(now), "updatedAt": .number(now)]
+        if !text.isEmpty {
+            let json = try VaultRecord.plainDocument(text)
+            body["bodyJson"] = .string(json); body["bodyText"] = .string(try RichDocument(json: json).plainText)
+        }
+        return VaultRecord(id: id, clock: clock, body: body, dirty: true)
+    }
+}
+
+public extension VaultRecord {
+    /// Web `updateTemplate(id,{name})` through mutateSeeded: only the name and
+    /// updatedAt change; body bytes, builtin slug and unknown fields are kept.
+    func renamingTemplate(expected: VaultRecord, name: String, now: Date = Date()) throws -> VaultRecord {
+        guard kind == "template", !deleted else { throw ChapterError.unsupported }
+        try requiringUnchanged(expected: expected)
+        var copy = self; copy.body["name"] = .string(EntryTemplates.savedName(name))
+        guard !copy.hasSamePayload(as: self) else { return self }
+        copy.clock = try ProtocolNumbers.nextClock(after: clock, now: now)
+        copy.body["updatedAt"] = .number(Double(copy.clock)); copy.dirty = true
+        return copy
+    }
+    /// Web `deleteTemplate`: a synced tombstone (built-ins included) so the
+    /// deletion reaches other devices; every other field is retained.
+    func deletingTemplate(expected: VaultRecord, now: Date = Date()) throws -> VaultRecord {
+        guard kind == "template", !deleted else { throw ChapterError.unsupported }
+        try requiringUnchanged(expected: expected)
+        var copy = self; copy.deleted = true; copy.dirty = true
+        copy.clock = try ProtocolNumbers.nextClock(after: clock, now: now)
+        copy.body["updatedAt"] = .number(Double(copy.clock))
+        return copy
+    }
 }

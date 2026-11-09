@@ -107,6 +107,13 @@ export function verifyRichFixture(write: boolean, identity: {dataKey:Uint8Array}
   assert.deepEqual(docEntryLinks(linkedDoc),[...docEntryLinks(original as JSONContent),'entry-target-2']);
   assert.equal(inserted.bodyText,docToText(linkedDoc),'Native preview/search text must equal the original web docToText');
   console.log('Native link authoring equals the original web [[ insertion node, schema, collector and preview.');
+  const template = JSON.parse(readFileSync(nativePath+'.template-authoring','utf8')) as Record<string,unknown>;
+  assert.deepEqual(Object.keys(template).sort(),['bodyJson','bodyText','createdAt','kind','name','updatedAt'],'Native template must carry exactly the original templateCodec fields');
+  assert.equal(template.kind,'template');assert.equal(template.name,'Morning pages');assert.equal(template.createdAt,template.updatedAt);
+  const templateDoc = JSON.parse(template.bodyJson as string) as JSONContent;
+  webSchema.nodeFromJSON(templateDoc).check();
+  assert.equal(template.bodyText,docToText(templateDoc),'Native template preview text must equal the original web docToText');
+  console.log('Native template creation equals the original web createTemplate fields, schema and preview text.');
   const arranged = JSON.parse(readFileSync(nativePath+'.rich-structure','utf8')) as {id:string;record:string};
   const arrangedBody = JSON.parse(Buffer.from(decryptRecord(identity.dataKey,arranged.id,Buffer.from(arranged.record,'base64'))).toString());
   assert.deepEqual(JSON.parse(arrangedBody.bodyJson),reordered,'Native block move lost, flattened or rewrote an original/opaque block');

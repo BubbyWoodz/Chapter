@@ -180,7 +180,7 @@ struct EntryList: View {
         .refreshable { await model.sync() }
         .toolbar {
             ToolbarItem(placement:.topBarTrailing) { Button { compose=true } label: { Label("New entry",systemImage:"square.and.pencil") } }
-            if !model.templates.isEmpty && !model.journals.isEmpty {
+            if !model.journals.isEmpty {
                 ToolbarItem(placement:.topBarTrailing) { Button { templating=true } label: { Label("New from template",systemImage:"doc.on.doc") }.accessibilityIdentifier("journal.fromTemplate") }
             }
         }
@@ -837,6 +837,9 @@ struct TemplatePicker: View {
     @Environment(\.dismiss) private var dismiss
     @State private var journal: String
     @State private var error: String?
+    @State private var creating = false
+    @State private var renaming: VaultRecord?
+    @State private var armedDelete: VaultRecord?
     let onCreate: (String) -> Void
     init(journal: String, onCreate: @escaping (String) -> Void) { _journal = State(initialValue: journal); self.onCreate = onCreate }
     var body: some View {
@@ -844,23 +847,75 @@ struct TemplatePicker: View {
             Form {
                 Picker("Notebook", selection: $journal) { ForEach(model.journals) { Text($0.title).tag($0.journalID) } }.accessibilityIdentifier("template.notebook")
                 Section {
+                    if model.templates.isEmpty { Text("No templates yet. Create one to start entries with the same prompts.").foregroundStyle(.secondary).accessibilityIdentifier("template.empty") }
                     ForEach(model.templates) { template in
-                        Button {
-                            do { let entry = try model.newEntryFromTemplate(template, journalID: journal); dismiss(); onCreate(entry.id) } catch { self.error = error.localizedDescription }
-                        } label: {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(EntryTemplates.name(template)).font(.headline)
-                                let preview = template.body["bodyText"]?.string ?? ""
-                                if !preview.isEmpty { Text(preview).font(.footnote).foregroundStyle(.secondary).lineLimit(3) }
-                            }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                        }.accessibilityIdentifier("template.use." + template.id).accessibilityHint("Starts a new entry with this template")
+                        HStack(alignment: .top, spacing: 8) {
+                            Button {
+                                do { let entry = try model.newEntryFromTemplate(template, journalID: journal); dismiss(); onCreate(entry.id) } catch { self.error = error.localizedDescription }
+                            } label: {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(EntryTemplates.name(template)).font(.headline)
+                                    let preview = template.body["bodyText"]?.string ?? ""
+                                    if !preview.isEmpty { Text(preview).font(.footnote).foregroundStyle(.secondary).lineLimit(3) }
+                                }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                            }.buttonStyle(.borderless).accessibilityIdentifier("template.use." + template.id).accessibilityHint("Starts a new entry with this template")
+                            Menu {
+                                Button { renaming = template } label: { Label("Rename", systemImage: "pencil") }.accessibilityIdentifier("template.rename")
+                                Button(role: .destructive) { armedDelete = template } label: { Label("Delete", systemImage: "trash") }.accessibilityIdentifier("template.delete")
+                            } label: {
+                                Image(systemName: "ellipsis.circle").imageScale(.large).frame(minWidth: 44, minHeight: 44)
+                            }.buttonStyle(.borderless).accessibilityLabel("Template actions for " + EntryTemplates.name(template)).accessibilityIdentifier("template.actions." + template.id)
+                        }
                     }
                 } header: { Text("Templates") } footer: {
-                    Text("Starts a new entry with the template's exact content, like the web app. Templates synced from your server are listed; built-in templates appear here after you edit them on the web.").font(.footnote)
+                    Text("Starts a new entry with the template's exact content, like the web app. Templates synced from your server are listed; built-in templates appear here after you edit them on the web. New templates made here have plain paragraphs; edit rich template content on the web.").font(.footnote)
                 }
                 if let error { Text(error).foregroundStyle(.red).accessibilityIdentifier("template.error") }
             }.modifier(ChapterScreenSurface()).navigationTitle("Start from template").navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .primaryAction) { Button { creating = true } label: { Label("New template", systemImage: "plus") }.accessibilityIdentifier("template.new") }
+            }
+            .sheet(isPresented: $creating) { TemplateEditor(template: nil) }
+            .sheet(item: $renaming) { TemplateEditor(template: $0) }
+            .confirmationDialog("Delete this template?", isPresented: Binding(get: { armedDelete != nil }, set: { if !$0 { armedDelete = nil } }), titleVisibility: .visible, presenting: armedDelete) { template in
+                Button("Delete template", role: .destructive) {
+                    do { try model.deleteTemplate(template); error = nil } catch { self.error = "Template changed or could not be deleted. " + error.localizedDescription }
+                }.accessibilityIdentifier("template.confirmDelete")
+            } message: { template in Text("“\(EntryTemplates.name(template))” is removed on every synced device. Entries already started from it are not changed.") }
+        }
+    }
+}
+/// Original web TemplateEditorView: name (blank saves as "Untitled template")
+/// and, for a new template, a plain body. Renaming keeps the stored body bytes.
+struct TemplateEditor: View {
+    @EnvironmentObject private var model: VaultModel
+    @Environment(\.dismiss) private var dismiss
+    let template: VaultRecord?
+    @State private var name: String
+    @State private var text = ""
+    @State private var error: String?
+    init(template: VaultRecord?) { self.template = template; _name = State(initialValue: template?.body["name"]?.string ?? "") }
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Name") { TextField("Template name", text: $name).accessibilityIdentifier("template.name") }
+                if template == nil {
+                    Section { TextField("Prompts or starting text", text: $text, axis: .vertical).lineLimit(4...12).accessibilityIdentifier("template.body") } header: { Text("Body") } footer: { Text("Each line becomes a paragraph.") }
+                }
+                if let error { Text(error).foregroundStyle(.red).accessibilityIdentifier("template.editorError") }
+            }.modifier(ChapterScreenSurface()).navigationTitle(template == nil ? "New template" : "Rename template").navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        do {
+                            if let template { try model.renameTemplate(template, name: name) } else { try model.createTemplate(name: name, text: text) }
+                            dismiss()
+                        } catch { self.error = "Template was not saved. " + error.localizedDescription }
+                    }.accessibilityIdentifier("template.save")
+                }
+            }
         }
     }
 }

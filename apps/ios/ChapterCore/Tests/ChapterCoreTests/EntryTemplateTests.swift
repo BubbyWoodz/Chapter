@@ -31,4 +31,33 @@ final class EntryTemplateTests: XCTestCase {
         XCTAssertThrowsError(try EntryTemplates.newEntry(from: VaultRecord(id: "t", clock: 1, body: bad), journalID: "j", id: "n", clock: 1))
         XCTAssertThrowsError(try EntryTemplates.newEntry(from: VaultRecord(id: "t", clock: 1, body: ok), journalID: "", id: "n", clock: 1))
     }
+    func testCreateRenameDeleteMatchOriginalWebTemplateManager() throws {
+        let created = try EntryTemplates.newTemplate(name: "\u{00A0} Morning pages\u{3000}", text: "Gratitude\n\nCafe\u{0301} plan", id: "tpl-new", clock: 1773536400000)
+        XCTAssertEqual(created.kind, "template"); XCTAssertTrue(created.dirty); XCTAssertFalse(created.deleted)
+        XCTAssertEqual(created.body["name"]?.string, "Morning pages", "ECMAScript trim like name.trim()")
+        XCTAssertEqual(Set(created.body.keys), ["kind", "name", "bodyText", "bodyJson", "createdAt", "updatedAt"], "Exactly the original templateCodec fields; builtin stays absent")
+        XCTAssertEqual(created.body["createdAt"], .number(1773536400000)); XCTAssertEqual(created.body["updatedAt"], .number(1773536400000))
+        XCTAssertEqual(Data(created.body["bodyText"]!.string!.utf8), Data(try RichDocument(json: created.body["bodyJson"]!.string!).plainText.utf8))
+        if let output = ProcessInfo.processInfo.environment["CHAPTER_NATIVE_OUTPUT"] { try JSONEncoder().encode(created.body).write(to: URL(fileURLWithPath: output + ".template-authoring")) }
+        let untouched = try EntryTemplates.newTemplate(name: "  ", text: "", id: "tpl-empty", clock: 5)
+        XCTAssertEqual(untouched.body["name"]?.string, "Untitled template"); XCTAssertNil(untouched.body["bodyJson"]); XCTAssertEqual(untouched.body["bodyText"]?.string, "")
+        XCTAssertThrowsError(try EntryTemplates.newTemplate(name: "x", text: "", id: "", clock: 5))
+        // Synced built-in with odd JSON spacing, NFD text and an unknown field: rename keeps every byte but the name.
+        let json = "{\"type\": \"doc\",\"content\":[{\"type\":\"futureNode\"}]}"
+        let synced = VaultRecord(id: "tpl", clock: 10, body: ["kind": .string("template"), "name": .string("Weekly"), "bodyJson": .string(json), "bodyText": .string("Cafe\u{0301}"), "builtin": .string("weekly"), "future": .object(["keep": .bool(true)]), "createdAt": .number(1), "updatedAt": .number(10)])
+        let renamed = try synced.renamingTemplate(expected: synced, name: " Weekly review ", now: Date(timeIntervalSince1970: 1773536400))
+        XCTAssertEqual(renamed.body["name"]?.string, "Weekly review"); XCTAssertEqual(renamed.clock, 1773536400000); XCTAssertEqual(renamed.body["updatedAt"], .number(1773536400000)); XCTAssertTrue(renamed.dirty)
+        for key in ["bodyJson", "bodyText", "builtin", "future", "createdAt"] { XCTAssertEqual(renamed.body[key], synced.body[key], key) }
+        XCTAssertEqual(Data(renamed.body["bodyText"]!.string!.utf8), Data("Cafe\u{0301}".utf8))
+        XCTAssertEqual(try synced.renamingTemplate(expected: synced, name: "Weekly"), synced, "No-op rename must not advance the clock")
+        XCTAssertEqual(try synced.renamingTemplate(expected: synced, name: ""), try synced.renamingTemplate(expected: synced, name: "Untitled template"))
+        var stale = synced; stale.body["name"] = .string("Other device")
+        XCTAssertThrowsError(try stale.renamingTemplate(expected: synced, name: "x"), "Stale editor value must refuse, not overwrite")
+        let deleted = try synced.deletingTemplate(expected: synced, now: Date(timeIntervalSince1970: 1773536400))
+        XCTAssertTrue(deleted.deleted); XCTAssertTrue(deleted.dirty); XCTAssertEqual(deleted.clock, 1773536400000)
+        for key in ["name", "bodyJson", "bodyText", "builtin", "future", "createdAt"] { XCTAssertEqual(deleted.body[key], synced.body[key], key) }
+        XCTAssertThrowsError(try deleted.deletingTemplate(expected: deleted)); XCTAssertThrowsError(try deleted.renamingTemplate(expected: deleted, name: "x"))
+        let entry = VaultRecord(id: "e", clock: 1, body: ["title": .string("x")])
+        XCTAssertThrowsError(try entry.deletingTemplate(expected: entry)); XCTAssertThrowsError(try entry.renamingTemplate(expected: entry, name: "x"))
+    }
 }

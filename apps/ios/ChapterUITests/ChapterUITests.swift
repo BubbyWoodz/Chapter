@@ -178,6 +178,31 @@ final class ChapterUITests: XCTestCase {
         let header=app.descendants(matching:.any)["table.cell.0.0"];reveal(header,in:app);XCTAssertTrue(header.label.hasPrefix("Header, row 1, column 1"))
         attach(app,name:"Actual native entry started from a template, including its table")
     }
+    func testNativeTemplateCreateRenameAndDeleteLikeOriginalManager() throws {
+        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture","--chapter-template-fixture"];app.launch()
+        let start=app.buttons["journal.fromTemplate"];XCTAssertTrue(start.waitForExistence(timeout:10));start.tap()
+        app.buttons["template.new"].tap()
+        let name=app.textFields["template.name"];XCTAssertTrue(name.waitForExistence(timeout:5));name.tap();name.typeText("  Morning pages  ")
+        let body=app.textFields["template.body"];body.tap();body.typeText("Gratitude\nOne intention")
+        attach(app,name:"Actual native new-template editor")
+        app.buttons["template.save"].tap()
+        let created=app.buttons.matching(NSPredicate(format:"identifier BEGINSWITH 'template.use.' AND label CONTAINS 'Morning pages'")).firstMatch
+        XCTAssertTrue(created.waitForExistence(timeout:5),"Trimmed name like the web save");XCTAssertTrue(created.label.contains("Gratitude"))
+        let synced=app.buttons["template.actions.public-template"];XCTAssertTrue(synced.exists);synced.tap()
+        app.buttons["template.rename"].tap()
+        let rename=app.textFields["template.name"];XCTAssertTrue(rename.waitForExistence(timeout:5));XCTAssertEqual(rename.value as? String,"Public weekly template")
+        rename.tap();rename.typeText(" RENAMED");app.buttons["template.save"].tap()
+        let renamed=app.buttons["template.use.public-template"];XCTAssertTrue(renamed.waitForExistence(timeout:5))
+        XCTAssertTrue(NSPredicate(format:"label CONTAINS 'Public weekly template RENAMED'").evaluate(with:renamed),"Renamed: \(renamed.label)")
+        XCTAssertTrue(renamed.label.contains("Public template heading"),"Rename keeps the stored body")
+        app.buttons["template.actions.public-template"].tap();app.buttons["template.delete"].tap()
+        let confirm=app.buttons["template.confirmDelete"];XCTAssertTrue(confirm.waitForExistence(timeout:5));confirm.tap()
+        XCTAssertTrue(app.buttons["template.use.public-template"].waitForNonExistence(timeout:5))
+        XCTAssertTrue(created.exists);XCTAssertFalse(app.staticTexts["template.error"].exists)
+        attach(app,name:"Actual native template manager after rename and delete")
+        created.tap()
+        XCTAssertTrue(app.staticTexts["One intention"].waitForExistence(timeout:5),"A native-created template starts an entry with its content")
+    }
     func testNativeRichRenderingEditingAndTaskPersistence() throws {
         let app = XCUIApplication(); app.launchArguments = ["--chapter-rich-fixture"]; app.launch()
         let entry = app.staticTexts["Public rich fixture"]

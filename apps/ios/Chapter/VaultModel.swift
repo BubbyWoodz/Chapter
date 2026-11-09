@@ -282,6 +282,28 @@ import ChapterCore
         var next = snapshot; next.records.append(entry)
         try commit(next); scheduleSync(); return entry
     }
+    /// Original web template manager: create / rename / tombstone, synced like any record.
+    @discardableResult func createTemplate(name: String, text: String) throws -> VaultRecord {
+        guard unlocked else { throw ChapterError.storage }
+        let record = try EntryTemplates.newTemplate(name: name, text: text, id: UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased(), clock: try nextClock())
+        var next = snapshot; next.records.append(record)
+        try commit(next); scheduleSync(); return record
+    }
+    func renameTemplate(_ expected: VaultRecord, name: String) throws {
+        guard unlocked else { throw ChapterError.storage }
+        var next = snapshot
+        guard let i = next.records.firstIndex(where: { $0.id.utf8.elementsEqual(expected.id.utf8) }) else { throw ChapterError.conflict }
+        let edited = try next.records[i].renamingTemplate(expected: expected, name: name)
+        guard edited != next.records[i] else { return }
+        next.records[i] = edited; try commit(next); scheduleSync()
+    }
+    func deleteTemplate(_ expected: VaultRecord) throws {
+        guard unlocked else { throw ChapterError.storage }
+        var next = snapshot
+        guard let i = next.records.firstIndex(where: { $0.id.utf8.elementsEqual(expected.id.utf8) }) else { throw ChapterError.conflict }
+        next.records[i] = try next.records[i].deletingTemplate(expected: expected)
+        try commit(next); scheduleSync()
+    }
     func toggleRichTask(_ entry: VaultRecord, path: [Int]) throws {
         var next = snapshot
         guard let raw = entry.body["bodyJson"]?.string, let i = next.records.firstIndex(where: { $0.id == entry.id }) else { throw ChapterError.conflict }

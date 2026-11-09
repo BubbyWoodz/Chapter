@@ -72,6 +72,15 @@ the exact revision; a failing strict accessibility audit remains a release block
   is treated as unproven until it passes again. No audit is waived; re-verification pending.
 
 <!-- Times are commit times in America/Los_Angeles; earlier labels this night ran ahead of the clock and were corrected. -->
+## Native template manager: create, rename, delete — November 9, 2026, 1:16 AM PST
+
+Mirrors the original web TemplatesSheet / TemplateEditorView / createTemplate / updateTemplate / deleteTemplate:
+- **Create:** name saved as ECMAScript `trim()` or "Untitled template". The record has exactly the original `templateCodec` fields (kind, name, bodyText, bodyJson, createdAt = updatedAt); `builtin` stays absent. An untouched body keeps bodyJson absent and bodyText "" (web `json || undefined`). The native body is plain paragraphs; rich template bodies are still edited on the web.
+- **Rename:** only `name` and `updatedAt` and the clock change. Body bytes, the builtin slug and unknown future fields are preserved. A stale editor value is refused; a no-op rename does not advance the clock.
+- **Delete:** a synced tombstone keeping every field, with a confirmation step like the web's armed delete. Entries already started from the template are unaffected.
+- **UI:** "Start from template" (now shown whenever a notebook exists) gains New template, plus a per-row actions menu with Rename and Delete.
+- **Evidence:** 34 local Foundation tests pass; 4/4 deliberate mutations caught (no trim, no stale check, no-op advancing the clock, tombstone wiping the body). The vectors script verifies the native template against the real web schema and `docToText`, and passed locally on the native output. Apple UI test `testNativeTemplateCreateRenameAndDeleteLikeOriginalManager` is pending.
+
 ## Connection-screen Dynamic Type fix; bisection removed — November 9, 2026, 1:10 AM PST
 
 Apple run 42588998288 (ada486d) results:
