@@ -41,6 +41,11 @@ import ChapterCore
         if ProcessInfo.processInfo.arguments.contains("--chapter-linked-entry-fixture") {
             value.records.append(VaultRecord(id:"entry-target",clock:2,body:["title":.string("Public linked target"),"bodyJson":.string(try VaultRecord.plainDocument("Real local linked-entry navigation")),"bodyText":.string("Real local linked-entry navigation")]))
         }
+        if ProcessInfo.processInfo.arguments.contains("--chapter-template-fixture") {
+            // PUBLIC synced template shape (kind "template"), like a web user template.
+            let json = #"{"type":"doc","content":[{"type":"heading","attrs":{"level":2},"content":[{"type":"text","text":"Public template heading"}]},{"type":"paragraph","content":[{"type":"text","text":"Public template prompt"}]},{"type":"table","content":[{"type":"tableRow","content":[{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"Public column"}]}]},{"type":"tableHeader","content":[{"type":"paragraph","content":[{"type":"text","text":"Public value"}]}]}]},{"type":"tableRow","content":[{"type":"tableCell","content":[{"type":"paragraph"}]},{"type":"tableCell","content":[{"type":"paragraph"}]}]}]}]}"#
+            value.records.append(VaultRecord(id:"public-template",clock:3,body:["kind":.string("template"),"name":.string("Public weekly template"),"bodyJson":.string(json),"bodyText":.string(try RichDocument(json:json).plainText),"createdAt":.number(1),"updatedAt":.number(3)]))
+        }
         if ProcessInfo.processInfo.arguments.contains("--chapter-media-fixture") {
             // PUBLIC test identity only; real original crypto and protected local
             // media staging, with NO relay, HTTP fixture or fake server success.
@@ -266,6 +271,16 @@ import ChapterCore
               let target = next.records.first(where: { $0.kind == "entry" && !$0.deleted && $0.id.utf8.elementsEqual(targetID.utf8) }) else { throw ChapterError.conflict }
         next.records[i] = try next.records[i].addingEntryLink(to: target, expected: raw)
         try commit(next); scheduleSync()
+    }
+    /// Original web "Use template": a new entry carrying the template's exact
+    /// stored bodyJson/bodyText. Uses the live template, never a stale copy.
+    func newEntryFromTemplate(_ template: VaultRecord, journalID: String) throws -> VaultRecord {
+        guard unlocked else { throw ChapterError.storage }
+        guard journals.contains(where: { $0.journalID == journalID }),
+              let live = snapshot.records.first(where: { $0.id.utf8.elementsEqual(template.id.utf8) && $0.kind == "template" && !$0.deleted }) else { throw ChapterError.conflict }
+        let entry = try EntryTemplates.newEntry(from: live, journalID: journalID, id: UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased(), clock: try nextClock())
+        var next = snapshot; next.records.append(entry)
+        try commit(next); scheduleSync(); return entry
     }
     func toggleRichTask(_ entry: VaultRecord, path: [Int]) throws {
         var next = snapshot

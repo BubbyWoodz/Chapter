@@ -156,6 +156,19 @@ final class ChapterUITests: XCTestCase {
         XCTAssertEqual(header.frame.width,160,accuracy:1.5,"Original TipTap colwidth must be honored")
         attach(app,name:"Actual native original table with exact merged grid")
     }
+    func testSyncedTemplateStartsNewEntryWithExactContentAndOriginalDefaultTitle() throws {
+        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture","--chapter-template-fixture"];app.launch()
+        let start=app.buttons["journal.fromTemplate"];XCTAssertTrue(start.waitForExistence(timeout:10));start.tap()
+        XCTAssertTrue(app.navigationBars["Start from template"].waitForExistence(timeout:5))
+        let use=app.buttons["template.use.public-template"];XCTAssertTrue(use.waitForExistence(timeout:5));XCTAssertTrue(use.label.contains("Public weekly template"))
+        attach(app,name:"Actual native template picker with synced template preview")
+        use.tap()
+        XCTAssertTrue(app.staticTexts["Public template heading"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["Public template prompt"].exists)
+        let title=app.staticTexts["entry.title"].label
+        XCTAssertNotNil(title.range(of:#"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$"#,options:.regularExpression),"Original defaultEntryTitle format, got \(title)")
+        let header=app.descendants(matching:.any)["table.cell.0.0"];reveal(header,in:app);XCTAssertTrue(header.label.hasPrefix("Header, row 1, column 1"))
+        attach(app,name:"Actual native entry started from a template, including its table")
+    }
     func testNativeRichRenderingEditingAndTaskPersistence() throws {
         let app = XCUIApplication(); app.launchArguments = ["--chapter-rich-fixture"]; app.launch()
         let entry = app.staticTexts["Public rich fixture"]

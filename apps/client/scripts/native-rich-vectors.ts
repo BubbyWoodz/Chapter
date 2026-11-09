@@ -6,6 +6,7 @@ import { buildExtensions, docToText, docMediaIds, docEntryLinks } from '../src/e
 import { decryptRecord } from '../src/sync/engine';
 import { normalizeEntryLabel } from '../src/labels';
 import { TableMap } from '@tiptap/pm/tables';
+import { defaultEntryTitle } from '../src/state/helpers';
 const text = (text: string, marks?: JSONContent["marks"]): JSONContent => ({type:'text', text, ...(marks ? {marks} : {})});
 const p = (s: string): JSONContent => ({type:'paragraph', content:[text(s)]});
 const media = (id: string) => ({id, mime:'image/png', bytes:10, name:'Public photo'});
@@ -74,6 +75,13 @@ export function verifyRichFixture(write: boolean, identity: {dataKey:Uint8Array}
  const tableURL = new URL('../../ios/ChapterCore/Tests/ChapterCoreTests/Fixtures/rich-tables.json',import.meta.url);
  if (write) writeFileSync(tableURL,JSON.stringify(tableCases,null,2)+'\n');
  else assert.deepEqual(JSON.parse(readFileSync(tableURL,'utf8')),tableCases,'Native table fixtures must equal the actual prosemirror-tables TableMap');
+ // Actual web defaultEntryTitle (local wall clock) used for entries started from a template.
+ const previousTZ = process.env.TZ;
+ const titleCases = ['UTC','America/Los_Angeles','Asia/Kolkata','Pacific/Chatham'].flatMap(tz => [0, 1762675199999, 1773536400000, 4102444800000].map(ms => { process.env.TZ = tz; return {tz, ms, title: defaultEntryTitle(ms)}; }));
+ if (previousTZ === undefined) delete process.env.TZ; else process.env.TZ = previousTZ;
+ const titleURL = new URL('../../ios/ChapterCore/Tests/ChapterCoreTests/Fixtures/entry-titles.json',import.meta.url);
+ if (write) writeFileSync(titleURL,JSON.stringify(titleCases,null,2)+'\n');
+ else assert.deepEqual(JSON.parse(readFileSync(titleURL,'utf8')),titleCases,'Native default entry titles must equal the original defaultEntryTitle');
  const viewSource = readFileSync(new URL('../../ios/Chapter/RichDocumentViews.swift',import.meta.url),'utf8');
  const publicFixture = /enum PublicRichFixture \{ static let json = #"(.+)"# \}/.exec(viewSource);
  assert(publicFixture, 'Debug public rich fixture missing');

@@ -71,6 +71,21 @@ the exact revision; a failing strict accessibility audit remains a release block
   audit passed on dd19955 but failed on 869c075 with unchanged visible layout, so it
   is treated as unproven until it passes again. No audit is waived; re-verification pending.
 
+## Native "start from template" — November 9, 2026, 12:56 AM PST
+
+- Journal → New from template lists synced templates (name || "Untitled
+  template", text preview) and a notebook picker. Use mirrors the original web
+  newEntryFromTemplate/createEntry: the template's EXACT bodyJson/bodyText strings
+  (byte-for-byte, opaque nodes and NFD kept), title = original defaultEntryTitle
+  (local `YYYY-MM-DD HH:MM:SS`), empty labels, only the original entry fields.
+- `entry-titles.json` is generated from the REAL web defaultEntryTitle across 4
+  time zones (incl. DST and +12:45); 3 new Foundation tests (32 total) PASS locally.
+  New UI test (opens the new entry, checks heading/prompt/title format/table)
+  pending Apple verification.
+- Not yet: creating/editing templates natively, inserting a template into an
+  existing entry at the cursor, and the web's local-only built-in seeds (those
+  appear natively once edited on the web, because only then are they synced).
+
 ## Apple results for 7bee115 and accessibility bisection — November 9, 2026, 1:05 AM PST
 
 - Native 42584833292: complete Apple core, the mandatory web vectors step (now

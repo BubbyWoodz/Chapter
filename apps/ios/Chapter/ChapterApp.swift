@@ -136,6 +136,8 @@ struct EntryList: View {
     @EnvironmentObject private var model: VaultModel
     @State private var query = ""
     @State private var compose = false
+    @State private var templating = false
+    @State private var created: String?
     let journal: String?
     init(journal: String? = nil) { self.journal = journal }
     var filtered: [VaultRecord] { model.entries.filter(matches) }
@@ -173,8 +175,15 @@ struct EntryList: View {
         .modifier(ChapterScreenSurface()).navigationTitle(notebook?.title ?? "Journal")
         .searchable(text:$query,prompt:"Search this device")
         .refreshable { await model.sync() }
-        .toolbar { ToolbarItem(placement:.topBarTrailing) { Button { compose=true } label: { Label("New entry",systemImage:"square.and.pencil") } } }
+        .toolbar {
+            ToolbarItem(placement:.topBarTrailing) { Button { compose=true } label: { Label("New entry",systemImage:"square.and.pencil") } }
+            if !model.templates.isEmpty && !model.journals.isEmpty {
+                ToolbarItem(placement:.topBarTrailing) { Button { templating=true } label: { Label("New from template",systemImage:"doc.on.doc") }.accessibilityIdentifier("journal.fromTemplate") }
+            }
+        }
         .sheet(isPresented:$compose) { EntryEditor(journal:journal ?? model.journals.first?.journalID ?? "default") }
+        .sheet(isPresented:$templating) { TemplatePicker(journal:journal ?? model.journals.first?.journalID ?? "") { created = $0 } }
+        .navigationDestination(item:$created) { EntryDetail(entryID:$0) }
     }
 }
 
@@ -653,7 +662,7 @@ struct SettingsView: View {
                     Button("Lock vault", role: .destructive) { model.lock() }
                 }
                 Section("Not yet implemented") {
-                    Text("Full rich formatting/structural editing and exact custom-node/math/table rendering, camera/audio/video capture, large media and unsupported playback codecs, templates UI, interviews/AI/transcription, import/export, maps, localization, badges, reminders, vault deletion/rotation and operator tools. The web app remains available for these. This preview is not full parity or an independently audited secure product.")
+                    Text("Full rich formatting/structural editing and exact custom-node/math rendering, table editing, cursor-position link insertion, camera/audio/video capture, large media and unsupported playback codecs, template creation/editing and built-in template seeds, interviews/AI/transcription, import/export, maps, localization, badges, reminders, vault deletion/rotation and operator tools. The web app remains available for these. This preview is not full parity or an independently audited secure product.")
                 }
                 Section("Open source") { NavigationLink("Original font licenses") { ChapterFontLicenses() }; Link("Source and AGPL-3.0 license", destination: URL(string: "https://github.com/BubbyWoodz/Chapter")!) }
             }.modifier(ChapterScreenSurface()).navigationTitle("Settings")
@@ -820,6 +829,40 @@ struct EntryLinkPicker: View {
                 if let error { Text(error).foregroundStyle(.red).accessibilityIdentifier("link.error") }
             }.modifier(ChapterScreenSurface()).navigationTitle("Link to entry").navigationBarTitleDisplayMode(.inline)
             .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search entry titles")
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
+        }
+    }
+}
+/// Mirrors the original web TemplatesSheet "Use": synced templates only
+/// (pristine built-in seeds are local to the device that seeded them).
+struct TemplatePicker: View {
+    @EnvironmentObject private var model: VaultModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var journal: String
+    @State private var error: String?
+    let onCreate: (String) -> Void
+    init(journal: String, onCreate: @escaping (String) -> Void) { _journal = State(initialValue: journal); self.onCreate = onCreate }
+    var body: some View {
+        NavigationStack {
+            Form {
+                Picker("Notebook", selection: $journal) { ForEach(model.journals) { Text($0.title).tag($0.journalID) } }.accessibilityIdentifier("template.notebook")
+                Section {
+                    ForEach(model.templates) { template in
+                        Button {
+                            do { let entry = try model.newEntryFromTemplate(template, journalID: journal); dismiss(); onCreate(entry.id) } catch { self.error = error.localizedDescription }
+                        } label: {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(EntryTemplates.name(template)).font(.headline)
+                                let preview = template.body["bodyText"]?.string ?? ""
+                                if !preview.isEmpty { Text(preview).font(.footnote).foregroundStyle(.secondary).lineLimit(3) }
+                            }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                        }.accessibilityIdentifier("template.use." + template.id).accessibilityHint("Starts a new entry with this template")
+                    }
+                } header: { Text("Templates") } footer: {
+                    Text("Starts a new entry with the template's exact content, like the web app. Templates synced from your server are listed; built-in templates appear here after you edit them on the web.").font(.footnote)
+                }
+                if let error { Text(error).foregroundStyle(.red).accessibilityIdentifier("template.error") }
+            }.modifier(ChapterScreenSurface()).navigationTitle("Start from template").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
         }
     }
