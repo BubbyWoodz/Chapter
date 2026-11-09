@@ -150,18 +150,6 @@ final class ChapterUITests: XCTestCase {
         attach(app,name:"Actual isolated production full-width native CTA strict comparison")
         try audit(app,for:.dynamicType)
     }
-    func testFullConnectionCompositionWithoutFixedInputSizingDiagnostic() throws {
-        let app=XCUIApplication();app.launchArguments=["--chapter-connection-without-fixed-input-sizing"];app.launch()
-        XCTAssertTrue(app.navigationBars["Chapter"].waitForExistence(timeout:10))
-        attach(app,name:"Exact full connection composition minus only input fixed sizing — diagnostic")
-        try audit(app,for:.dynamicType)
-    }
-    func testLargestFullConnectionCompositionWithoutFixedInputSizingDiagnostic() throws {
-        let app=XCUIApplication();app.launchArguments=["--chapter-connection-without-fixed-input-sizing"];app.launch()
-        XCTAssertTrue(app.navigationBars["Chapter"].waitForExistence(timeout:10));XCTAssertGreaterThan(app.staticTexts["connection.heading"].frame.height,60)
-        attach(app,name:"Actual OS XXXL full connection composition minus only input fixed sizing — diagnostic")
-        try audit(app,for:.dynamicType)
-    }
     func testUnmodifiedNativeFormDynamicTypeReproduction() throws {
         let app = XCUIApplication(); app.launchArguments = ["--chapter-native-form-audit-repro"]; app.launch()
         XCTAssertTrue(app.buttons["repro.native-button"].waitForExistence(timeout: 10))

@@ -66,18 +66,6 @@ private struct NativeFormAuditReproduction: View {
         }
     }
 }
-/// One-variable full-composition diagnostic. Release and normal production tests
-/// keep their existing sizing; no audit result is suppressed or substituted.
-private struct ConnectionInputSizing:ViewModifier {
-    @ViewBuilder func body(content:Content)->some View {
-        #if DEBUG
-        if ProcessInfo.processInfo.arguments.contains("--chapter-connection-without-fixed-input-sizing") {content}
-        else {content.fixedSize(horizontal:false,vertical:true)}
-        #else
-        content.fixedSize(horizontal:false,vertical:true)
-        #endif
-    }
-}
 struct ConnectView: View {
     @EnvironmentObject private var model: VaultModel
     @State private var server = UserDefaults.standard.string(forKey: "chapter.server") ?? ""
@@ -92,12 +80,12 @@ struct ConnectView: View {
                     Text("Native preview: feature coverage is incomplete. Use the web app for advanced features and recovery-phrase creation/rotation.").font(.footnote).fixedSize(horizontal:false,vertical:true) }
                 Section {
                     Text("Server").font(.headline).fixedSize(horizontal:false,vertical:true).accessibilityAddTraits(.isHeader)
-                    TextField("Server URL", text: $server).font(.body).modifier(ConnectionInputSizing()).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityLabel("Server URL").accessibilityIdentifier("connection.server").focused($focusedField,equals:.server).submitLabel(.next).onSubmit {focusedField = .phrase}
+                    TextField("Server URL", text: $server).font(.body).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityLabel("Server URL").accessibilityIdentifier("connection.server").focused($focusedField,equals:.server).submitLabel(.next).onSubmit {focusedField = .phrase}
                     Text("HTTPS with a trusted certificate is required, including on Tailscale. Include your server’s path prefix.").font(.footnote).fixedSize(horizontal: false, vertical: true)
                 }
                 Section {
                     Text("Unlock vault").font(.headline).fixedSize(horizontal:false,vertical:true).accessibilityAddTraits(.isHeader)
-                    SecureField("12 words", text: $phrase).font(.body).modifier(ConnectionInputSizing()).accessibilityLabel("12-word recovery phrase").accessibilityIdentifier("connection.phrase").focused($focusedField,equals:.phrase).submitLabel(.done).onSubmit {focusedField=nil}.textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
+                    SecureField("12 words", text: $phrase).font(.body).accessibilityLabel("12-word recovery phrase").accessibilityIdentifier("connection.phrase").focused($focusedField,equals:.phrase).submitLabel(.done).onSubmit {focusedField=nil}.textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
                     Text("The phrase stays on this device and is not saved. A device passcode is required to protect offline journals. Face ID or device authentication protects the local storage key.").font(.footnote).fixedSize(horizontal: false, vertical: true)
 
                 }

@@ -64,11 +64,23 @@ the exact revision; a failing strict accessibility audit remains a release block
   30 browser checks and production TypeScript/Vite build PASS. Apple encrypted/
   transport/UI gates remain independently required. Related plain-editor/opaque
   mark NFC/NFD guards also now refuse unsafe normalization; no JSON schema change.
-- Production normal/XXXL Dynamic Type audits still FAIL. Plain Form, SecureField,
-  full-width CTA and largest-control geometry PASS; new required full-composition
-  normal/XXXL diagnostic changes ONLY input fixed sizing. Release/normal layout
-  unchanged; strict audits not replaced, ignored or waived. Professional whole-app
-  fidelity, missing native groups and signed physical iPhone delivery NOT complete.
+- Accessibility root cause (Apple run 42580870035, dd19955): the strict production
+  XXXL audit FAILED while the identical full connection composition minus ONLY the
+  two input fixedSize modifiers PASSED (normal and XXXL). Production inputs now use
+  native sizing; the diagnostic seam/tests were removed. The strict normal production
+  audit passed on dd19955 but failed on 869c075 with unchanged visible layout, so it
+  is treated as unproven until it passes again. No audit is waived; re-verification pending.
+
+## Apple verification of dd19955 — November 9, 2026, 12:15 AM PST
+
+- Live TLS/Postgres/S3 relay (42580870048) GREEN, including the new concurrent
+  reference-after-DELETE repair restoring byte-identical original ciphertext.
+- Native functional UI: ALL functional tests PASS, including native entry links/
+  backlinks without network, honest missing/offline target, corrected journal card
+  original-color pixel test, Arrange reordering, and page captures 44–46.
+- Remaining native failure: strict XXXL production audit (fixed above, pending).
+  Professional whole-app fidelity, missing native groups and signed physical iPhone
+  delivery NOT complete. Destructive media removal remains unexposed in UI.
 
 ## Guarded media-removal increment — November8,2026,5:27 PM EST
 
