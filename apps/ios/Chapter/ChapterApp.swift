@@ -28,6 +28,8 @@ import QuickLook
             ChapterFontDiagnostic()
         } else if ProcessInfo.processInfo.arguments.contains("--chapter-native-secure-field-audit-repro") {
             NativeSecureFieldAuditReproduction()
+        } else if let flag = ProcessInfo.processInfo.arguments.first(where: { $0.hasPrefix("--chapter-connection-variant=") }) {
+            ConnectionAuditVariant(kind: String(flag.dropFirst("--chapter-connection-variant=".count)))
         } else { normalContent }
         #else
         normalContent
@@ -1050,6 +1052,53 @@ private struct NativeFullWidthActionAuditReproduction: View {
                     }.buttonStyle(.borderedProminent).tint(.black)
                         .accessibilityIdentifier("repro.full-width-action").padding().background(.regularMaterial)
                 }
+        }
+    }
+}
+
+/// TEMPORARY Debug-only bisection (to be removed once the cause is fixed): the
+/// passing unmodified Form plus exactly one production difference each, so the
+/// unnamed "partially unsupported" connection-screen element can be identified.
+/// Production audits stay strict and required; this never replaces them.
+private struct ConnectionAuditVariant: View {
+    @EnvironmentObject private var model: VaultModel
+    let kind: String
+    @State private var text = ""
+    @FocusState private var focused: Bool
+    static let kinds = ["surface", "headers", "sections", "secure", "fields", "inset", "dismiss", "footnotes"]
+    var body: some View {
+        NavigationStack {
+            let form = Form {
+                Text("Native Form reproduction").font(.headline)
+                if kind == "fields" {
+                    TextField("Public text", text: $text).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled().focused($focused).submitLabel(.next)
+                } else { TextField("Public text", text: $text) }
+                Button("Public native action") { text = "Tapped" }
+                if kind == "headers" {
+                    Text("Your journal. Your server.").font(.title2).accessibilityAddTraits(.isHeader)
+                    Text("Server").font(.headline).accessibilityAddTraits(.isHeader)
+                }
+                if kind == "sections" {
+                    Section { Text("Public first section") }
+                    Section { Text("Public second section") }
+                }
+                if kind == "secure" { SecureField("Public secure field", text: $text).textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive() }
+                if kind == "footnotes" {
+                    Text("Public footnote. Native preview: feature coverage is incomplete. Use the web app for advanced features.").font(.footnote)
+                    Text("Public long body text that wraps across several lines in the form, like the connection explanation.")
+                }
+            }.navigationTitle("Variant " + kind)
+            if kind == "surface" { form.modifier(ChapterScreenSurface()) }
+            else if kind == "dismiss" { form.scrollDismissesKeyboard(.interactively) }
+            else if kind == "inset" {
+                form.safeAreaInset(edge: .bottom) {
+                    Button { text = "Tapped" } label: {
+                        Text("Unlock and connect").font(.body).multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+                            .foregroundStyle(chapterToken("paper", preference: model.snapshot.appearance ?? .standard)).frame(maxWidth: .infinity, minHeight: 44)
+                    }.buttonStyle(.borderedProminent).tint(chapterToken("ink", preference: model.snapshot.appearance ?? .standard))
+                        .padding().background(.regularMaterial)
+                }
+            } else { form }
         }
     }
 }

@@ -72,6 +72,13 @@ the exact revision; a failing strict accessibility audit remains a release block
   is treated as unproven until it passes again. No audit is waived; re-verification pending.
 
 <!-- Times are commit times in America/Los_Angeles; earlier labels this night ran ahead of the clock and were corrected. -->
+## Apple results for e363f81 — November 9, 2026, 2:57 AM PST
+
+Native run 42600255378:
+- **Passed:** `testLargestDynamicTypeControlGeometry` (the slow, two-way reveal works), the XXXL SecureField and full-width CTA reproductions, `testCursorInsertsOriginalLinkAndTemplateAtTheCaret`, the template manager test and every other functional test. Core (RichCaretTests, EntryTemplateTests) and the web cross-checks pass. Server/live and CI are green. The contrast finding is gone.
+- **Still failing:** both strict connection audits, on a single "Dynamic Type font sizes are partially unsupported" element with no name. Every isolated component passes on its own (Form, SecureField, CTA, all at normal size and XXXL). A temporary Debug-only bisection, `testConnectionAuditVariantsIsolateTheProductionDifference`, adds exactly one production difference to the passing Form per variant: paper navigation-bar surface, header rows, sections, privacy-sensitive SecureField, field modifiers, the production CTA inset, keyboard dismissal, footnotes. Every finding is still recorded as a failure. It will be removed once the cause is fixed.
+- **Built-in template test:** the weekly actions button was on screen but never reported hittable, and the slow swipes didn't move the sheet's list. It now waits for the control and taps it directly, as the passing template manager test does; XCUITest's tap still fails if the control can't be reached.
+
 ## Formatting selected text — November 9, 2026, 2:30 AM PST
 
 The original toolbar runs TipTap `toggleMark` over the selection. On iOS 18 the native editor now tracks a selected range in the run being edited, and Bold, Italic, Underline, Strikethrough and Inline code apply to just that range:
