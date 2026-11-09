@@ -37,7 +37,7 @@ import QuickLook
         WindowGroup {
             ZStack {
                 rootContent
-                if phase != .active && !chapterDiagnostic("--diag-no-privacy-overlay") { Color(uiColor: .systemBackground).ignoresSafeArea().overlay(Text("Chapter").font(.title)) }
+                if phase != .active { Color(uiColor: .systemBackground).ignoresSafeArea().overlay(Text("Chapter").font(.title)) }
             }
             .modifier(ChapterAppearanceStyle(preference: model.snapshot.appearance ?? .standard))
             .environmentObject(model)
@@ -66,14 +66,6 @@ private struct NativeFormAuditReproduction: View {
         }
     }
 }
-/// One-variable Dynamic Type bisection seam. DEBUG only; release is always false.
-func chapterDiagnostic(_ flag: String) -> Bool {
-    #if DEBUG
-    return ProcessInfo.processInfo.arguments.contains(flag)
-    #else
-    return false
-    #endif
-}
 struct ConnectView: View {
     @EnvironmentObject private var model: VaultModel
     @State private var server = UserDefaults.standard.string(forKey: "chapter.server") ?? ""
@@ -82,25 +74,36 @@ struct ConnectView: View {
     @FocusState private var focusedField:Field?
     var body: some View {
         NavigationStack {
+            // Native Form pattern (Section header/footer, system fonts, label taken
+            // from the field's own placeholder). The previous hand-built header rows
+            // with fixedSize text, explicit field fonts and overriding accessibility
+            // labels were the only difference from the unmodified Form reproduction
+            // that passes the strict Dynamic Type audit; the non-gating bisection
+            // ruled out the toolbar background, bottom action, title and overlay.
             Form {
-                Section { Text("Your journal. Your server.").font(.title2).accessibilityAddTraits(.isHeader).accessibilityIdentifier("connection.heading")
-                    Text("Connect directly over your local network or Tailscale. No Chapter account is required.")
-                    Text("Native preview: feature coverage is incomplete. Use the web app for advanced features and recovery-phrase creation/rotation.").font(.footnote).fixedSize(horizontal:false,vertical:true) }
                 Section {
-                    Text("Server").font(.headline).fixedSize(horizontal:false,vertical:true).accessibilityAddTraits(.isHeader)
-                    TextField("Server URL", text: $server).font(.body).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityLabel("Server URL").accessibilityIdentifier("connection.server").focused($focusedField,equals:.server).submitLabel(.next).onSubmit {focusedField = .phrase}
-                    Text("HTTPS with a trusted certificate is required, including on Tailscale. Include your server’s path prefix.").font(.footnote).fixedSize(horizontal: false, vertical: true)
+                    Text("Your journal. Your server.").font(.title2).accessibilityAddTraits(.isHeader).accessibilityIdentifier("connection.heading")
+                    Text("Connect directly over your local network or Tailscale. No Chapter account is required.")
+                } footer: {
+                    Text("Native preview: feature coverage is incomplete. Use the web app for advanced features and recovery-phrase creation/rotation.")
                 }
                 Section {
-                    Text("Unlock vault").font(.headline).fixedSize(horizontal:false,vertical:true).accessibilityAddTraits(.isHeader)
-                    SecureField("12 words", text: $phrase).font(.body).accessibilityLabel("12-word recovery phrase").accessibilityIdentifier("connection.phrase").focused($focusedField,equals:.phrase).submitLabel(.done).onSubmit {focusedField=nil}.textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
-                    Text("The phrase stays on this device and is not saved. A device passcode is required to protect offline journals. Face ID or device authentication protects the local storage key.").font(.footnote).fixedSize(horizontal: false, vertical: true)
-
+                    TextField("Server URL", text: $server).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityIdentifier("connection.server").focused($focusedField,equals:.server).submitLabel(.next).onSubmit {focusedField = .phrase}
+                } header: {
+                    Text("Server")
+                } footer: {
+                    Text("HTTPS with a trusted certificate is required, including on Tailscale. Include your server’s path prefix.")
+                }
+                Section {
+                    SecureField("12-word recovery phrase", text: $phrase).accessibilityIdentifier("connection.phrase").focused($focusedField,equals:.phrase).submitLabel(.done).onSubmit {focusedField=nil}.textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
+                } header: {
+                    Text("Unlock vault")
+                } footer: {
+                    Text("The phrase stays on this device and is not saved. A device passcode is required to protect offline journals. Face ID or device authentication protects the local storage key.")
                 }
                 if let message = model.message { Section { Text(message).accessibilityLabel("Connection status: \(message)").accessibilityIdentifier("connection.status") } }
-
-            }.modifier(ChapterScreenSurface(navigationBar: !chapterDiagnostic("--diag-no-toolbar-background"))).navigationTitle(chapterDiagnostic("--diag-no-nav-title") ? "" : "Chapter").scrollDismissesKeyboard(.interactively)
-                .safeAreaInset(edge:.bottom) { if !chapterDiagnostic("--diag-no-bottom-inset") {
+            }.modifier(ChapterScreenSurface()).navigationTitle("Chapter").scrollDismissesKeyboard(.interactively)
+                .safeAreaInset(edge:.bottom) {
                     Button {
                         guard !model.connecting else { return }
                         guard !server.isEmpty, !phrase.isEmpty else {
@@ -116,7 +119,7 @@ struct ConnectView: View {
                             .frame(maxWidth:.infinity,minHeight:44)
                     }.buttonStyle(.borderedProminent).tint(chapterToken("ink",preference:model.snapshot.appearance ?? .standard)).disabled(model.connecting)
                         .accessibilityIdentifier("connection.unlock").padding().background(.regularMaterial)
-                } }
+                }
         }
     }
 }
@@ -784,17 +787,11 @@ func chapterToken(_ name:String,preference:SharedAppearance)->Color {
 }
 struct ChapterScreenSurface: ViewModifier {
     @EnvironmentObject private var model:VaultModel
-    var navigationBar = true
-    @ViewBuilder func body(content:Content)->some View {
+    func body(content:Content)->some View {
         let paper=chapterToken("paper",preference:model.snapshot.appearance ?? .standard)
-        if navigationBar {
-            content.scrollContentBackground(.hidden).background(paper)
-                .toolbarBackground(paper,for:.navigationBar,.tabBar)
-                .toolbarBackground(.visible,for:.navigationBar,.tabBar)
-        } else {
-            content.scrollContentBackground(.hidden).background(paper)
-                .toolbarBackground(paper,for:.tabBar).toolbarBackground(.visible,for:.tabBar)
-        }
+        content.scrollContentBackground(.hidden).background(paper)
+            .toolbarBackground(paper,for:.navigationBar,.tabBar)
+            .toolbarBackground(.visible,for:.navigationBar,.tabBar)
     }
 }
 

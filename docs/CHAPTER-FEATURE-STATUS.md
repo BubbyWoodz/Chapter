@@ -72,6 +72,20 @@ the exact revision; a failing strict accessibility audit remains a release block
   is treated as unproven until it passes again. No audit is waived; re-verification pending.
 
 <!-- Times are commit times in America/Los_Angeles; earlier labels this night ran ahead of the clock and were corrected. -->
+## Connection-screen Dynamic Type fix; bisection removed — November 9, 2026, 1:20 AM PST
+
+Apple run 42588998288 (ada486d) results:
+- Table UI test `testOriginalTableRendersExactMergedGridWithHeaderAndAccessibleCells`: **passed**, along with all functional, link-picker, card-color and core tests (RichTableTests too), and the web cross-check step.
+- The two strict connection audits still failed ("Dynamic Type font sizes are unsupported", 2 issues, no element given).
+- The non-gating bisection reported a **3/3** failure rate for the baseline and for every variant: no toolbar background, no bottom action, no navigation title, no privacy overlay. The finding is deterministic, and none of those four is the cause.
+- The unmodified native Form, SecureField and full-width-action reproductions pass under the same root modifiers (appearance style, privacy, tint). So the cause is inside the connection Form's own content.
+
+Fix (production, not verified on Apple yet):
+- ConnectView now uses the native Form pattern: Section `header:` and `footer:` with system styles in place of hand-built header and footnote rows using `fixedSize`.
+- The fields no longer get explicit `.font(.body)` or accessibility labels that override their placeholder. The SecureField placeholder is now "12-word recovery phrase", so the visible text and the spoken label are the same.
+- Removed every diagnostic seam: `chapterDiagnostic`, the `ChapterScreenSurface(navigationBar:)` variant, the `ChapterAccessibilityBisection` test class, and the workflow step and its skip.
+- The required normal audit is now **stricter**: it audits three fresh launches, and every finding still fails the test. No audit was weakened or suppressed.
+
 ## Custom-block markers match the original preview — November 9, 2026, 12:56 AM PST
 
 - Location and video-interview blocks now use the original DocPreview labels and

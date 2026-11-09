@@ -11,6 +11,12 @@ final class ChapterUITests: XCTestCase {
         XCTAssertTrue(app.buttons["connection.unlock"].isEnabled)
         attach(app, name: "Chapter connection — no journal data")
         try audit(app)
+        // Stricter, not weaker: two more fresh launches must also pass every check.
+        for _ in 0..<2 {
+            app.terminate(); app.launch()
+            XCTAssertTrue(app.textFields["connection.server"].waitForExistence(timeout: 10))
+            try audit(app)
+        }
         app.buttons["connection.unlock"].tap()
         XCTAssertTrue(app.staticTexts["connection.status"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["connection.status"].label.contains("Enter your server URL"))
@@ -511,31 +517,5 @@ final class ChapterPageCaptures: XCTestCase {
         app.buttons["Delete entry"].tap();XCTAssertTrue(entry.waitForNonExistence(timeout:5))
         app.tabBars.buttons["Settings"].tap();let restore=app.buttons["Restore as new entry"];reveal(restore,app);shot(app,"28 Retained encrypted original recovery and media")
         restore.tap();app.tabBars.buttons["Journal"].tap();XCTAssertTrue(entry.waitForExistence(timeout:5))
-    }
-}
-
-/// NON-GATING diagnostic. The strict production audits above stay required and
-/// unchanged. This only records, per one-variable variant, how many of three
-/// fresh audits report a Dynamic Type finding, to locate the real cause.
-final class ChapterAccessibilityBisection: XCTestCase {
-    func testBisectConnectionDynamicTypeFinding() throws {
-        var rows: [String] = []
-        for variant in ["baseline", "--diag-no-toolbar-background", "--diag-no-bottom-inset", "--diag-no-nav-title", "--diag-no-privacy-overlay"] {
-            var reported = 0, details: [String] = []
-            for _ in 0..<3 {
-                let app = XCUIApplication(); app.launchArguments = variant == "baseline" ? [] : [variant]; app.launch()
-                guard app.staticTexts["connection.heading"].waitForExistence(timeout: 10) else { details.append("did not launch"); continue }
-                var found = 0
-                try app.performAccessibilityAudit(for: .dynamicType) { issue in
-                    found += 1; details.append((issue.element?.debugDescription ?? "unknown") + " — " + issue.compactDescription)
-                    return true // diagnostic only: count, never gate
-                }
-                if found > 0 { reported += 1 }
-                app.terminate()
-            }
-            rows.append("\(variant): \(reported)/3 audits reported Dynamic Type findings \(details.prefix(2))")
-        }
-        let report = rows.joined(separator: "\n"); print("BISECTION REPORT\n" + report)
-        let attachment = XCTAttachment(string: report); attachment.name = "Dynamic Type bisection (non-gating)"; attachment.lifetime = .keepAlways; add(attachment)
     }
 }
