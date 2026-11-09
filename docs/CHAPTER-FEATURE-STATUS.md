@@ -25,7 +25,7 @@ the exact revision; a failing strict accessibility audit remains a release block
 | Locations/maps | Location cards rendered like the web LocationCard: the map and travel photo are decrypted from the user's own encrypted media (local queue or cache first, then the user's relay), with "from → to" labels and the web's distance formatting | Coercion, haversine and distance in 12 languages pass on Apple (42614136563). The decrypt/German UI test reached its strict audit, which flagged a short selectable paragraph; fixed in 7f6b820, awaiting Apple. Creating or editing cards (needs explicit consent for third-party map tiles) is missing; malformed cards show a marker where the web shows nothing |
 | Import/export/backups | Export a journal from Settings (33f506b), like the web ExportJournalSheet | The archive is the same `mneme-journal-export` v1 zip as the web `exportJournal`: every file matches, markdown included, and the web's fflate reads the native zip back identically. It is streamed one file at a time and includes the progress steps. Media comes from the upload queue, the local cache or the relay; anything else is recorded as missing. The plaintext archive goes to the share sheet and is deleted when the sheet closes, when the vault locks and on the next launch. Locking mid-export aborts it. Apple UI test pending. Day One import groundwork is native and verified against the web code: the markdown-to-blocks conversion, title split and moment URLs (4086c7c), plus a ZIP reader that returns the same members, in the same order and with the same bytes as fflate `unzipSync` (ed36fed, 637307c). The archive parse (26b9888) and the import run (51dfeab) are native too. The run sits in ChapterCore behind a small app interface, and its calls match the web `importDayOne` on a recording mock. Settings → Your data → Import from Day One now runs it on the device (c66f1c6; Apple UI test pending). Missing: markdown import, and recovery/restore and backup UI |
 | Appearance/language | Accent shades (accent-ink, accent-soft, accent-line) derived from the palette exactly like the web useTheme, checked per palette against the web (19854af); actual encrypted web↔native theme round trip, native restart/offline editing, six skins/palettes and real native theme/cover UI test passed; browser transaction/recovery increment under verification | Updated Chapter web required (original upstream stores themes only locally). Native Forest paper screenshot RGB assertion and actual cover/theme picker PASS at929e8ea run42517557894. Strict onboarding audits still fail. Original licensed Hanken Grotesk/Newsreader/Spline Sans Mono normal/italic Latin faces are now bundled and applied to journal/notebook headings, prose/editor/code and unlocked UI default using original skin roles. Font tables/glyphs, byte-reproducibility/provenance/license checks and native role-selection tests PASS locally; Actual six-face UIFont loading, font-screen strict Dynamic Type audit and offline license viewer PASS at ae4f0be6 in42523109089 and a7c9fdba in42523742373; production onboarding strict audits still FAIL. Onboarding/native navigation and unavailable glyphs retain native fallback. Live web visual comparison,12 locales/RTL and whole-app/device audits missing |
-| Reminders/lifecycle | Background lock; reminders wire client and local-notification plan in core (6b8b8cf, Linux-tested; no screen yet, because reminder content is undesigned) | Reminder UI and content format, phrase creation/rotation, permanent vault deletion, WebAuthn/PRF and operator administration/update UI missing |
+| Reminders/lifecycle | Background lock; reminders wire client and local-notification plan in core (6b8b8cf/be38dbf, Linux-tested; upstream semantics: generic "Reminder", one-shot, random hex ids; no screen yet) | Reminder UI and content format, phrase creation/rotation, permanent vault deletion, WebAuthn/PRF and operator administration/update UI missing |
 | Sync reliability | Debounced local-edit + foreground sync, bounded retry backoff, up to 10,000 attempted records/pass in 100-record batches, durable media ordering, recoverable entry conflicts | Actual core adversarial ack/clock/conflict/drain/retry and genuine trusted TLS/Go/Postgres native relay/pagination/media/theme round trips PASS; latest whole native/S3/backup-restore42519352385 PASS atfd3d1ad. No guaranteed background schedule or full two-device lifecycle certification |
 | Local storage | Device-only user-presence Keychain + AES-GCM snapshot; protected/excluded from backup | Version 1/2/3→4 read migration preserves keys and old file until next save; older previews reject v4 instead of dropping formatting/new-block drafts/media outbox. Actual Apple v3→v4 encrypted migration/restart/old-version write refusal PASS at98885d0; earlier backup-preparation fault/reopen/retry PASS. Actual hardware Keychain/backup extraction not certified |
 | Server distribution | Chapter-owned source-build compose/install profile, separate volumes, private setup, optional STT; image/source artifact + real S3/backup-restore CI added | Real source-image builds, trusted HTTPS/auth/web crypto, actual PostgreSQL/S3 media and restore into a different empty stack PASS at 551236b (run 42511822303). Downloadable Linux amd64 image/source/checksum bundle exists. Not deployed; no direct live-volume migration or general historical-upgrade certification |
@@ -72,6 +72,21 @@ the exact revision; a failing strict accessibility audit remains a release block
   is treated as unproven until it passes again. No audit is waived; re-verification pending.
 
 <!-- Times are commit times in America/Los_Angeles; earlier labels this night ran ahead of the clock and were corrected. -->
+## Reminder semantics from upstream — November 9, 2026, 6:25 AM PST
+
+Native 42631820298 (on d7d3f61) was cancelled at 6:23 AM PST without getting a macOS runner, the fourth time in a row ("not acquired by Runner of type hosted"). So this batch is pushed once and is still not built on Apple.
+
+- **be38dbf (6:25 AM PST): reminders now follow upstream exactly.** No change to the server or the schema.
+  - What upstream says:
+    - CLAUDE.md §3: "Reminders fire generic ('Reminder')".
+    - `0001_init.sql`: `fire_at` is a cleartext, accepted leak.
+    - The scheduler calls a reminder "a journal nudge".
+    - The store's upsert reschedules and clears `dispatched`.
+    - The web client has no reminders, and nothing upstream recurs.
+  - So a reminder is time-only and one-shot. `ChapterReminders.content` is only the title "Reminder", with an empty body and no journal text, so nothing reaches the lock screen.
+  - `newID()` makes 16 random bytes in lowercase hex, like `randomId()` in `src/sync/ids.ts`, so ids never carry time.
+- **Verification:** core 174 tests (3 skipped); `go test ./internal/api`, tsc and 30 checks pass. Mutations of hex padding, byte order, body text and id length are all caught.
+
 ## Reminders core — November 9, 2026, 6:22 AM PST
 
 This is a local commit, not pushed yet. Native 42631820298 (on d7d3f61) has been queued since 6:08 AM PST, so nothing is pushed until it finishes.
@@ -87,7 +102,7 @@ This is a local commit, not pushed yet. Native 42631820298 (on d7d3f61) has been
 - **Verification:**
   - Core: 173 tests, 3 skipped. Plus go vet and the server's Go tests, `native-vectors`, tsc and 30 checks.
   - Mutation checks: all eight were caught (offset minute, comma fraction, day-of-month, leap rule, dot ids, 9-digit truncation, reschedule-on-change, floor).
-- **Open design question for the user:** what a reminder points at, whether it repeats, and where its encrypted text lives. The server holds only the time, so the notification says just "Reminder" until that's decided.
+- Semantics were decided at 6:25 AM PST from upstream (next section).
 
 ## Import from Day One in Settings — November 9, 2026, 6:15 AM PST
 
