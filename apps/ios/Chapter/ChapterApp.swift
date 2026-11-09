@@ -187,7 +187,8 @@ struct WritingStatsSection: View {
     var body: some View {
         let items = ChapterStats.items(model.entries)
         let now = Date().timeIntervalSince1970 * 1000
-        var utc = Calendar(identifier: .gregorian); utc.timeZone = TimeZone(identifier: "UTC")!
+        // A @ViewBuilder body cannot mutate a local, so the UTC calendar is built in a closure.
+        let utc: Calendar = { var c = Calendar(identifier: .gregorian); c.timeZone = TimeZone(identifier: "UTC")!; return c }()
         let parts = utc.dateComponents([.year, .month], from: Date())
         let tiles: [(String, String, String)] = [
             ("entries", ChapterStats.compactCount(items.count), "prefs.stat.entries"),
@@ -1416,7 +1417,7 @@ struct SearchHitDetail: View {
 
 struct BadgeID: Identifiable, Equatable { let id: String }
 
-func badgeName(_ id: String, _ model: VaultModel) -> String {
+@MainActor func badgeName(_ id: String, _ model: VaultModel) -> String {
     switch id {
     case "first-words": return model.t("badges.first-words.name"); case "streak-3": return model.t("badges.streak-3.name")
     case "streak-7": return model.t("badges.streak-7.name"); case "wordsmith": return model.t("badges.wordsmith.name")
@@ -1425,7 +1426,7 @@ func badgeName(_ id: String, _ model: VaultModel) -> String {
     default: return id
     }
 }
-func badgeDesc(_ id: String, _ model: VaultModel) -> String {
+@MainActor func badgeDesc(_ id: String, _ model: VaultModel) -> String {
     switch id {
     case "first-words": return model.t("badges.first-words.desc"); case "streak-3": return model.t("badges.streak-3.desc")
     case "streak-7": return model.t("badges.streak-7.desc"); case "wordsmith": return model.t("badges.wordsmith.desc")
