@@ -72,7 +72,7 @@ the exact revision; a failing strict accessibility audit remains a release block
   is treated as unproven until it passes again. No audit is waived; re-verification pending.
 
 <!-- Times are commit times in America/Los_Angeles; earlier labels this night ran ahead of the clock and were corrected. -->
-## Native iOS runner fallback — November 9, 2026, 6:43 AM PST
+## Native iOS runner fallback — November 9, 2026, 6:42 AM PST
 
 Native 42634671252 (on d8029d4) was cancelled at 6:41 AM PST, again "not acquired by Runner of type hosted". That is five runs in a row on `macos-15` (arm64), whose queue GitHub says is under capacity constraints. `macos-14` was retired on November 2, 2026.
 
