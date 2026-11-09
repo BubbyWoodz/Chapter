@@ -42,6 +42,7 @@ import QuickLook
                 if phase != .active { Color(uiColor: .systemBackground).ignoresSafeArea().overlay(Text("Chapter").font(.title)) }
             }
             .modifier(ChapterAppearanceStyle(preference: model.snapshot.appearance ?? .standard))
+            .modifier(ChapterLanguageStyle(language: model.language))
             .environmentObject(model)
             .onAppear {
                 #if DEBUG
@@ -609,6 +610,14 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 AppearanceSettings()
+                if let catalog = ChapterLocales.bundled {
+                    Section("Language") {
+                        Picker("Language", selection: Binding(get: { model.language?.id ?? "en" }, set: { model.setLanguage($0) })) {
+                            ForEach(catalog.locales) { Text($0.name).tag($0.id) }
+                        }.accessibilityIdentifier("settings.language")
+                        Text("Device-only, like the web app, and never synced. Built-in templates, dates and layout direction follow it; other native text is still English.").font(.footnote)
+                    }
+                }
                 Section("Sync") {
                     Button { Task { await model.sync() } } label: { if model.syncing { ProgressView("Syncing") } else { Label("Sync now", systemImage: "arrow.triangle.2.circlepath") } }.disabled(model.syncing)
                     LabeledContent("Pending changes", value: "\(model.pending)")
@@ -664,7 +673,7 @@ struct SettingsView: View {
                     Button("Lock vault", role: .destructive) { model.lock() }
                 }
                 Section("Not yet implemented") {
-                    Text("Full rich formatting/structural editing and exact custom-node/math rendering, table editing, cursor-position link insertion, camera/audio/video capture, large media and unsupported playback codecs, template creation/editing and built-in template seeds, interviews/AI/transcription, import/export, maps, localization, badges, reminders, vault deletion/rotation and operator tools. The web app remains available for these. This preview is not full parity or an independently audited secure product.")
+                    Text("Formatting across several runs and structural editing, exact custom-node/math rendering, table editing, rich template body editing, camera/audio/video capture, large media and unsupported playback codecs, interviews/AI/transcription, import/export, maps, translated interface text, badges, reminders, vault deletion/rotation and operator tools. The web app remains available for these. This preview is not full parity or an independently audited secure product.")
                 }
                 Section("Open source") { NavigationLink("Original font licenses") { ChapterFontLicenses() }; Link("Source and AGPL-3.0 license", destination: URL(string: "https://github.com/BubbyWoodz/Chapter")!) }
             }.modifier(ChapterScreenSurface()).navigationTitle("Settings")
@@ -708,6 +717,17 @@ private extension Color {
     init(chapterHex: String) {
         let value=UInt64(chapterHex.trimmingCharacters(in:CharacterSet(charactersIn:"#")),radix:16) ?? 0xB0563A
         self.init(.sRGB,red:Double((value>>16)&255)/255,green:Double((value>>8)&255)/255,blue:Double(value&255)/255,opacity:1)
+    }
+}
+/// Original web language effects: Arabic flips the layout to right-to-left
+/// (<html dir="rtl">) and dates follow the chosen language. English leaves
+/// the device's own regional formatting untouched.
+private struct ChapterLanguageStyle: ViewModifier {
+    let language: ChapterLocale?
+    @ViewBuilder func body(content: Content) -> some View {
+        if let language, language.id != "en" {
+            content.environment(\.layoutDirection, language.isRightToLeft ? .rightToLeft : .leftToRight).environment(\.locale, Locale(identifier: language.id))
+        } else { content }
     }
 }
 private struct ChapterAppearanceStyle: ViewModifier {

@@ -1,0 +1,534 @@
+{
+  "locales": [
+    {
+      "id": "en",
+      "name": "English",
+      "english": "English",
+      "dir": "ltr"
+    },
+    {
+      "id": "de",
+      "name": "Deutsch",
+      "english": "German",
+      "dir": "ltr"
+    },
+    {
+      "id": "fr",
+      "name": "Français",
+      "english": "French",
+      "dir": "ltr"
+    },
+    {
+      "id": "es",
+      "name": "Español",
+      "english": "Spanish",
+      "dir": "ltr"
+    },
+    {
+      "id": "it",
+      "name": "Italiano",
+      "english": "Italian",
+      "dir": "ltr"
+    },
+    {
+      "id": "nl",
+      "name": "Nederlands",
+      "english": "Dutch",
+      "dir": "ltr"
+    },
+    {
+      "id": "fi",
+      "name": "Suomi",
+      "english": "Finnish",
+      "dir": "ltr"
+    },
+    {
+      "id": "zh",
+      "name": "中文",
+      "english": "Mandarin Chinese",
+      "dir": "ltr"
+    },
+    {
+      "id": "ja",
+      "name": "日本語",
+      "english": "Japanese",
+      "dir": "ltr"
+    },
+    {
+      "id": "ko",
+      "name": "한국어",
+      "english": "Korean",
+      "dir": "ltr"
+    },
+    {
+      "id": "hi",
+      "name": "हिन्दी",
+      "english": "Hindi",
+      "dir": "ltr"
+    },
+    {
+      "id": "ar",
+      "name": "العربية",
+      "english": "Arabic",
+      "dir": "rtl"
+    }
+  ],
+  "seeds": {
+    "en": [
+      {
+        "slug": "daily",
+        "name": "Daily reflection",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"How the day felt\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Worth remembering\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Tomorrow, one thing\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "How the day felt\nWorth remembering\nTomorrow, one thing"
+      },
+      {
+        "slug": "gratitude",
+        "name": "Three small things",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Three small things that made today better:\"}]},{\"type\":\"orderedList\",\"attrs\":{\"start\":1},\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "Three small things that made today better:"
+      },
+      {
+        "slug": "dream",
+        "name": "Dream log",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"The dream\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"How it felt\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"What it might be holding\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "The dream\nHow it felt\nWhat it might be holding"
+      },
+      {
+        "slug": "experiment",
+        "name": "Experiment log",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Question\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Setup\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Observations\"}]},{\"type\":\"table\",\"content\":[{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Measurement\"}]}]},{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Value\"}]}]},{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Notes\"}]}]}]},{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]}]},{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]}]}]},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Conclusion\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "Question\nSetup\nObservations\nMeasurement\nValue\nNotes\nConclusion"
+      },
+      {
+        "slug": "study",
+        "name": "Study notes",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Topic & source\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Key ideas\"}]},{\"type\":\"bulletList\",\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]}]},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"In my own words\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Open questions\"}]},{\"type\":\"taskList\",\"content\":[{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "Topic & source\nKey ideas\nIn my own words\nOpen questions"
+      },
+      {
+        "slug": "weekly",
+        "name": "Weekly review",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"What moved\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"What stalled\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Next week\"}]},{\"type\":\"taskList\",\"content\":[{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "What moved\nWhat stalled\nNext week"
+      }
+    ],
+    "de": [
+      {
+        "slug": "daily",
+        "name": "Tagesrückblick",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Wie sich der Tag anfühlte\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Erinnernswert\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Morgen, eine Sache\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "Wie sich der Tag anfühlte\nErinnernswert\nMorgen, eine Sache"
+      },
+      {
+        "slug": "gratitude",
+        "name": "Drei kleine Dinge",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Drei kleine Dinge, die den Tag heute besser gemacht haben:\"}]},{\"type\":\"orderedList\",\"attrs\":{\"start\":1},\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "Drei kleine Dinge, die den Tag heute besser gemacht haben:"
+      },
+      {
+        "slug": "dream",
+        "name": "Traumtagebuch",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Der Traum\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Wie es sich anfühlte\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Was darin stecken könnte\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "Der Traum\nWie es sich anfühlte\nWas darin stecken könnte"
+      },
+      {
+        "slug": "experiment",
+        "name": "Versuchsprotokoll",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Frage\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Aufbau\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Beobachtungen\"}]},{\"type\":\"table\",\"content\":[{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Messgröße\"}]}]},{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Wert\"}]}]},{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Notizen\"}]}]}]},{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]}]},{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]}]}]},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Fazit\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "Frage\nAufbau\nBeobachtungen\nMessgröße\nWert\nNotizen\nFazit"
+      },
+      {
+        "slug": "study",
+        "name": "Lernnotizen",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Thema & Quelle\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Kerngedanken\"}]},{\"type\":\"bulletList\",\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]}]},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"In eigenen Worten\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Offene Fragen\"}]},{\"type\":\"taskList\",\"content\":[{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "Thema & Quelle\nKerngedanken\nIn eigenen Worten\nOffene Fragen"
+      },
+      {
+        "slug": "weekly",
+        "name": "Wochenrückblick",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Was vorankam\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Was stockte\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Nächste Woche\"}]},{\"type\":\"taskList\",\"content\":[{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "Was vorankam\nWas stockte\nNächste Woche"
+      }
+    ],
+    "fr": [
+      {
+        "slug": "daily",
+        "name": "Réflexion du jour",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Le ressenti du jour\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"À retenir\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Demain, une chose\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "Le ressenti du jour\nÀ retenir\nDemain, une chose"
+      },
+      {
+        "slug": "gratitude",
+        "name": "Trois petites choses",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Trois petites choses qui ont rendu la journée meilleure :\"}]},{\"type\":\"orderedList\",\"attrs\":{\"start\":1},\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "Trois petites choses qui ont rendu la journée meilleure :"
+      },
+      {
+        "slug": "dream",
+        "name": "Journal de rêves",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Le rêve\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Le ressenti\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Ce qu’il pourrait porter\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "Le rêve\nLe ressenti\nCe qu’il pourrait porter"
+      },
+      {
+        "slug": "experiment",
+        "name": "Journal d’expérience",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Question\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Protocole\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Observations\"}]},{\"type\":\"table\",\"content\":[{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Mesure\"}]}]},{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Valeur\"}]}]},{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Notes\"}]}]}]},{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]}]},{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]}]}]},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Conclusion\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "Question\nProtocole\nObservations\nMesure\nValeur\nNotes\nConclusion"
+      },
+      {
+        "slug": "study",
+        "name": "Notes d’étude",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Sujet et source\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Idées clés\"}]},{\"type\":\"bulletList\",\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]}]},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Dans mes propres mots\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Questions ouvertes\"}]},{\"type\":\"taskList\",\"content\":[{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "Sujet et source\nIdées clés\nDans mes propres mots\nQuestions ouvertes"
+      },
+      {
+        "slug": "weekly",
+        "name": "Bilan de la semaine",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Ce qui a avancé\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Ce qui a stagné\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"La semaine prochaine\"}]},{\"type\":\"taskList\",\"content\":[{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "Ce qui a avancé\nCe qui a stagné\nLa semaine prochaine"
+      }
+    ],
+    "es": [
+      {
+        "slug": "daily",
+        "name": "Reflexión del día",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Cómo se sintió el día\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Para recordar\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Mañana, una cosa\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "Cómo se sintió el día\nPara recordar\nMañana, una cosa"
+      },
+      {
+        "slug": "gratitude",
+        "name": "Tres pequeñas cosas",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Tres pequeñas cosas que hicieron mejor el día de hoy:\"}]},{\"type\":\"orderedList\",\"attrs\":{\"start\":1},\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "Tres pequeñas cosas que hicieron mejor el día de hoy:"
+      },
+      {
+        "slug": "dream",
+        "name": "Diario de sueños",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"El sueño\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Cómo se sintió\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Lo que podría guardar\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "El sueño\nCómo se sintió\nLo que podría guardar"
+      },
+      {
+        "slug": "experiment",
+        "name": "Registro de experimento",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Pregunta\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Preparación\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Observaciones\"}]},{\"type\":\"table\",\"content\":[{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Medición\"}]}]},{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Valor\"}]}]},{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Notas\"}]}]}]},{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]}]},{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]}]}]},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Conclusión\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "Pregunta\nPreparación\nObservaciones\nMedición\nValor\nNotas\nConclusión"
+      },
+      {
+        "slug": "study",
+        "name": "Apuntes de estudio",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Tema y fuente\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Ideas clave\"}]},{\"type\":\"bulletList\",\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]}]},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Con mis propias palabras\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Preguntas abiertas\"}]},{\"type\":\"taskList\",\"content\":[{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "Tema y fuente\nIdeas clave\nCon mis propias palabras\nPreguntas abiertas"
+      },
+      {
+        "slug": "weekly",
+        "name": "Repaso semanal",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Lo que avanzó\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Lo que se estancó\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"La próxima semana\"}]},{\"type\":\"taskList\",\"content\":[{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "Lo que avanzó\nLo que se estancó\nLa próxima semana"
+      }
+    ],
+    "it": [
+      {
+        "slug": "daily",
+        "name": "Riflessione del giorno",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Com’è stata la giornata\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Da ricordare\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Domani, una cosa\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "Com’è stata la giornata\nDa ricordare\nDomani, una cosa"
+      },
+      {
+        "slug": "gratitude",
+        "name": "Tre piccole cose",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Tre piccole cose che hanno reso migliore la giornata:\"}]},{\"type\":\"orderedList\",\"attrs\":{\"start\":1},\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "Tre piccole cose che hanno reso migliore la giornata:"
+      },
+      {
+        "slug": "dream",
+        "name": "Diario dei sogni",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Il sogno\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Come l’ho vissuto\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Cosa potrebbe custodire\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "Il sogno\nCome l’ho vissuto\nCosa potrebbe custodire"
+      },
+      {
+        "slug": "experiment",
+        "name": "Registro dell’esperimento",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Domanda\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Preparazione\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Osservazioni\"}]},{\"type\":\"table\",\"content\":[{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Misura\"}]}]},{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Valore\"}]}]},{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Note\"}]}]}]},{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]}]},{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]}]}]},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Conclusione\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "Domanda\nPreparazione\nOsservazioni\nMisura\nValore\nNote\nConclusione"
+      },
+      {
+        "slug": "study",
+        "name": "Appunti di studio",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Argomento e fonte\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Idee chiave\"}]},{\"type\":\"bulletList\",\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]}]},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Con parole mie\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Domande aperte\"}]},{\"type\":\"taskList\",\"content\":[{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "Argomento e fonte\nIdee chiave\nCon parole mie\nDomande aperte"
+      },
+      {
+        "slug": "weekly",
+        "name": "Bilancio settimanale",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Cosa è andato avanti\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Cosa si è arenato\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"La prossima settimana\"}]},{\"type\":\"taskList\",\"content\":[{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "Cosa è andato avanti\nCosa si è arenato\nLa prossima settimana"
+      }
+    ],
+    "nl": [
+      {
+        "slug": "daily",
+        "name": "Dagelijkse reflectie",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Hoe de dag voelde\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Het onthouden waard\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Morgen, één ding\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "Hoe de dag voelde\nHet onthouden waard\nMorgen, één ding"
+      },
+      {
+        "slug": "gratitude",
+        "name": "Drie kleine dingen",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Drie kleine dingen die vandaag beter maakten:\"}]},{\"type\":\"orderedList\",\"attrs\":{\"start\":1},\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "Drie kleine dingen die vandaag beter maakten:"
+      },
+      {
+        "slug": "dream",
+        "name": "Droomlogboek",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"De droom\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Hoe het voelde\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Wat het zou kunnen bevatten\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "De droom\nHoe het voelde\nWat het zou kunnen bevatten"
+      },
+      {
+        "slug": "experiment",
+        "name": "Proeflogboek",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Vraag\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Opzet\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Waarnemingen\"}]},{\"type\":\"table\",\"content\":[{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Meting\"}]}]},{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Waarde\"}]}]},{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Notities\"}]}]}]},{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]}]},{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]}]}]},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Conclusie\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "Vraag\nOpzet\nWaarnemingen\nMeting\nWaarde\nNotities\nConclusie"
+      },
+      {
+        "slug": "study",
+        "name": "Studieaantekeningen",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Onderwerp & bron\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Kernideeën\"}]},{\"type\":\"bulletList\",\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]}]},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"In mijn eigen woorden\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Openstaande vragen\"}]},{\"type\":\"taskList\",\"content\":[{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "Onderwerp & bron\nKernideeën\nIn mijn eigen woorden\nOpenstaande vragen"
+      },
+      {
+        "slug": "weekly",
+        "name": "Weekoverzicht",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Wat vooruitging\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Wat stokte\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Volgende week\"}]},{\"type\":\"taskList\",\"content\":[{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "Wat vooruitging\nWat stokte\nVolgende week"
+      }
+    ],
+    "fi": [
+      {
+        "slug": "daily",
+        "name": "Päivän pohdinta",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Miltä päivä tuntui\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Muistamisen arvoista\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Huomenna, yksi asia\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "Miltä päivä tuntui\nMuistamisen arvoista\nHuomenna, yksi asia"
+      },
+      {
+        "slug": "gratitude",
+        "name": "Kolme pientä asiaa",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Kolme pientä asiaa, jotka tekivät tästä päivästä paremman:\"}]},{\"type\":\"orderedList\",\"attrs\":{\"start\":1},\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "Kolme pientä asiaa, jotka tekivät tästä päivästä paremman:"
+      },
+      {
+        "slug": "dream",
+        "name": "Unipäiväkirja",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Uni\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Miltä se tuntui\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Mitä se voisi kätkeä\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "Uni\nMiltä se tuntui\nMitä se voisi kätkeä"
+      },
+      {
+        "slug": "experiment",
+        "name": "Koepäiväkirja",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Kysymys\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Asetelma\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Havainnot\"}]},{\"type\":\"table\",\"content\":[{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Mittaus\"}]}]},{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Arvo\"}]}]},{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Muistiinpanot\"}]}]}]},{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]}]},{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]}]}]},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Johtopäätös\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "Kysymys\nAsetelma\nHavainnot\nMittaus\nArvo\nMuistiinpanot\nJohtopäätös"
+      },
+      {
+        "slug": "study",
+        "name": "Opiskelumuistiinpanot",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Aihe & lähde\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Keskeiset ajatukset\"}]},{\"type\":\"bulletList\",\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]}]},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Omin sanoin\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Avoimet kysymykset\"}]},{\"type\":\"taskList\",\"content\":[{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "Aihe & lähde\nKeskeiset ajatukset\nOmin sanoin\nAvoimet kysymykset"
+      },
+      {
+        "slug": "weekly",
+        "name": "Viikkokatsaus",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Mikä eteni\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Mikä juuttui\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Ensi viikko\"}]},{\"type\":\"taskList\",\"content\":[{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "Mikä eteni\nMikä juuttui\nEnsi viikko"
+      }
+    ],
+    "zh": [
+      {
+        "slug": "daily",
+        "name": "每日省思",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"今天的感受\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"值得记住的\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"明天，一件事\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "今天的感受\n值得记住的\n明天，一件事"
+      },
+      {
+        "slug": "gratitude",
+        "name": "三件小事",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"让今天更好的三件小事：\"}]},{\"type\":\"orderedList\",\"attrs\":{\"start\":1},\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "让今天更好的三件小事："
+      },
+      {
+        "slug": "dream",
+        "name": "梦境记录",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"这个梦\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"当时的感受\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"它可能藏着什么\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "这个梦\n当时的感受\n它可能藏着什么"
+      },
+      {
+        "slug": "experiment",
+        "name": "实验记录",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"问题\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"布置\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"观察\"}]},{\"type\":\"table\",\"content\":[{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"测量项\"}]}]},{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"数值\"}]}]},{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"备注\"}]}]}]},{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]}]},{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]}]}]},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"结论\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "问题\n布置\n观察\n测量项\n数值\n备注\n结论"
+      },
+      {
+        "slug": "study",
+        "name": "学习笔记",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"主题与来源\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"关键观点\"}]},{\"type\":\"bulletList\",\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]}]},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"用我自己的话\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"待解的问题\"}]},{\"type\":\"taskList\",\"content\":[{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "主题与来源\n关键观点\n用我自己的话\n待解的问题"
+      },
+      {
+        "slug": "weekly",
+        "name": "每周回顾",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"有进展的\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"停滞的\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"下周\"}]},{\"type\":\"taskList\",\"content\":[{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "有进展的\n停滞的\n下周"
+      }
+    ],
+    "ja": [
+      {
+        "slug": "daily",
+        "name": "日々のふり返り",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"今日の気分\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"覚えておきたいこと\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"明日、ひとつだけ\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "今日の気分\n覚えておきたいこと\n明日、ひとつだけ"
+      },
+      {
+        "slug": "gratitude",
+        "name": "小さな三つのこと",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"今日をより良くした小さな三つのこと：\"}]},{\"type\":\"orderedList\",\"attrs\":{\"start\":1},\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "今日をより良くした小さな三つのこと："
+      },
+      {
+        "slug": "dream",
+        "name": "夢の記録",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"見た夢\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"どんな感じだったか\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"秘めているかもしれないもの\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "見た夢\nどんな感じだったか\n秘めているかもしれないもの"
+      },
+      {
+        "slug": "experiment",
+        "name": "実験ログ",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"問い\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"セットアップ\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"観察\"}]},{\"type\":\"table\",\"content\":[{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"測定項目\"}]}]},{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"値\"}]}]},{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"メモ\"}]}]}]},{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]}]},{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]}]}]},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"結論\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "問い\nセットアップ\n観察\n測定項目\n値\nメモ\n結論"
+      },
+      {
+        "slug": "study",
+        "name": "学習ノート",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"トピックと出典\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"要点\"}]},{\"type\":\"bulletList\",\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]}]},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"自分の言葉で\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"未解決の問い\"}]},{\"type\":\"taskList\",\"content\":[{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "トピックと出典\n要点\n自分の言葉で\n未解決の問い"
+      },
+      {
+        "slug": "weekly",
+        "name": "週次レビュー",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"進んだこと\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"滞ったこと\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"来週\"}]},{\"type\":\"taskList\",\"content\":[{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "進んだこと\n滞ったこと\n来週"
+      }
+    ],
+    "ko": [
+      {
+        "slug": "daily",
+        "name": "하루 돌아보기",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"하루의 느낌\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"기억해 둘 것\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"내일, 한 가지\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "하루의 느낌\n기억해 둘 것\n내일, 한 가지"
+      },
+      {
+        "slug": "gratitude",
+        "name": "작은 세 가지",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"오늘을 더 낫게 한 작은 세 가지:\"}]},{\"type\":\"orderedList\",\"attrs\":{\"start\":1},\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "오늘을 더 낫게 한 작은 세 가지:"
+      },
+      {
+        "slug": "dream",
+        "name": "꿈 기록",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"그 꿈\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"어떤 느낌이었나\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"담고 있을지 모를 것\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "그 꿈\n어떤 느낌이었나\n담고 있을지 모를 것"
+      },
+      {
+        "slug": "experiment",
+        "name": "실험 기록",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"질문\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"준비\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"관찰\"}]},{\"type\":\"table\",\"content\":[{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"측정 항목\"}]}]},{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"값\"}]}]},{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"메모\"}]}]}]},{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]}]},{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]}]}]},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"결론\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "질문\n준비\n관찰\n측정 항목\n값\n메모\n결론"
+      },
+      {
+        "slug": "study",
+        "name": "학습 노트",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"주제와 출처\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"핵심 아이디어\"}]},{\"type\":\"bulletList\",\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]}]},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"내 말로\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"남은 질문\"}]},{\"type\":\"taskList\",\"content\":[{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "주제와 출처\n핵심 아이디어\n내 말로\n남은 질문"
+      },
+      {
+        "slug": "weekly",
+        "name": "주간 리뷰",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"나아간 것\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"멈춘 것\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"다음 주\"}]},{\"type\":\"taskList\",\"content\":[{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "나아간 것\n멈춘 것\n다음 주"
+      }
+    ],
+    "hi": [
+      {
+        "slug": "daily",
+        "name": "दैनिक चिंतन",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"दिन कैसा बीता\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"याद रखने योग्य\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"कल, एक बात\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "दिन कैसा बीता\nयाद रखने योग्य\nकल, एक बात"
+      },
+      {
+        "slug": "gratitude",
+        "name": "तीन छोटी बातें",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"तीन छोटी बातें जिन्होंने आज को बेहतर बनाया:\"}]},{\"type\":\"orderedList\",\"attrs\":{\"start\":1},\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "तीन छोटी बातें जिन्होंने आज को बेहतर बनाया:"
+      },
+      {
+        "slug": "dream",
+        "name": "स्वप्न बही",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"स्वप्न\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"कैसा लगा\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"यह क्या समेटे हो सकता है\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "स्वप्न\nकैसा लगा\nयह क्या समेटे हो सकता है"
+      },
+      {
+        "slug": "experiment",
+        "name": "प्रयोग बही",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"प्रश्न\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"व्यवस्था\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"अवलोकन\"}]},{\"type\":\"table\",\"content\":[{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"माप\"}]}]},{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"मान\"}]}]},{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"टिप्पणियाँ\"}]}]}]},{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]}]},{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]}]}]},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"निष्कर्ष\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "प्रश्न\nव्यवस्था\nअवलोकन\nमाप\nमान\nटिप्पणियाँ\nनिष्कर्ष"
+      },
+      {
+        "slug": "study",
+        "name": "अध्ययन नोट्स",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"विषय और स्रोत\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"मुख्य विचार\"}]},{\"type\":\"bulletList\",\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]}]},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"अपने शब्दों में\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"खुले प्रश्न\"}]},{\"type\":\"taskList\",\"content\":[{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "विषय और स्रोत\nमुख्य विचार\nअपने शब्दों में\nखुले प्रश्न"
+      },
+      {
+        "slug": "weekly",
+        "name": "साप्ताहिक समीक्षा",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"क्या आगे बढ़ा\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"क्या ठहरा रहा\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"अगला सप्ताह\"}]},{\"type\":\"taskList\",\"content\":[{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "क्या आगे बढ़ा\nक्या ठहरा रहा\nअगला सप्ताह"
+      }
+    ],
+    "ar": [
+      {
+        "slug": "daily",
+        "name": "تأمّل يومي",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"كيف كان شعور اليوم\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"ما يستحقّ التذكّر\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"غدًا، أمر واحد\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "كيف كان شعور اليوم\nما يستحقّ التذكّر\nغدًا، أمر واحد"
+      },
+      {
+        "slug": "gratitude",
+        "name": "ثلاثة أشياء صغيرة",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"ثلاثة أشياء صغيرة جعلت اليوم أفضل:\"}]},{\"type\":\"orderedList\",\"attrs\":{\"start\":1},\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "ثلاثة أشياء صغيرة جعلت اليوم أفضل:"
+      },
+      {
+        "slug": "dream",
+        "name": "سجلّ الأحلام",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"الحلم\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"كيف كان شعوره\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"ما قد يحمله\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "الحلم\nكيف كان شعوره\nما قد يحمله"
+      },
+      {
+        "slug": "experiment",
+        "name": "سجلّ التجربة",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"السؤال\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"الإعداد\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"الملاحظات\"}]},{\"type\":\"table\",\"content\":[{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"القياس\"}]}]},{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"القيمة\"}]}]},{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"ملاحظات\"}]}]}]},{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]}]},{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]}]}]},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"الخلاصة\"}]},{\"type\":\"paragraph\"}]}",
+        "bodyText": "السؤال\nالإعداد\nالملاحظات\nالقياس\nالقيمة\nملاحظات\nالخلاصة"
+      },
+      {
+        "slug": "study",
+        "name": "ملاحظات الدراسة",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"الموضوع والمصدر\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"الأفكار الرئيسية\"}]},{\"type\":\"bulletList\",\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]}]},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"بكلماتي الخاصة\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"أسئلة مفتوحة\"}]},{\"type\":\"taskList\",\"content\":[{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "الموضوع والمصدر\nالأفكار الرئيسية\nبكلماتي الخاصة\nأسئلة مفتوحة"
+      },
+      {
+        "slug": "weekly",
+        "name": "مراجعة أسبوعية",
+        "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"ما تقدّم\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"ما تعثّر\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"الأسبوع القادم\"}]},{\"type\":\"taskList\",\"content\":[{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+        "bodyText": "ما تقدّم\nما تعثّر\nالأسبوع القادم"
+      }
+    ]
+  }
+}

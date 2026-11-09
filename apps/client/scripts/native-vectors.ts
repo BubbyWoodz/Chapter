@@ -5,6 +5,7 @@ import { verifyThemeCatalog } from './native-theme-vectors';
 // ciphertext using the ACTUAL web implementation (cross-client reverse leg).
 import assert from 'node:assert/strict';
 import { verifyRichFixture } from './native-rich-vectors';
+import { verifyLocalizedBuiltins } from './native-locale-vectors';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { wordlist } from '@scure/bip39/wordlists/english.js';
 import { ed25519 } from '@noble/curves/ed25519.js';
@@ -76,5 +77,6 @@ if(process.argv.includes('--write')) {
 }
 
 verifyRichFixture(process.argv.includes('--write'), id, process.env.CHAPTER_NATIVE_OUTPUT);
+await verifyLocalizedBuiltins(process.argv.includes('--write'));
 
 if (process.env.CHAPTER_NATIVE_OUTPUT) await verifyNotebookLifecycle(process.env.CHAPTER_NATIVE_OUTPUT+'.notebook-lifecycle',id.dataKey);

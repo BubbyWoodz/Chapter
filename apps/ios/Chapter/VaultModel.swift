@@ -12,6 +12,13 @@ import ChapterCore
     @Published private(set) var syncing = false
     @Published private(set) var appearanceInitialized = false
     @Published var connecting = false
+    /// Original web language choice: device-only (never synced), English by default.
+    @Published private(set) var localeID: String = UserDefaults.standard.string(forKey: "chapter.locale") ?? "en"
+    var language: ChapterLocale? { ChapterLocales.bundled.map { ChapterLocales.resolve(stored: localeID, in: $0) } }
+    func setLanguage(_ id: String) {
+        guard let catalog = ChapterLocales.bundled, catalog.locales.contains(where: { $0.id == id }) else { return }
+        localeID = id; UserDefaults.standard.set(id, forKey: "chapter.locale")
+    }
     @Published private(set) var lastCompletePullID: UUID?
     private var identity: VaultIdentity?
     private var store: EncryptedSnapshotStore?
@@ -31,6 +38,8 @@ import ChapterCore
     #if DEBUG
     func loadPublicRichFixture() throws {
         guard ProcessInfo.processInfo.arguments.contains("--chapter-rich-fixture"), store == nil else { return }
+        // Public fixtures always start in English, so a language chosen by one UI test never leaks into another.
+        UserDefaults.standard.removeObject(forKey: "chapter.locale"); localeID = "en"
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("ChapterPublicFixture-" + UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let disk = EncryptedSnapshotStore(directory: directory, namespace: "public-fixture-only", key: SymmetricKey(data: Data(repeating: 7, count: 32)))
@@ -67,7 +76,8 @@ import ChapterCore
     var journals: [VaultRecord] { snapshot.records.filter { $0.kind == "journal" && !$0.deleted }.sorted { $0.title < $1.title } }
     var templates: [VaultRecord] { snapshot.records.filter { $0.kind == "template" && !$0.deleted } }
     /// Original web pristine built-in seeds not yet superseded by a synced copy.
-    var builtinTemplates: [BuiltinTemplate] { BuiltinTemplates.pristine(BuiltinTemplates.bundled, records: snapshot.records) }
+    /// Shown in the active language, like the web's localizeBuiltinTemplate.
+    var builtinTemplates: [BuiltinTemplate] { BuiltinTemplates.pristine(ChapterLocales.bundled.map { ChapterLocales.seeds(for: localeID, in: $0) } ?? BuiltinTemplates.bundled, records: snapshot.records) }
     var mediaSession: UUID { generation }
     var canSync: Bool { relay != nil && identity != nil }
     var canImportMedia: Bool { identity != nil && mediaFiles != nil }

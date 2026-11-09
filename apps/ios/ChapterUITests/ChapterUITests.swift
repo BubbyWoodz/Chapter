@@ -240,6 +240,19 @@ final class ChapterUITests: XCTestCase {
             app.terminate()
         }
     }
+    func testOriginalLanguageChoiceLocalizesBuiltinTemplatesLikeTheWeb() throws {
+        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture"];app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout:10));app.tabBars.buttons["Settings"].tap()
+        let picker=app.buttons["settings.language"];reveal(picker,in:app);picker.tap()
+        let german=app.buttons["Deutsch"];XCTAssertTrue(german.waitForExistence(timeout:5));german.tap()
+        app.tabBars.buttons["Journal"].tap()
+        let start=app.buttons["journal.fromTemplate"];XCTAssertTrue(start.waitForExistence(timeout:10));start.tap()
+        let daily=app.buttons["template.use.builtin:daily"];XCTAssertTrue(daily.waitForExistence(timeout:5))
+        XCTAssertTrue(daily.label.contains("Tagesrückblick"),"Built-ins show in the chosen original language: "+daily.label)
+        attach(app,name:"Actual native built-in templates in German from the original web catalog")
+        daily.tap()
+        XCTAssertTrue(app.staticTexts["Wie sich der Tag anfühlte"].waitForExistence(timeout:5),"The entry starts with the German built-in content")
+    }
     func testOriginalBuiltinTemplatesStartEntriesAndDeleteForksSyncedTombstone() throws {
         let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture"];app.launch()
         let start=app.buttons["journal.fromTemplate"];XCTAssertTrue(start.waitForExistence(timeout:10));start.tap()
