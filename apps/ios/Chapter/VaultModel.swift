@@ -257,6 +257,16 @@ import ChapterCore
         let saved = try next.reorderRichBlocks(expected: expected, from: offsets, to: destination)
         try commit(next); scheduleSync(); return saved
     }
+    /// Inserts the original web entryLink node. Compare-and-set on the exact
+    /// document bytes seen when the picker opened; a concurrent edit refuses.
+    func addEntryLink(_ expected: VaultRecord, to targetID: String) throws {
+        guard unlocked else { throw ChapterError.storage }
+        var next = snapshot
+        guard let raw = expected.body["bodyJson"]?.string, let i = next.records.firstIndex(where: { $0.id.utf8.elementsEqual(expected.id.utf8) }),
+              let target = next.records.first(where: { $0.kind == "entry" && !$0.deleted && $0.id.utf8.elementsEqual(targetID.utf8) }) else { throw ChapterError.conflict }
+        next.records[i] = try next.records[i].addingEntryLink(to: target, expected: raw)
+        try commit(next); scheduleSync()
+    }
     func toggleRichTask(_ entry: VaultRecord, path: [Int]) throws {
         var next = snapshot
         guard let raw = entry.body["bodyJson"]?.string, let i = next.records.firstIndex(where: { $0.id == entry.id }) else { throw ChapterError.conflict }

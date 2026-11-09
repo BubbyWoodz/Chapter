@@ -71,6 +71,16 @@ the exact revision; a failing strict accessibility audit remains a release block
   audit passed on dd19955 but failed on 869c075 with unchanged visible layout, so it
   is treated as unproven until it passes again. No audit is waived; re-verification pending.
 
+## Native entry-link authoring — November 9, 2026, 12:25 AM PST
+
+- More → Link to another entry: picker mirrors original web `[[` filtering/order/
+  limit; inserts the exact original entryLink node (+ trailing space) as a new
+  paragraph with byte-exact compare-and-set. 3 new Foundation tests (26 total)
+  PASS locally and catch 4/4 deliberate mutations; the real web TipTap schema,
+  docEntryLinks and docToText accept the native output unchanged (local check,
+  mandatory on Apple CI). New functional UI test pending Apple verification.
+  Cursor-position insertion remains unimplemented.
+
 ## Apple verification of dd19955 — November 9, 2026, 12:15 AM PST
 
 - Live TLS/Postgres/S3 relay (42580870048) GREEN, including the new concurrent

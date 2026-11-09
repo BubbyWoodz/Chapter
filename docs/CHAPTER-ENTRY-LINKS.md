@@ -26,3 +26,23 @@ and honest missing offline state. Planned real captures44–46. Apple tests/buil
 UI/captures still pending latest CI; this is NOT certified full link/editor parity.
 Link authoring/search picker, full inline selected-text editing and every original
 custom renderer remain separate incomplete feature groups.
+
+## Native link authoring — November 9, 2026
+
+Entry → More → **Link to another entry** opens a picker that mirrors the original
+web `[[` suggester (`wikilink.ts buildEntryLinkItems`): other live downloaded
+entries only (never the current, deleted or non-entry records), title search with
+ECMAScript `trim`/`toLowerCase`/UTF-16 `includes` semantics (an NFC query does not
+match an NFD title, as on the web), most recently updated first, at most eight,
+empty title shown as "Untitled".
+
+Choosing an entry appends a paragraph holding exactly the web `insertEntryLink`
+content: `{type:"entryLink",attrs:{entryId,label}}` followed by a `" "` text node.
+It is a compare-and-set on the exact original document bytes (a concurrent or
+canonically-equivalent change refuses without mutation). All existing blocks,
+root attrs, opaque nodes/marks and future record fields are retained; bodyText is
+the original web docToText. Apple CI writes the native result and the actual web
+schema, `docEntryLinks` and `docToText` must accept it unchanged.
+
+Not yet: inserting at a cursor position inside an existing paragraph (native
+editing has no selection model yet), or linking entries that are not downloaded.

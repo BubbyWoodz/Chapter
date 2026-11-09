@@ -117,6 +117,25 @@ final class ChapterUITests: XCTestCase {
         backlink.tap();XCTAssertTrue(app.staticTexts["Public heading"].waitForExistence(timeout:5));XCTAssertEqual(app.staticTexts["entry.title"].label,"Public rich fixture")
         app.navigationBars.buttons["Entry"].tap();XCTAssertEqual(app.staticTexts["entry.title"].label,"Public linked target")
     }
+    func testNativeLinkPickerInsertsOriginalWebLinkAndNavigatesWithBacklink() throws {
+        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture","--chapter-linked-entry-fixture"];app.launch()
+        let target=app.staticTexts["Public linked target"];XCTAssertTrue(target.waitForExistence(timeout:10));target.tap()
+        XCTAssertTrue(app.staticTexts["entry.title"].waitForExistence(timeout:5));XCTAssertFalse(app.buttons["entry.link.public-rich-fixture"].exists)
+        app.buttons["More"].tap();let add=app.buttons["entry.addLink"];XCTAssertTrue(add.waitForExistence(timeout:5));add.tap()
+        XCTAssertTrue(app.navigationBars["Link to entry"].waitForExistence(timeout:5))
+        XCTAssertFalse(app.buttons["link.candidate.entry-target"].exists,"The current entry must never be offered, like the original picker")
+        let search=app.searchFields["Search entry titles"];XCTAssertTrue(search.waitForExistence(timeout:5));search.tap();search.typeText("no such title")
+        XCTAssertTrue(app.staticTexts["link.empty"].waitForExistence(timeout:5))
+        search.buttons.firstMatch.tap();search.typeText("RICH")
+        let candidate=app.buttons["link.candidate.public-rich-fixture"];XCTAssertTrue(candidate.waitForExistence(timeout:5))
+        attach(app,name:"Actual native entry-link picker mirroring the original web [[ search")
+        candidate.tap()
+        let link=app.buttons["entry.link.public-rich-fixture"];XCTAssertTrue(link.waitForExistence(timeout:5));reveal(link,in:app)
+        XCTAssertTrue(app.staticTexts["🔗 Public rich fixture"].exists || link.label.contains("Public rich fixture"))
+        attach(app,name:"Actual native inserted entry link rendered from the original document")
+        link.tap();XCTAssertTrue(app.staticTexts["Public heading"].waitForExistence(timeout:5));XCTAssertEqual(app.staticTexts["entry.title"].label,"Public rich fixture")
+        let backlink=app.buttons["entry.backlink.entry-target"];reveal(backlink,in:app);XCTAssertTrue(backlink.exists)
+    }
     func testMissingLocalEntryLinkShowsHonestOfflineStateWithoutCloudOrFakeSuccess() throws {
         let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture"];app.launch()
         let source=app.staticTexts["Public rich fixture"];XCTAssertTrue(source.waitForExistence(timeout:10));source.tap()

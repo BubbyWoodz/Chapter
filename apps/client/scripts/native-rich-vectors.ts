@@ -62,6 +62,16 @@ export function verifyRichFixture(write: boolean, identity: {dataKey:Uint8Array}
   const nativeLinks = JSON.parse(readFileSync(nativePath+'.entry-links','utf8')) as {ids:string[]};
   assert.deepEqual(nativeLinks.ids,docEntryLinks(original),'Native local links/backlinks must use actual upstream entryId semantics');
   console.log('Native links match the actual original web document collector; navigation does not rewrite encrypted content.');
+  const inserted = JSON.parse(readFileSync(nativePath+'.entry-link-insert','utf8')) as {bodyJson:string; bodyText:string};
+  const linkedDoc = JSON.parse(inserted.bodyJson) as JSONContent;
+  const webNode = {type:'paragraph',content:[{type:'entryLink',attrs:{entryId:'entry-target-2',label:'Linked 📝 é'}},{type:'text',text:' '}]};
+  assert.deepEqual(linkedDoc.content?.slice(0,-1),(original as JSONContent).content,'Native link insertion changed existing original blocks');
+  assert.deepEqual(linkedDoc.content?.at(-1),webNode,'Native link must be exactly the node wikilink.ts insertEntryLink creates');
+  const webSchema = getSchema(buildExtensions(''));
+  assert.deepEqual(JSON.parse(JSON.stringify(webSchema.nodeFromJSON(webNode).toJSON())),webNode,'Actual web schema must accept the native link block unchanged');
+  assert.deepEqual(docEntryLinks(linkedDoc),[...docEntryLinks(original as JSONContent),'entry-target-2']);
+  assert.equal(inserted.bodyText,docToText(linkedDoc),'Native preview/search text must equal the original web docToText');
+  console.log('Native link authoring equals the original web [[ insertion node, schema, collector and preview.');
   const arranged = JSON.parse(readFileSync(nativePath+'.rich-structure','utf8')) as {id:string;record:string};
   const arrangedBody = JSON.parse(Buffer.from(decryptRecord(identity.dataKey,arranged.id,Buffer.from(arranged.record,'base64'))).toString());
   assert.deepEqual(JSON.parse(arrangedBody.bodyJson),reordered,'Native block move lost, flattened or rewrote an original/opaque block');

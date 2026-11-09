@@ -218,6 +218,7 @@ struct EntryDetail: View {
     @State private var deleting = false
     @State private var deletionExpected: VaultRecord?
     @State private var editingMetadata = false
+    @State private var linking = false
     @State private var showingActions = false
     @State private var showingPlainEdit = false
     @State private var previewURL: URL?
@@ -238,6 +239,8 @@ struct EntryDetail: View {
                             VStack(alignment:.leading) {
                                 Button("Title, date and labels") { showingActions = false; editingMetadata = true }.frame(minHeight:44)
                                 Button("Move to notebook") { showingActions = false; moving = true }.frame(minHeight:44).disabled(model.journals.isEmpty)
+                                Button("Link to another entry") { showingActions = false; linking = true }.frame(minHeight:44)
+                                    .disabled(entry.body["bodyJson"]?.string.flatMap({ try? RichDocument(json: $0) }) == nil).accessibilityIdentifier("entry.addLink")
                                 Button("Delete entry",role:.destructive) { showingActions = false; deletionExpected = entry; deleting = true }.frame(minHeight:44)
                             }
                         }
@@ -307,6 +310,7 @@ struct EntryDetail: View {
                     else if let raw = entry.body["bodyJson"]?.string, (try? RichDocument(json: raw)) != nil { RichEntryEditor(entry: entry) }
                 }
                 .sheet(isPresented: $moving) { MoveEntryView(entry: entry) }
+                .sheet(isPresented: $linking) { EntryLinkPicker(entry: entry) }
                 .sheet(isPresented: $editingMetadata) { EntryMetadataEditor(entry: entry) }
                 .confirmationDialog("Delete this entry on all synced devices?", isPresented: $deleting, titleVisibility: .visible) {
                     Button("Delete entry", role: .destructive) { do { guard let deletionExpected else { throw ChapterError.conflict }; try model.deleteEntry(deletionExpected); dismiss() } catch { model.message = error.localizedDescription } }
@@ -771,6 +775,41 @@ struct ChapterScreenSurface: ViewModifier {
     }
 }
 
+/// Mirrors the original web "[[" picker: other live downloaded entries,
+/// title search, most recently updated first, at most eight results.
+struct EntryLinkPicker: View {
+    @EnvironmentObject private var model: VaultModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var expected: VaultRecord
+    @State private var query = ""
+    @State private var error: String?
+    init(entry: VaultRecord) { _expected = State(initialValue: entry) }
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    let candidates = model.snapshot.entryLinkCandidates(excluding: expected.id, query: query)
+                    if candidates.isEmpty { Text(query.isEmpty ? "No other downloaded entries yet." : "No downloaded entries match.").foregroundStyle(.secondary).accessibilityIdentifier("link.empty") }
+                    ForEach(candidates) { target in
+                        Button {
+                            do { try model.addEntryLink(expected, to: target.id); dismiss() } catch { self.error = error.localizedDescription }
+                        } label: {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(EntryLinkAuthoring.label(for: target)).font(.body)
+                                Text(target.date.formatted(date: .abbreviated, time: .omitted)).font(.footnote).foregroundStyle(.secondary)
+                            }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                        }.accessibilityIdentifier("link.candidate." + target.id)
+                    }
+                } footer: {
+                    Text("Adds a link at the end of this entry, the same link the web editor creates. Only downloaded entries are listed; it syncs when your server is reachable.").font(.footnote)
+                }
+                if let error { Text(error).foregroundStyle(.red).accessibilityIdentifier("link.error") }
+            }.modifier(ChapterScreenSurface()).navigationTitle("Link to entry").navigationBarTitleDisplayMode(.inline)
+            .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search entry titles")
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
+        }
+    }
+}
 struct MoveEntryView: View {
     @EnvironmentObject private var model: VaultModel
     @Environment(\.dismiss) private var dismiss
