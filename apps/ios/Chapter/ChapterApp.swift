@@ -37,7 +37,7 @@ import QuickLook
         WindowGroup {
             ZStack {
                 rootContent
-                if phase != .active { Color(uiColor: .systemBackground).ignoresSafeArea().overlay(Text("Chapter").font(.title)) }
+                if phase != .active && !chapterDiagnostic("--diag-no-privacy-overlay") { Color(uiColor: .systemBackground).ignoresSafeArea().overlay(Text("Chapter").font(.title)) }
             }
             .modifier(ChapterAppearanceStyle(preference: model.snapshot.appearance ?? .standard))
             .environmentObject(model)
@@ -66,6 +66,14 @@ private struct NativeFormAuditReproduction: View {
         }
     }
 }
+/// One-variable Dynamic Type bisection seam. DEBUG only; release is always false.
+func chapterDiagnostic(_ flag: String) -> Bool {
+    #if DEBUG
+    return ProcessInfo.processInfo.arguments.contains(flag)
+    #else
+    return false
+    #endif
+}
 struct ConnectView: View {
     @EnvironmentObject private var model: VaultModel
     @State private var server = UserDefaults.standard.string(forKey: "chapter.server") ?? ""
@@ -91,8 +99,8 @@ struct ConnectView: View {
                 }
                 if let message = model.message { Section { Text(message).accessibilityLabel("Connection status: \(message)").accessibilityIdentifier("connection.status") } }
 
-            }.modifier(ChapterScreenSurface()).navigationTitle("Chapter").scrollDismissesKeyboard(.interactively)
-                .safeAreaInset(edge:.bottom) {
+            }.modifier(ChapterScreenSurface(navigationBar: !chapterDiagnostic("--diag-no-toolbar-background"))).navigationTitle(chapterDiagnostic("--diag-no-nav-title") ? "" : "Chapter").scrollDismissesKeyboard(.interactively)
+                .safeAreaInset(edge:.bottom) { if !chapterDiagnostic("--diag-no-bottom-inset") {
                     Button {
                         guard !model.connecting else { return }
                         guard !server.isEmpty, !phrase.isEmpty else {
@@ -108,7 +116,7 @@ struct ConnectView: View {
                             .frame(maxWidth:.infinity,minHeight:44)
                     }.buttonStyle(.borderedProminent).tint(chapterToken("ink",preference:model.snapshot.appearance ?? .standard)).disabled(model.connecting)
                         .accessibilityIdentifier("connection.unlock").padding().background(.regularMaterial)
-                }
+                } }
         }
     }
 }
@@ -767,11 +775,17 @@ func chapterToken(_ name:String,preference:SharedAppearance)->Color {
 }
 struct ChapterScreenSurface: ViewModifier {
     @EnvironmentObject private var model:VaultModel
-    func body(content:Content)->some View {
+    var navigationBar = true
+    @ViewBuilder func body(content:Content)->some View {
         let paper=chapterToken("paper",preference:model.snapshot.appearance ?? .standard)
-        content.scrollContentBackground(.hidden).background(paper)
-            .toolbarBackground(paper,for:.navigationBar,.tabBar)
-            .toolbarBackground(.visible,for:.navigationBar,.tabBar)
+        if navigationBar {
+            content.scrollContentBackground(.hidden).background(paper)
+                .toolbarBackground(paper,for:.navigationBar,.tabBar)
+                .toolbarBackground(.visible,for:.navigationBar,.tabBar)
+        } else {
+            content.scrollContentBackground(.hidden).background(paper)
+                .toolbarBackground(paper,for:.tabBar).toolbarBackground(.visible,for:.tabBar)
+        }
     }
 }
 

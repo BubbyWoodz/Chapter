@@ -71,6 +71,23 @@ the exact revision; a failing strict accessibility audit remains a release block
   audit passed on dd19955 but failed on 869c075 with unchanged visible layout, so it
   is treated as unproven until it passes again. No audit is waived; re-verification pending.
 
+## Apple results for 7bee115 and accessibility bisection — November 9, 2026, 1:05 AM PST
+
+- Native 42584833292: complete Apple core, the mandatory web vectors step (now
+  including the native link-insertion schema/collector/preview cross-check), the
+  Simulator build, page captures and ALL functional UI tests PASS, including the
+  new native link picker test and the XXXL layout/geometry test.
+- Both strict production connection audits FAILED again (“Dynamic Type font sizes
+  are unsupported”, element unresolvable). The e1eaf4d fixedSize hypothesis is
+  DISPROVEN: production now matches the earlier passing diagnostic, and the normal
+  audit has gone fail → pass → fail with no layout change, so the finding is
+  intermittent. The earlier diagnostic audited once at launch, which is why a
+  single pass misled. Recording frames show every content text scaling during the
+  audit; the culprit is not visible, so the next CI run carries a NON-GATING
+  bisection (3 fresh audits each: baseline, without nav-bar toolbar background,
+  without bottom action inset, without nav title, without privacy overlay). Seams
+  are DEBUG-only; release behavior is unchanged. Strict audits remain required.
+
 ## Original tables rendered as the exact merged grid — November 9, 2026, 12:35 AM PST
 
 - New core `RichTableLayout` mirrors the actual prosemirror-tables `findWidth`/
