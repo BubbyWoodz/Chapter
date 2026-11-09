@@ -87,7 +87,7 @@ These are local commits, not pushed yet. 13606df was pushed at 5:53 AM PST after
 - **51dfeab (6:05 AM PST): `ChapterDayOneImport.run` ports `importDayOne` behind `DayOneImportTarget`.**
   - Notebooks are matched by name using JavaScript lowercasing. That includes Greek final sigma, which Swift's `lowercased()` gets wrong; if two notebook names match, the later one wins.
   - New notebooks get the web's colours, covers, ids and "Imported from Day One" subtitle.
-  - Each entry is created, then its labels are trimmed and deduplicated like the web's.
+  - Each entry is created, then its labels are trimmed like the web's (blank and non-text tags dropped, duplicates kept).
   - Media are attached one by one: consecutive images become a gallery, missing or refused files are counted as skipped, and progress is reported per entry.
   - `parseDate` follows V8's ISO date format: date-only means UTC, a date-time without an offset means local time, DST gaps and overlaps resolve like ECMAScript, 24:00 and Feb 30 roll over, and lowercase `t`/`z` and a space separator are accepted. V8's legacy, non-ISO formats fall back to the current time.
 
