@@ -72,7 +72,7 @@ the exact revision; a failing strict accessibility audit remains a release block
   is treated as unproven until it passes again. No audit is waived; re-verification pending.
 
 <!-- Times are commit times in America/Los_Angeles; earlier labels this night ran ahead of the clock and were corrected. -->
-## Connection-screen Dynamic Type fix; bisection removed — November 9, 2026, 1:20 AM PST
+## Connection-screen Dynamic Type fix; bisection removed — November 9, 2026, 1:10 AM PST
 
 Apple run 42588998288 (ada486d) results:
 - Table UI test `testOriginalTableRendersExactMergedGridWithHeaderAndAccessibleCells`: **passed**, along with all functional, link-picker, card-color and core tests (RichTableTests too), and the web cross-check step.
