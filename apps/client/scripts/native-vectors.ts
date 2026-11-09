@@ -1,3 +1,4 @@
+import './native-tz'; // must stay the first import: pins the zone the ZIP vectors were written in
 import { verifyNotebookLifecycle } from './native-notebook-vectors';
 import { verifyThemeCatalog } from './native-theme-vectors';
 // Public BIP39 test phrase only. Never use these identities for real journals.
