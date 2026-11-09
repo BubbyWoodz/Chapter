@@ -66,6 +66,8 @@ import ChapterCore
     var entries: [VaultRecord] { snapshot.records.filter { $0.kind == "entry" && !$0.deleted }.sorted { $0.date > $1.date } }
     var journals: [VaultRecord] { snapshot.records.filter { $0.kind == "journal" && !$0.deleted }.sorted { $0.title < $1.title } }
     var templates: [VaultRecord] { snapshot.records.filter { $0.kind == "template" && !$0.deleted } }
+    /// Original web pristine built-in seeds not yet superseded by a synced copy.
+    var builtinTemplates: [BuiltinTemplate] { BuiltinTemplates.pristine(BuiltinTemplates.bundled, records: snapshot.records) }
     var mediaSession: UUID { generation }
     var canSync: Bool { relay != nil && identity != nil }
     var canImportMedia: Bool { identity != nil && mediaFiles != nil }
@@ -288,6 +290,25 @@ import ChapterCore
         let record = try EntryTemplates.newTemplate(name: name, text: text, id: UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased(), clock: try nextClock())
         var next = snapshot; next.records.append(record)
         try commit(next); scheduleSync(); return record
+    }
+    private func liveSeed(_ seed: BuiltinTemplate) throws -> BuiltinTemplate {
+        guard unlocked else { throw ChapterError.storage }
+        guard let live = builtinTemplates.first(where: { $0.slug == seed.slug }) else { throw ChapterError.conflict }
+        return live
+    }
+    func newEntryFromBuiltin(_ seed: BuiltinTemplate, journalID: String) throws -> VaultRecord {
+        let live = try liveSeed(seed)
+        guard journals.contains(where: { $0.journalID == journalID }) else { throw ChapterError.conflict }
+        let entry = try EntryTemplates.newEntry(from: live.seedRecord, journalID: journalID, id: UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased(), clock: try nextClock())
+        var next = snapshot; next.records.append(entry)
+        try commit(next); scheduleSync(); return entry
+    }
+    /// Web mutateSeeded: the first rename/delete forks the seed into a synced record.
+    func forkBuiltin(_ seed: BuiltinTemplate, name: String? = nil, deleted: Bool = false) throws {
+        let live = try liveSeed(seed)
+        let record = try BuiltinTemplates.fork(live, id: UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased(), clock: try nextClock(), name: name, deleted: deleted)
+        var next = snapshot; next.records.append(record)
+        try commit(next); scheduleSync()
     }
     func renameTemplate(_ expected: VaultRecord, name: String) throws {
         guard unlocked else { throw ChapterError.storage }

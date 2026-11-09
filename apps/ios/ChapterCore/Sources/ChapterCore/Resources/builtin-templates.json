@@ -1,0 +1,38 @@
+[
+  {
+    "slug": "daily",
+    "name": "Daily reflection",
+    "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"How the day felt\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Worth remembering\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Tomorrow, one thing\"}]},{\"type\":\"paragraph\"}]}",
+    "bodyText": "How the day felt\nWorth remembering\nTomorrow, one thing"
+  },
+  {
+    "slug": "gratitude",
+    "name": "Three small things",
+    "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Three small things that made today better:\"}]},{\"type\":\"orderedList\",\"attrs\":{\"start\":1},\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+    "bodyText": "Three small things that made today better:"
+  },
+  {
+    "slug": "dream",
+    "name": "Dream log",
+    "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"The dream\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"How it felt\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"What it might be holding\"}]},{\"type\":\"paragraph\"}]}",
+    "bodyText": "The dream\nHow it felt\nWhat it might be holding"
+  },
+  {
+    "slug": "experiment",
+    "name": "Experiment log",
+    "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Question\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Setup\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Observations\"}]},{\"type\":\"table\",\"content\":[{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Measurement\"}]}]},{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Value\"}]}]},{\"type\":\"tableHeader\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Notes\"}]}]}]},{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]}]},{\"type\":\"tableRow\",\"content\":[{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"tableCell\",\"content\":[{\"type\":\"paragraph\"}]}]}]},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Conclusion\"}]},{\"type\":\"paragraph\"}]}",
+    "bodyText": "Question\nSetup\nObservations\nMeasurement\nValue\nNotes\nConclusion"
+  },
+  {
+    "slug": "study",
+    "name": "Study notes",
+    "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Topic & source\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Key ideas\"}]},{\"type\":\"bulletList\",\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\"}]}]},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"In my own words\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Open questions\"}]},{\"type\":\"taskList\",\"content\":[{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+    "bodyText": "Topic & source\nKey ideas\nIn my own words\nOpen questions"
+  },
+  {
+    "slug": "weekly",
+    "name": "Weekly review",
+    "bodyJson": "{\"type\":\"doc\",\"content\":[{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"What moved\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"What stalled\"}]},{\"type\":\"paragraph\"},{\"type\":\"heading\",\"attrs\":{\"level\":2},\"content\":[{\"type\":\"text\",\"text\":\"Next week\"}]},{\"type\":\"taskList\",\"content\":[{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]},{\"type\":\"taskItem\",\"attrs\":{\"checked\":false},\"content\":[{\"type\":\"paragraph\"}]}]}]}",
+    "bodyText": "What moved\nWhat stalled\nNext week"
+  }
+]

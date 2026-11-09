@@ -72,6 +72,15 @@ the exact revision; a failing strict accessibility audit remains a release block
   is treated as unproven until it passes again. No audit is waived; re-verification pending.
 
 <!-- Times are commit times in America/Los_Angeles; earlier labels this night ran ahead of the clock and were corrected. -->
+## Original built-in templates — November 9, 2026, 1:19 AM PST
+
+- **Seeds:** the six web seeds (Daily reflection, Three small things, Dream log, Experiment log, Study notes, Weekly review) ship as `Resources/builtin-templates.json`. The real web `seedBuiltinTemplates` generates that file, and the vectors script re-verifies it on every run. The native preview text equals the web `docToText` for all six, including the table and task lists.
+- **Local-only like the web:** like the web's pristine seeds, they are never stored or pushed until edited.
+- **Retirement:** a seed is retired exactly as `supersedeBuiltinSeeds` does it, when any synced template, live or tombstoned, carries its slug.
+- **Fork on first change:** a rename or delete forks the seed (web `mutateSeeded`) into a synced record carrying the `builtin` slug, so other devices retire their own seed. Difference from the web: native has no stored seed time, so `createdAt` is the fork time.
+- **Language:** English only until locales land.
+- **Evidence:** 35 local Foundation tests pass; 3/3 deliberate mutations caught. Apple UI test `testOriginalBuiltinTemplatesStartEntriesAndDeleteForksSyncedTombstone` is pending.
+
 ## Native template manager: create, rename, delete — November 9, 2026, 1:16 AM PST
 
 Mirrors the original web TemplatesSheet / TemplateEditorView / createTemplate / updateTemplate / deleteTemplate:

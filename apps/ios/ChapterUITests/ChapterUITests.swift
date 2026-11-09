@@ -203,6 +203,18 @@ final class ChapterUITests: XCTestCase {
         created.tap()
         XCTAssertTrue(app.staticTexts["One intention"].waitForExistence(timeout:5),"A native-created template starts an entry with its content")
     }
+    func testOriginalBuiltinTemplatesStartEntriesAndDeleteForksSyncedTombstone() throws {
+        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture"];app.launch()
+        let start=app.buttons["journal.fromTemplate"];XCTAssertTrue(start.waitForExistence(timeout:10));start.tap()
+        let weekly=app.buttons["template.use.builtin:weekly"];XCTAssertTrue(weekly.waitForExistence(timeout:5));XCTAssertTrue(weekly.label.contains("Weekly review"))
+        attach(app,name:"Actual native picker with the original web built-in templates")
+        let weeklyActions=app.buttons["template.actions.builtin:weekly"];reveal(weeklyActions,in:app);weeklyActions.tap();app.buttons["template.delete"].tap()
+        let confirm=app.buttons["template.confirmDelete"];XCTAssertTrue(confirm.waitForExistence(timeout:5));confirm.tap()
+        XCTAssertTrue(weekly.waitForNonExistence(timeout:5),"Deleting a seed forks a synced tombstone that retires it")
+        let daily=app.buttons["template.use.builtin:daily"];reveal(daily,in:app);daily.tap()
+        XCTAssertTrue(app.staticTexts["How the day felt"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["Tomorrow, one thing"].exists)
+        attach(app,name:"Actual native entry started from the original Daily reflection built-in")
+    }
     func testNativeRichRenderingEditingAndTaskPersistence() throws {
         let app = XCUIApplication(); app.launchArguments = ["--chapter-rich-fixture"]; app.launch()
         let entry = app.staticTexts["Public rich fixture"]

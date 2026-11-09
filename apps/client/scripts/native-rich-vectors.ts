@@ -7,6 +7,7 @@ import { decryptRecord } from '../src/sync/engine';
 import { normalizeEntryLabel } from '../src/labels';
 import { TableMap } from '@tiptap/pm/tables';
 import { defaultEntryTitle } from '../src/state/helpers';
+import { seedBuiltinTemplates } from '../src/data/templates';
 const text = (text: string, marks?: JSONContent["marks"]): JSONContent => ({type:'text', text, ...(marks ? {marks} : {})});
 const p = (s: string): JSONContent => ({type:'paragraph', content:[text(s)]});
 const media = (id: string) => ({id, mime:'image/png', bytes:10, name:'Public photo'});
@@ -82,6 +83,11 @@ export function verifyRichFixture(write: boolean, identity: {dataKey:Uint8Array}
  const titleURL = new URL('../../ios/ChapterCore/Tests/ChapterCoreTests/Fixtures/entry-titles.json',import.meta.url);
  if (write) writeFileSync(titleURL,JSON.stringify(titleCases,null,2)+'\n');
  else assert.deepEqual(JSON.parse(readFileSync(titleURL,'utf8')),titleCases,'Native default entry titles must equal the original defaultEntryTitle');
+ // Actual web built-in template seeds (English catalog), exactly as seedBuiltinTemplates lays them down.
+ const builtins = seedBuiltinTemplates(0).map(t => ({slug:t.builtin, name:t.name, bodyJson:t.bodyJson, bodyText:t.bodyText}));
+ const builtinURL = new URL('../../ios/ChapterCore/Sources/ChapterCore/Resources/builtin-templates.json',import.meta.url);
+ if (write) writeFileSync(builtinURL,JSON.stringify(builtins,null,2)+'\n');
+ else assert.deepEqual(JSON.parse(readFileSync(builtinURL,'utf8')),builtins,'Native built-in templates must equal the original web seeds');
  const viewSource = readFileSync(new URL('../../ios/Chapter/RichDocumentViews.swift',import.meta.url),'utf8');
  const publicFixture = /enum PublicRichFixture \{ static let json = #"(.+)"# \}/.exec(viewSource);
  assert(publicFixture, 'Debug public rich fixture missing');

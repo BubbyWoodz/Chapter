@@ -60,4 +60,29 @@ final class EntryTemplateTests: XCTestCase {
         let entry = VaultRecord(id: "e", clock: 1, body: ["title": .string("x")])
         XCTAssertThrowsError(try entry.deletingTemplate(expected: entry)); XCTAssertThrowsError(try entry.renamingTemplate(expected: entry, name: "x"))
     }
+    func testBuiltinSeedsMatchOriginalWebAndRetireOrForkLikeSupersedeAndMutateSeeded() throws {
+        let seeds = BuiltinTemplates.bundled
+        XCTAssertEqual(seeds.map(\.slug), ["daily", "gratitude", "dream", "experiment", "study", "weekly"])
+        XCTAssertEqual(seeds.first?.name, "Daily reflection")
+        for seed in seeds { XCTAssertEqual(try RichDocument(json: seed.bodyJson).plainText, seed.bodyText, "Native preview text must equal the web docToText for \(seed.slug)") }
+        let weekly = try XCTUnwrap(seeds.first { $0.slug == "weekly" })
+        let entry = try EntryTemplates.newEntry(from: weekly.seedRecord, journalID: "j", id: "n", clock: 7)
+        XCTAssertEqual(Data(entry.body["bodyJson"]!.string!.utf8), Data(weekly.bodyJson.utf8)); XCTAssertNil(entry.body["builtin"])
+        let records = [
+            VaultRecord(id: "a", clock: 2, deleted: true, body: ["kind": .string("template"), "builtin": .string("daily")]),
+            VaultRecord(id: "b", clock: 2, body: ["kind": .string("template"), "builtin": .string("weekly"), "name": .string("Mine")]),
+            VaultRecord(id: "c", clock: 2, body: ["builtin": .string("dream"), "title": .string("an entry, not a template")]),
+        ]
+        XCTAssertEqual(BuiltinTemplates.pristine(seeds, records: records).map(\.slug), ["gratitude", "dream", "experiment", "study"], "Live and tombstoned synced copies retire the seed; other kinds do not")
+        let renamed = try BuiltinTemplates.fork(weekly, id: "f1", clock: 1773536400000, name: "  My week ")
+        XCTAssertEqual(renamed.body["name"]?.string, "My week"); XCTAssertEqual(renamed.body["builtin"]?.string, "weekly"); XCTAssertFalse(renamed.deleted); XCTAssertTrue(renamed.dirty)
+        XCTAssertEqual(Set(renamed.body.keys), ["kind", "name", "bodyText", "bodyJson", "builtin", "createdAt", "updatedAt"])
+        XCTAssertEqual(Data(renamed.body["bodyJson"]!.string!.utf8), Data(weekly.bodyJson.utf8))
+        let tomb = try BuiltinTemplates.fork(weekly, id: "f2", clock: 5, deleted: true)
+        XCTAssertTrue(tomb.deleted); XCTAssertEqual(tomb.body["name"]?.string, "Weekly review"); XCTAssertEqual(tomb.body["builtin"]?.string, "weekly")
+        XCTAssertEqual(BuiltinTemplates.pristine(seeds, records: [tomb]).count, 5)
+        XCTAssertThrowsError(try BuiltinTemplates.fork(weekly, id: "", clock: 5))
+        XCTAssertThrowsError(try BuiltinTemplates.load(from: Data("[]".utf8)))
+        XCTAssertThrowsError(try BuiltinTemplates.load(from: Data(#"[{"slug":"a","name":"","bodyJson":"","bodyText":""},{"slug":"a","name":"","bodyJson":"","bodyText":""}]"#.utf8)))
+    }
 }
