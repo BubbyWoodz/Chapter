@@ -72,6 +72,12 @@ the exact revision; a failing strict accessibility audit remains a release block
   is treated as unproven until it passes again. No audit is waived; re-verification pending.
 
 <!-- Times are commit times in America/Los_Angeles; earlier labels this night ran ahead of the clock and were corrected. -->
+## Web export fix: media without a saved date — November 9, 2026, 5:33 AM PST
+
+- `ArchiveWriter.add` (web `src/export/journal.ts`) now gives the export time as the zip time to any file whose own time falls outside 1980–2099 in local time, fflate's limit. Nothing else changes: the manifest and entry JSON keep exactly the dates they always wrote (for example `1970-01-01T00:00:00.000Z`), in-range times are kept, and a non-numeric time is left to fflate as before.
+- Regression check `checkUndatedMedia` in `scripts/export-journal.ts` covers a gallery image with no date, media dated 0, an entry with `updatedAt` -1 and a dated control. It reads the zip times from the central directory. It fails with the original error without the fix, and passes in the UTC, UTC+14 and UTC−11 time zones.
+- The native `ChapterZipWriter` uses the same rule: a local 1980–2099 range, falling back to the export time.
+
 ## Interview types and journal export core — November 9, 2026, 5:24 AM PST
 
 - **b1001b1 (5:18 AM PST), interview types:** a native manager matching the web InterviewTypesSheet, opened from Settings → Assistant. It covers the 15 built-ins, create, edit and delete. A built-in forks only on a real change; deleting one writes a tombstoned fork. Covered by web-generated wire-body vectors plus UI test `testInterviewTypesAreManagedLikeTheWebInterviewTypesSheet` (still to run on Apple).
@@ -80,7 +86,7 @@ the exact revision; a failing strict accessibility audit remains a release block
   - `ChapterZipWriter` streams a store-only zip.
   - Verified both ways against the real web code, and a mutation is caught.
   - Not yet: markdown, the export button and share sheet, and import.
-- **Web bug found (not changed):** the web `exportJournal` throws `date not in range 1980-2099` (fflate) when an inline media node has no `createdAt`, because it is coerced to 0, i.e. 1970. The native writer clamps such zip timestamps instead. The vectors keep media dates in range so the web side runs.
+- **Web bug found:** the web `exportJournal` threw `date not in range 1980-2099` (fflate) when an inline media node had no `createdAt`, because it was coerced to 0, i.e. 1970. An entry `updatedAt` out of that range did the same. Fixed with your approval (see the next section).
 - **Apple:** Native run 42623798125 on e30d301 got a runner this time and is in progress, so both commits stay local until it finishes.
 
 ## Search and badges — November 9, 2026, 5:09 AM PST

@@ -9,8 +9,8 @@ import { exportJournal, slugify } from '../src/export/journal';
 import type { JournalEntry } from '../src/sync/engine';
 import type { Journal } from '../src/data/sample';
 
-// Media timestamps stay in 1980–2099: the web exportJournal throws on an earlier
-// one (fflate zip mtime range), e.g. a media node with no createdAt (coerced to 0).
+// Media dates are real ones. Undated media (an out-of-zip-range mtime) is covered by
+// scripts/export-journal.ts checkUndatedMedia, and zip mtimes aren't compared here.
 const NOW = Date.UTC(2026, 10, 9, 13, 20, 0, 123);
 const doc = (...content: unknown[]) => JSON.stringify({ type: 'doc', content });
 const p = (text: string) => ({ type: 'paragraph', content: [{ type: 'text', text }] });

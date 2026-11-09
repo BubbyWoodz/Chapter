@@ -30,12 +30,13 @@ final class ChapterExportTests: XCTestCase {
         for s in f["slugs"].array { XCTAssertEqual(ChapterExport.slugify(s["name"].string!), s["slug"].string, s["name"].string!) }
         // The real archive, unzipped by the web script (fflate) when CHAPTER_NATIVE_OUTPUT is set.
         let zipURL = FileManager.default.temporaryDirectory.appendingPathComponent("chapter-export-\(UUID().uuidString).zip")
-        let writer = try ChapterZipWriter(url: zipURL)
+        let writer = try ChapterZipWriter(url: zipURL, fallbackMtime: f["now"].number!)
         for file in archive.files { try writer.add(path: file.path, data: file.data, mtime: file.mtime) }
         try writer.finish()
         let zip = try Data(contentsOf: zipURL); try? FileManager.default.removeItem(at: zipURL)
         XCTAssertEqual(zip.suffix(22).prefix(4), Data([0x50, 0x4b, 0x05, 0x06]))
         if let out = ProcessInfo.processInfo.environment["CHAPTER_NATIVE_OUTPUT"] { try zip.write(to: URL(fileURLWithPath: out + ".journal-export.zip")) }
+        XCTAssertNil(ChapterZipWriter.dos(0)); XCTAssertNil(ChapterZipWriter.dos(.nan)); XCTAssertNotNil(ChapterZipWriter.dos(f["now"].number!))
         XCTAssertEqual(ChapterZipWriter.crc32(Data("123456789".utf8)), 0xCBF43926)
         XCTAssertEqual(ChapterExport.iso(0), "1970-01-01T00:00:00.000Z"); XCTAssertEqual(ChapterExport.iso(-1), "1969-12-31T23:59:59.999Z")
         XCTAssertEqual(ChapterExport.iso(253402300800000), "+010000-01-01T00:00:00.000Z"); XCTAssertNil(ChapterExport.iso(.nan))

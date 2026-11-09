@@ -236,26 +236,27 @@ public enum ChapterExport {
 public final class ChapterZipWriter {
     private let handle: FileHandle
     private var central = Data(), count = 0, offset: UInt64 = 0
-    public init(url: URL) throws {
+    private let fallbackMtime: Double?
+    /// `fallbackMtime` (the export time) stands in for a time a zip can't hold, like the web ArchiveWriter.
+    public init(url: URL, fallbackMtime: Double? = nil) throws {
+        self.fallbackMtime = fallbackMtime
         guard FileManager.default.createFile(atPath: url.path, contents: nil, attributes: [.protectionKey: FileProtectionType.complete]) || FileManager.default.createFile(atPath: url.path, contents: nil) else { throw ChapterError.storage }
         handle = try FileHandle(forWritingTo: url)
     }
     static let crcTable: [UInt32] = (0..<256).map { i -> UInt32 in var c = UInt32(i); for _ in 0..<8 { c = c & 1 != 0 ? 0xEDB88320 ^ (c >> 1) : c >> 1 }; return c }
     public static func crc32(_ data: Data) -> UInt32 { var c: UInt32 = 0xFFFFFFFF; for b in data { c = crcTable[Int((c ^ UInt32(b)) & 0xFF)] ^ (c >> 8) }; return c ^ 0xFFFFFFFF }
-    /// DOS date/time in UTC, clamped to 1980–2107 (the web export fails instead on such a time).
-    static func dos(_ ms: Double?) -> (time: UInt16, date: UInt16) {
-        guard let ms, ms.isFinite else { return (0, 0x21) }
-        var cal = Calendar(identifier: .gregorian); cal.timeZone = TimeZone(identifier: "UTC")!
-        let p = cal.dateComponents([.year, .month, .day, .hour, .minute, .second], from: Date(timeIntervalSince1970: ms / 1000))
-        let y = min(max(p.year ?? 1980, 1980), 2107)
-        if (p.year ?? 1980) < 1980 { return (0, 0x21) }
+    /// DOS date/time in local time like fflate, or nil outside 1980–2099 (the range the web writes).
+    static func dos(_ ms: Double?) -> (time: UInt16, date: UInt16)? {
+        guard let ms, ms.isFinite, abs(ms) <= 8.64e15 else { return nil }
+        let p = Calendar(identifier: .gregorian).dateComponents([.year, .month, .day, .hour, .minute, .second], from: Date(timeIntervalSince1970: ms / 1000))
+        guard let y = p.year, (1980...2099).contains(y) else { return nil }
         return (UInt16((p.hour ?? 0) << 11 | (p.minute ?? 0) << 5 | (p.second ?? 0) / 2), UInt16((y - 1980) << 9 | (p.month ?? 1) << 5 | (p.day ?? 1)))
     }
     private func le<T: FixedWidthInteger>(_ v: T, _ d: inout Data) { withUnsafeBytes(of: v.littleEndian) { d.append(contentsOf: $0) } }
     public func add(path: String, data: Data, mtime: Double?) throws {
         let name = Data(path.utf8)
         guard count < 0xFFFF, data.count < 0xFFFF_FFFF, offset < 0xFFFF_FFFF, name.count < 0xFFFF else { throw ChapterError.unsupported }
-        let crc = Self.crc32(data), t = Self.dos(mtime)
+        let crc = Self.crc32(data), t = Self.dos(mtime) ?? Self.dos(fallbackMtime) ?? Self.dos(Date().timeIntervalSince1970 * 1000) ?? (0, 0x21)
         var local = Data(); le(UInt32(0x04034b50), &local); le(UInt16(20), &local); le(UInt16(0x0800), &local); le(UInt16(0), &local)
         le(t.time, &local); le(t.date, &local); le(crc, &local); le(UInt32(data.count), &local); le(UInt32(data.count), &local)
         le(UInt16(name.count), &local); le(UInt16(0), &local); local.append(name)

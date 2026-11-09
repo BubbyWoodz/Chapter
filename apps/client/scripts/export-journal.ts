@@ -320,6 +320,59 @@ async function checkMissingMedia(): Promise<void> {
   ok('unresolvable media is recorded, not fatal');
 }
 
+/** Each file's zip modification time from the central directory, read the way
+ *  any zip tool reads it (DOS date/time, local time, 2-second resolution). */
+function zipTimes(zip: Uint8Array): Record<string, Date> {
+  const v = new DataView(zip.buffer, zip.byteOffset, zip.byteLength);
+  let end = zip.length - 22;
+  while (v.getUint32(end, true) !== 0x06054b50) end -= 1;
+  let at = v.getUint32(end + 16, true);
+  const out: Record<string, Date> = {};
+  for (let n = v.getUint16(end + 10, true); n > 0; n -= 1) {
+    const time = v.getUint16(at + 12, true), date = v.getUint16(at + 14, true);
+    const nameLen = v.getUint16(at + 28, true), extra = v.getUint16(at + 30, true), comment = v.getUint16(at + 32, true);
+    const name = strFromU8(zip.subarray(at + 46, at + 46 + nameLen));
+    out[name] = new Date((date >> 9) + 1980, ((date >> 5) & 15) - 1, date & 31, time >> 11, (time >> 5) & 63, (time & 31) * 2);
+    at += 46 + nameLen + extra + comment;
+  }
+  return out;
+}
+
+async function checkUndatedMedia(): Promise<void> {
+  // Regression: media with no saved date is coerced to createdAt 0 (1970), before
+  // the zip range, and used to fail the whole export with "date not in range 1980-2099".
+  const undated = entry({
+    id: 'e-undated',
+    title: 'Undated media',
+    updatedAt: -1,
+    bodyJson: JSON.stringify({
+      type: 'doc',
+      content: [
+        { type: 'mediaGallery', attrs: { images: [{ id: 'm-nodate', mime: 'image/png' }] } },
+        { type: 'mediaAttachment', attrs: { id: 'm-1970', kind: 'audio', mime: 'audio/mp4', createdAt: 0 } },
+        { type: 'mediaAttachment', attrs: { id: 'm-dated', kind: 'audio', mime: 'audio/mp4', createdAt: Date.UTC(2026, 0, 3, 10) } },
+      ],
+    }),
+  });
+  const result = await exportJournal('j-dreams', api({ entries: [undated] }), undefined, DEPS);
+  const zip = new Uint8Array(await result.blob.arrayBuffer());
+  const a = await read(result.blob);
+  assert.deepEqual(a.manifest.media.map((m) => m.path), ['media/m-nodate.png', 'media/m-1970.m4a', 'media/m-dated.m4a'], 'every file is exported');
+  assert.equal(a.manifest.counts.missingMedia, 0);
+  // Export semantics are unchanged: the manifest keeps the dates it always wrote.
+  assert.equal(a.manifest.media[0].createdAt, '1970-01-01T00:00:00.000Z');
+  assert.equal(a.manifest.media[1].createdAt, '1970-01-01T00:00:00.000Z');
+  assert.equal(entryOf(a, 'entries/e-undated.json').updatedAt, '1969-12-31T23:59:59.999Z');
+  const times = zipTimes(zip);
+  const sec = (d: Date): number => Math.floor(d.getTime() / 2000);
+  const exported = new Date(DEPS.now());
+  assert.equal(sec(times['media/m-nodate.png']), sec(exported), 'an undated file gets the export time in the zip');
+  assert.equal(sec(times['media/m-1970.m4a']), sec(exported));
+  assert.equal(sec(times['entries/e-undated.json']), sec(exported), 'an out-of-range entry time too');
+  assert.equal(sec(times['media/m-dated.m4a']), sec(new Date(Date.UTC(2026, 0, 3, 10))), 'an in-range time is kept');
+  ok('media without a saved date exports, with the export time as its zip time');
+}
+
 async function checkProgress(): Promise<void> {
   const seen: { done: number; total: number }[] = [];
   await exportJournal('j-dreams', api(), (p) => seen.push({ done: p.done, total: p.total }), DEPS);
@@ -346,6 +399,7 @@ async function main(): Promise<void> {
   await checkArchive();
   await checkMarkdownTokens();
   await checkMissingMedia();
+  await checkUndatedMedia();
   await checkProgress();
   checkSlugs();
   console.log('\nexport-journal: all checks passed');
