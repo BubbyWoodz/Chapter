@@ -1,6 +1,8 @@
 // Public lossless native/web document fixtures. No personal journal content.
 import assert from 'node:assert/strict';
-import { getSchema, type JSONContent } from '@tiptap/core';
+import { getSchema, createNodeFromContent, type JSONContent } from '@tiptap/core';
+import { Fragment, type Node as PMNode } from '@tiptap/pm/model';
+import { EditorState } from '@tiptap/pm/state';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { buildExtensions, docToText, docMediaIds, docEntryLinks } from '../src/editor/doc';
 import { decryptRecord } from '../src/sync/engine';
@@ -83,6 +85,53 @@ export function verifyRichFixture(write: boolean, identity: {dataKey:Uint8Array}
  const titleURL = new URL('../../ios/ChapterCore/Tests/ChapterCoreTests/Fixtures/entry-titles.json',import.meta.url);
  if (write) writeFileSync(titleURL,JSON.stringify(titleCases,null,2)+'\n');
  else assert.deepEqual(JSON.parse(readFileSync(titleURL,'utf8')),titleCases,'Native default entry titles must equal the original defaultEntryTitle');
+ // At-cursor insertion, computed by the real ProseMirror transform exactly as
+ // TipTap insertContentAt does for a collapsed cursor (wikilink insertEntryLink
+ // inserts [entryLink, " "]; Editor insertTemplate inserts the template's blocks).
+ const caretSchema = getSchema(buildExtensions(''));
+ const insertAtCaret = (docJSON:JSONContent, block:number[], offset:number, value:JSONContent[]):JSONContent => {
+  const doc = caretSchema.nodeFromJSON(docJSON); const tr = EditorState.create({doc,schema:caretSchema}).tr;
+  let pos = 0; let node:PMNode = doc;
+  for (const i of block) { for (let j = 0; j < i; j++) pos += node.child(j).nodeSize; pos += 1; node = node.child(i); }
+  pos += offset;
+  const content = createNodeFromContent(value, caretSchema, {parseOptions:{preserveWhitespace:'full'}});
+  const nodes: readonly PMNode[] = content instanceof Fragment ? (content as unknown as {content: readonly PMNode[]}).content : [content as PMNode];
+  let from = pos, to = pos, onlyText = true, onlyBlock = true;
+  nodes.forEach(n => { n.check(); onlyText = onlyText ? n.isText && n.marks.length === 0 : false; onlyBlock = onlyBlock ? n.isBlock : false; });
+  if (onlyBlock) { const {parent} = tr.doc.resolve(from); if (parent.isTextblock && !parent.type.spec.code && !parent.childCount) { from -= 1; to += 1; } }
+  if (onlyText) tr.insertText(nodes.map(n => n.text ?? '').join(''), from, to);
+  else { const $f = tr.doc.resolve(from); const n = $f.node(); if ($f.parentOffset === 0 && n.isTextblock && n.content.size > 0 && onlyBlock) from = Math.max(0, from - 1); tr.replaceWith(from, to, nodes); }
+  return tr.doc.toJSON() as JSONContent;
+ };
+ const cp = (...c:JSONContent[]):JSONContent => c.length ? {type:'paragraph',content:c} : {type:'paragraph'};
+ const ct = (text:string, marks?:JSONContent['marks']):JSONContent => marks ? {type:'text',text,marks} : {type:'text',text};
+ const bold = [{type:'bold'}], link = [{type:'link',attrs:{href:'https://example.invalid',target:'_blank',rel:'noopener noreferrer nofollow',class:null}}];
+ const linkNodes = (id:string):JSONContent[] => [{type:'entryLink',attrs:{entryId:id,label:'Linked 📝'}},{type:'text',text:' '}];
+ const tplA:JSONContent[] = [{type:'heading',attrs:{level:2},content:[ct('Prompt')]},cp()];
+ const tplB:JSONContent[] = [cp(ct('First')),{type:'bulletList',content:[{type:'listItem',content:[cp()]}]}];
+ const tplC:JSONContent[] = [{type:'table',content:[{type:'tableRow',content:[{type:'tableHeader',attrs:{colspan:1,rowspan:1,colwidth:null},content:[cp(ct('H'))]}]}]}];
+ const caretDocs:Record<string,JSONContent> = {
+  plain:{type:'doc',content:[cp(ct('Hello world')),{type:'heading',attrs:{level:2},content:[ct('Head')]},cp()]},
+  marks:{type:'doc',content:[cp(ct('ab',bold),ct('cd'))]},
+  leaves:{type:'doc',content:[cp(ct('ab'),{type:'entryLink',attrs:{entryId:'old',label:'Old'}},ct('cd',bold)),cp(ct('a'),{type:'hardBreak'},ct('b'))]},
+  emoji:{type:'doc',content:[cp(ct('a👩🏽‍💻b'))]},
+  nested:{type:'doc',content:[{type:'bulletList',content:[{type:'listItem',content:[cp(ct('Item text'))]}]},{type:'table',content:[{type:'tableRow',content:[{type:'tableCell',attrs:{colspan:1,rowspan:1,colwidth:null},content:[cp(ct('Cell'))]}]}]}]},
+  linked:{type:'doc',content:[{type:'heading',attrs:{level:3},content:[ct('Go here',link)]}]},
+ };
+ const caretInputs:[string,string,number[],number,JSONContent[]][] = [
+  ['link mid plain','plain',[0],5,linkNodes('t1')], ['link start','plain',[0],0,linkNodes('t1')], ['link end','plain',[0],11,linkNodes('t1')],
+  ['link empty paragraph','plain',[2],0,linkNodes('t1')], ['link inside bold','marks',[0],1,linkNodes('t1')], ['link bold boundary merges space','marks',[0],2,linkNodes('t1')],
+  ['link end of marked text','marks',[0],4,linkNodes('t1')], ['link after existing link before bold','leaves',[0],3,linkNodes('t1')], ['link after hard break','leaves',[1],2,linkNodes('t1')],
+  ['link after emoji','emoji',[0],8,linkNodes('t1')], ['link in list item','nested',[0,0,0],4,linkNodes('t1')], ['link in table cell','nested',[1,0,0,0],2,linkNodes('t1')],
+  ['link inside link mark heading','linked',[0],2,linkNodes('t1')],
+  ['template start','plain',[0],0,tplA], ['template mid','plain',[0],5,tplA], ['template end','plain',[0],11,tplA], ['template empty paragraph','plain',[2],0,tplA],
+  ['template heading mid paragraph-first','plain',[1],2,tplB], ['template paragraph mid paragraph-first','plain',[0],6,tplB], ['template table','marks',[0],2,tplC],
+  ['template after leaf nodes','leaves',[0],3,tplA],
+ ];
+ const caretCases = caretInputs.map(([name,docName,block,offset,insert]) => ({name, doc:caretDocs[docName], block, offset, insert, expected:insertAtCaret(caretDocs[docName],block,offset,insert)}));
+ const caretURL = new URL('../../ios/ChapterCore/Tests/ChapterCoreTests/Fixtures/rich-caret.json',import.meta.url);
+ if (write) writeFileSync(caretURL,JSON.stringify(caretCases,null,2)+'\n');
+ else assert.deepEqual(JSON.parse(readFileSync(caretURL,'utf8')),JSON.parse(JSON.stringify(caretCases)),'Native caret fixtures must equal the actual ProseMirror insertion');
  // Actual web built-in template seeds (English catalog), exactly as seedBuiltinTemplates lays them down.
  const builtins = seedBuiltinTemplates(0).map(t => ({slug:t.builtin, name:t.name, bodyJson:t.bodyJson, bodyText:t.bodyText}));
  const builtinURL = new URL('../../ios/ChapterCore/Sources/ChapterCore/Resources/builtin-templates.json',import.meta.url);
@@ -120,6 +169,10 @@ export function verifyRichFixture(write: boolean, identity: {dataKey:Uint8Array}
   webSchema.nodeFromJSON(templateDoc).check();
   assert.equal(template.bodyText,docToText(templateDoc),'Native template preview text must equal the original web docToText');
   console.log('Native template creation equals the original web createTemplate fields, schema and preview text.');
+  const nativeCarets = JSON.parse(readFileSync(nativePath+'.rich-caret','utf8')) as JSONContent[];
+  assert.equal(nativeCarets.length,caretCases.length);
+  nativeCarets.forEach((doc,i) => assert.deepEqual(JSON.parse(JSON.stringify(webSchema.nodeFromJSON(doc).toJSON())),JSON.parse(JSON.stringify(caretCases[i].expected)),'Native at-cursor insertion differs from ProseMirror: '+caretCases[i].name));
+  console.log('Native at-cursor link and template insertion equals the actual ProseMirror/TipTap result on all '+caretCases.length+' cases.');
   const arranged = JSON.parse(readFileSync(nativePath+'.rich-structure','utf8')) as {id:string;record:string};
   const arrangedBody = JSON.parse(Buffer.from(decryptRecord(identity.dataKey,arranged.id,Buffer.from(arranged.record,'base64'))).toString());
   assert.deepEqual(JSON.parse(arrangedBody.bodyJson),reordered,'Native block move lost, flattened or rewrote an original/opaque block');

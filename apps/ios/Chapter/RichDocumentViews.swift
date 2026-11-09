@@ -140,7 +140,7 @@ struct RichEntryEditor: View {
             List {
                 if let live, let raw = live.body["bodyJson"]?.string, let document = try? RichDocument(json: raw) {
                     Section {
-                        Text("Changes preserve original custom nodes and formatting. Text and formatting drafts are saved encrypted; Apply updates the entry. New blocks support headings, lists, quotes and code. Selection-based editing and existing table restructuring are not yet complete.")
+                        Text("Changes preserve original custom nodes and formatting. Text and formatting drafts are saved encrypted; Apply updates the entry. New blocks support headings, lists, quotes and code. In a text run, place the cursor to insert an entry link or template there (iOS 18). Formatting a selected part of a run and table restructuring are not yet complete.")
                         let pending = model.snapshot.richDrafts?.first { $0.entryID == live.id && $0.newBlockStyle != nil }
                         NavigationLink { RichDraftEditor(draft: pending ?? RichDraft.newBlock(entryID: live.id, expectedDocument: raw)) } label: { Label("Add block", systemImage: "plus") }.accessibilityIdentifier("rich.add-block")
                     }
@@ -236,6 +236,9 @@ struct RichDraftEditor: View {
     @State private var error: String?
     @State private var savedDraft = false
     @State private var formattingExpanded = false
+    @State private var caret: Int?
+    @State private var insertion: CaretInsertion?
+    private static var caretSupported: Bool { if #available(iOS 18.0, *) { return true } else { return false } }
     private let formats = [("bold", "Bold"), ("italic", "Italic"), ("underline", "Underline"), ("strike", "Strikethrough"), ("code", "Inline code")]
     init(draft: RichDraft) { _current = State(initialValue: draft) }
     var body: some View {
@@ -260,7 +263,20 @@ struct RichDraftEditor: View {
                     }.padding(.horizontal)
                 }
             }
-            TextEditor(text: $current.text).font(chapterFont(.prose,skin:model.snapshot.appearance?.skin ?? "paper",size:18)).scrollContentBackground(.hidden).background(chapterToken("paper",preference:model.snapshot.appearance ?? .standard)).accessibilityLabel(current.newBlockStyle == nil ? "Formatted text run" : "New block text").autocorrectionDisabled().padding()
+            Group {
+                if #available(iOS 18.0, *) {
+                    if current.newBlockStyle == nil { CaretTrackingEditor(text: $current.text, caret: $caret) } else { TextEditor(text: $current.text) }
+                } else {
+                    TextEditor(text: $current.text)
+                }
+            }.font(chapterFont(.prose,skin:model.snapshot.appearance?.skin ?? "paper",size:18)).scrollContentBackground(.hidden).background(chapterToken("paper",preference:model.snapshot.appearance ?? .standard)).accessibilityLabel(current.newBlockStyle == nil ? "Formatted text run" : "New block text").autocorrectionDisabled().padding()
+            if current.newBlockStyle == nil && Self.caretSupported {
+                HStack {
+                    Button { prepare(link: true) } label: { Label("Insert link here", systemImage: "link").frame(minHeight: 44) }.accessibilityIdentifier("rich.insert-link")
+                    Button { prepare(link: false) } label: { Label("Insert template here", systemImage: "doc.on.doc").frame(minHeight: 44) }.accessibilityIdentifier("rich.insert-template")
+                }.buttonStyle(.bordered).disabled(caret == nil).padding(.horizontal)
+                if caret == nil { Text("Tap in the text to place the cursor (without selecting text) to insert a link or template there.").font(.footnote).padding(.horizontal).accessibilityIdentifier("rich.caret-hint") }
+            }
             if current.supportsFormatting {
                 Text("Formatting: " + (formats.contains(where: { current.hasMark($0.0) }) ? formats.filter { current.hasMark($0.0) }.map { $0.1 }.joined(separator: ", ") : "Plain text")).font(.footnote).padding(.horizontal).accessibilityIdentifier("rich.format-summary")
             }
@@ -276,6 +292,49 @@ struct RichDraftEditor: View {
             do { try model.saveRichDraft(current); savedDraft = true; error = nil } catch { self.error = error.localizedDescription }
         }
         .interactiveDismissDisabled(error != nil)
+        .sheet(item: $insertion) { item in
+            if item.link { EntryLinkPicker(entry: item.entry, caret: item.caret) { dismiss() } }
+            else { TemplateInsertPicker(entry: item.entry, caret: item.caret) { dismiss() } }
+        }
+    }
+    /// Saves pending text first (so the cursor refers to what you see), then
+    /// maps the editor cursor onto the original document for the picker.
+    private func prepare(link: Bool) {
+        do {
+            guard let caret else { throw ChapterError.unsupported }
+            func live() -> VaultRecord? { model.snapshot.records.first { $0.id == current.entryID && !$0.deleted && $0.kind == "entry" } }
+            guard var record = live(), var raw = record.body["bodyJson"]?.string else { throw ChapterError.conflict }
+            let leaf = try RichDocument(json: raw).editableTextNodes.first { $0.path == current.path }
+            let leafText = leaf?.type == "text" ? leaf?.text : ""
+            if leafText.map({ Data($0.utf8) != Data(current.text.utf8) }) ?? true || current.marks != nil {
+                try model.applyRichDraft(current)
+                guard let saved = live(), let savedRaw = saved.body["bodyJson"]?.string else { throw ChapterError.conflict }
+                record = saved; raw = savedRaw
+            }
+            let point = try RichDocument(json: raw).caret(leaf: current.path, utf16Offset: caret)
+            insertion = CaretInsertion(link: link, entry: record, caret: point)
+            error = nil
+        } catch { self.error = "Place the cursor in text that still exists, then try again. Your writing was kept. " + error.localizedDescription }
+    }
+}
+private struct CaretInsertion: Identifiable { let link: Bool; let entry: VaultRecord; let caret: RichCaret; var id: String { (link ? "link:" : "template:") + caret.block.map(String.init).joined(separator: "/") + ":" + String(caret.offset) } }
+/// iOS 18 TextEditor selection, reported as a collapsed UTF-16 cursor offset.
+@available(iOS 18.0, *)
+struct CaretTrackingEditor: View {
+    @Binding var text: String
+    @Binding var caret: Int?
+    @State private var selection: TextSelection?
+    var body: some View {
+        TextEditor(text: $text, selection: Binding(get: { selection }, set: { value in
+            selection = value
+            caret = Self.offset(value, in: text)
+        }))
+        .onChange(of: text) { _, newText in caret = Self.offset(selection, in: newText) }
+    }
+    static func offset(_ selection: TextSelection?, in text: String) -> Int? {
+        guard let selection, case .selection(let range) = selection.indices, range.isEmpty,
+              range.lowerBound <= text.endIndex, let point = range.lowerBound.samePosition(in: text.utf16) else { return nil }
+        return text.utf16.distance(from: text.utf16.startIndex, to: point)
     }
 }
 

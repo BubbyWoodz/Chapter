@@ -798,7 +798,9 @@ struct EntryLinkPicker: View {
     @State private var expected: VaultRecord
     @State private var query = ""
     @State private var error: String?
-    init(entry: VaultRecord) { _expected = State(initialValue: entry) }
+    let caret: RichCaret?
+    let onDone: () -> Void
+    init(entry: VaultRecord, caret: RichCaret? = nil, onDone: @escaping () -> Void = {}) { _expected = State(initialValue: entry); self.caret = caret; self.onDone = onDone }
     var body: some View {
         NavigationStack {
             List {
@@ -807,7 +809,10 @@ struct EntryLinkPicker: View {
                     if candidates.isEmpty { Text(query.isEmpty ? "No other downloaded entries yet." : "No downloaded entries match.").foregroundStyle(.secondary).accessibilityIdentifier("link.empty") }
                     ForEach(candidates) { target in
                         Button {
-                            do { try model.addEntryLink(expected, to: target.id); dismiss() } catch { self.error = error.localizedDescription }
+                            do {
+                                if let caret { try model.insertEntryLink(expected, to: target.id, at: caret) } else { try model.addEntryLink(expected, to: target.id) }
+                                dismiss(); onDone()
+                            } catch { self.error = error.localizedDescription }
                         } label: {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(EntryLinkAuthoring.label(for: target)).font(.body)
@@ -816,11 +821,43 @@ struct EntryLinkPicker: View {
                         }.accessibilityIdentifier("link.candidate." + target.id)
                     }
                 } footer: {
-                    Text("Adds a link at the end of this entry, the same link the web editor creates. Only downloaded entries are listed; it syncs when your server is reachable.").font(.footnote)
+                    Text((caret == nil ? "Adds a link at the end of this entry" : "Adds a link at your cursor") + ", the same link the web editor creates. Only downloaded entries are listed; it syncs when your server is reachable.").font(.footnote)
                 }
                 if let error { Text(error).foregroundStyle(.red).accessibilityIdentifier("link.error") }
             }.modifier(ChapterScreenSurface()).navigationTitle("Link to entry").navigationBarTitleDisplayMode(.inline)
             .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search entry titles")
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
+        }
+    }
+}
+/// Original Editor template picker ("Insert"): the template's blocks at the cursor.
+struct TemplateInsertPicker: View {
+    @EnvironmentObject private var model: VaultModel
+    @Environment(\.dismiss) private var dismiss
+    let entry: VaultRecord
+    let caret: RichCaret
+    let onDone: () -> Void
+    @State private var error: String?
+    private var candidates: [VaultRecord] { model.templates.filter { $0.body["bodyJson"]?.string != nil } + model.builtinTemplates.map(\.seedRecord) }
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    if candidates.isEmpty { Text("No templates with rich content. Create or edit templates in Start from template.").foregroundStyle(.secondary).accessibilityIdentifier("template.insert.empty") }
+                    ForEach(candidates) { template in
+                        Button {
+                            do { try model.insertTemplate(entry, template: template, at: caret); dismiss(); onDone() } catch { self.error = "Template was not inserted. " + error.localizedDescription }
+                        } label: {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(EntryTemplates.name(template)).font(.headline)
+                                let preview = template.body["bodyText"]?.string ?? ""
+                                if !preview.isEmpty { Text(preview).font(.footnote).foregroundStyle(.secondary).lineLimit(3) }
+                            }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                        }.accessibilityIdentifier("template.insert." + template.id)
+                    }
+                } footer: { Text("Inserts the template's blocks at your cursor, like the web editor. Place the cursor in a top-level paragraph or heading.").font(.footnote) }
+                if let error { Text(error).foregroundStyle(.red).accessibilityIdentifier("template.insert.error") }
+            }.modifier(ChapterScreenSurface()).navigationTitle("Insert template").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
         }
     }

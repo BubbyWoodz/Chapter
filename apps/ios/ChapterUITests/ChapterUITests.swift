@@ -215,6 +215,30 @@ final class ChapterUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["How the day felt"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["Tomorrow, one thing"].exists)
         attach(app,name:"Actual native entry started from the original Daily reflection built-in")
     }
+    func testCursorInsertsOriginalLinkAndTemplateAtTheCaret() throws {
+        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture","--chapter-linked-entry-fixture","--chapter-template-fixture"];app.launch()
+        let entry=app.staticTexts["Public rich fixture"];XCTAssertTrue(entry.waitForExistence(timeout:10));entry.tap()
+        app.buttons["Edit"].tap()
+        let run=app.buttons["rich.run.0/0"];XCTAssertTrue(run.waitForExistence(timeout:5));run.tap()
+        let editor=app.textViews["Formatted text run"];XCTAssertTrue(editor.waitForExistence(timeout:5))
+        editor.coordinate(withNormalizedOffset:CGVector(dx:0.9,dy:0.05)).tap();editor.typeText("Z")
+        let link=app.buttons["rich.insert-link"];XCTAssertTrue(link.waitForExistence(timeout:5));XCTAssertTrue(link.isEnabled,"Typing places a collapsed cursor")
+        attach(app,name:"Actual native editor with a tracked cursor and at-cursor insert actions")
+        link.tap()
+        let candidate=app.buttons["link.candidate.entry-target"];XCTAssertTrue(candidate.waitForExistence(timeout:5));candidate.tap()
+        XCTAssertTrue(app.navigationBars["Edit rich entry"].waitForExistence(timeout:5));app.buttons["Done"].tap()
+        let linked=app.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","ZPublic linked target")).firstMatch
+        XCTAssertTrue(linked.waitForExistence(timeout:5),"The link sits exactly at the cursor, right after the typed character")
+        attach(app,name:"Actual native link inserted at the cursor inside the original heading")
+        app.buttons["Edit"].tap();XCTAssertTrue(run.waitForExistence(timeout:5));run.tap()
+        XCTAssertTrue(editor.waitForExistence(timeout:5));editor.coordinate(withNormalizedOffset:CGVector(dx:0.9,dy:0.05)).tap();editor.typeText("Y")
+        let template=app.buttons["rich.insert-template"];XCTAssertTrue(template.isEnabled);template.tap()
+        let choice=app.buttons["template.insert.public-template"];XCTAssertTrue(choice.waitForExistence(timeout:5));choice.tap()
+        XCTAssertTrue(app.navigationBars["Edit rich entry"].waitForExistence(timeout:5));app.buttons["Done"].tap()
+        XCTAssertTrue(app.staticTexts["Public template heading"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["Public template prompt"].exists)
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","Y")).firstMatch.exists)
+        attach(app,name:"Actual native template inserted at the cursor, splitting the original heading")
+    }
     func testNativeRichRenderingEditingAndTaskPersistence() throws {
         let app = XCUIApplication(); app.launchArguments = ["--chapter-rich-fixture"]; app.launch()
         let entry = app.staticTexts["Public rich fixture"]

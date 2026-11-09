@@ -274,6 +274,27 @@ import ChapterCore
         next.records[i] = try next.records[i].addingEntryLink(to: target, expected: raw)
         try commit(next); scheduleSync()
     }
+    /// At-cursor variants of the original wikilink / Editor insertTemplate edits.
+    /// Compare-and-set on the exact document bytes the caret was computed from.
+    func insertEntryLink(_ expected: VaultRecord, to targetID: String, at caret: RichCaret) throws {
+        guard unlocked else { throw ChapterError.storage }
+        var next = snapshot
+        guard let raw = expected.body["bodyJson"]?.string, let i = next.records.firstIndex(where: { $0.id.utf8.elementsEqual(expected.id.utf8) }),
+              let target = next.records.first(where: { $0.kind == "entry" && !$0.deleted && $0.id.utf8.elementsEqual(targetID.utf8) }) else { throw ChapterError.conflict }
+        next.records[i] = try next.records[i].insertingEntryLink(to: target, at: caret, expected: raw)
+        try commit(next); scheduleSync()
+    }
+    func insertTemplate(_ expected: VaultRecord, template: VaultRecord, at caret: RichCaret) throws {
+        guard unlocked else { throw ChapterError.storage }
+        var next = snapshot
+        guard let raw = expected.body["bodyJson"]?.string, let i = next.records.firstIndex(where: { $0.id.utf8.elementsEqual(expected.id.utf8) }) else { throw ChapterError.conflict }
+        let live: VaultRecord
+        if let seed = builtinTemplates.first(where: { $0.id == template.id }) { live = seed.seedRecord }
+        else if let synced = templates.first(where: { $0.id.utf8.elementsEqual(template.id.utf8) }) { live = synced }
+        else { throw ChapterError.conflict }
+        next.records[i] = try next.records[i].insertingTemplate(live, at: caret, expected: raw)
+        try commit(next); scheduleSync()
+    }
     /// Original web "Use template": a new entry carrying the template's exact
     /// stored bodyJson/bodyText. Uses the live template, never a stale copy.
     func newEntryFromTemplate(_ template: VaultRecord, journalID: String) throws -> VaultRecord {
