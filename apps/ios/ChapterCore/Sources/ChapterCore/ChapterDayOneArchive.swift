@@ -123,7 +123,7 @@ public struct DayOneArchive {
         let ext: String
         switch m.get("type") {
         case nil, .null?: ext = ""
-        case .string(let s)?: ext = s.lowercased()
+        case .string(let s)?: ext = ChapterDayOneImport.jsLowercase(s)
         default: throw ImportError.malformed // toLowerCase is not a function
         }
         let mime = ext.isEmpty ? nil : Self.extMime[ext]

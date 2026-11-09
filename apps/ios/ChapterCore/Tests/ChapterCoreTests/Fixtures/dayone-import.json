@@ -1,0 +1,1689 @@
+{
+ "now": 1767225600000,
+ "random": 0.123456,
+ "timeZone": "America/Los_Angeles",
+ "cases": [
+  {
+   "label": "full",
+   "zip": "UEsDBBQAAAAAAAAwaV0YDMdEBgAAAAYAAAAOAAAAcGhvdG9zL2ExLmpwZWdpbWctYTFQSwMEFAAAAAAAADBpXaJdzt0GAAAABgAAAA4AAABwaG90b3MvYTIuanBlZ2ltZy1hMlBLAwQUAAAAAAAAMGldNG3JqgYAAAAGAAAADgAAAHBob3Rvcy9hMy5qcGVnaW1nLWEzUEsDBBQAAAAAAAAwaV1fuN1RAwAAAAMAAAANAAAAdmlkZW9zL3YxLm1vdnZpZFBLAwQUAAAAAAAAMGld91DDrgMAAAADAAAADQAAAGF1ZGlvcy9zMS5tNGFhdWRQSwMEFAAAAAAAADBpXYzb8A4DAAAAAwAAAAsAAABwZGZzL2QxLnBkZnBkZlBLAwQUAAAAAAAAMGldyrK8meULAADlCwAACwAAAFRyYXZlbC5qc29ueyJlbnRyaWVzIjpbeyJ0ZXh0IjoiIyBMaXNib25cblxuIVtdKGRheW9uZS1tb21lbnQ6Ly9BMSlcbiFbXShkYXlvbmUtbW9tZW50Oi8vQTIpXG4hW10oZGF5b25lLW1vbWVudDovL0EzKVxuXG5BZnRlciBwaG90b3MgIVtdKGRheW9uZS1tb21lbnQ6Ly9WMSlcbiFbXShkYXlvbmUtbW9tZW50Oi8vQTEpXG4hW10oZGF5b25lLW1vbWVudDovL1MxKVxuIVtdKGRheW9uZS1tb21lbnQ6Ly9EMSlcbiFbXShkYXlvbmUtbW9tZW50Oi8vTk9QRSlcbiFbXShkYXlvbmUtbW9tZW50Oi92aWRlby9BMikiLCJwaG90b3MiOlt7ImlkZW50aWZpZXIiOiJBMSIsIm1kNSI6ImExIiwidHlwZSI6ImpwZWciLCJ3aWR0aCI6MTAsImhlaWdodCI6MjB9LHsiaWRlbnRpZmllciI6IkEyIiwibWQ1IjoiYTIiLCJ0eXBlIjoianBlZyJ9LHsiaWRlbnRpZmllciI6IkEzIiwibWQ1IjoiYTMiLCJ0eXBlIjoianBlZyIsIndpZHRoIjpudWxsfV0sInZpZGVvcyI6W3siaWRlbnRpZmllciI6IlYxIiwibWQ1IjoidjEiLCJ0eXBlIjoibW92IiwiZHVyYXRpb24iOjEuNX1dLCJhdWRpb3MiOlt7ImlkZW50aWZpZXIiOiJTMSIsIm1kNSI6InMxIiwidHlwZSI6Im00YSIsImR1cmF0aW9uIjowLjI1fV0sInBkZkF0dGFjaG1lbnRzIjpbeyJpZGVudGlmaWVyIjoiRDEiLCJtZDUiOiJkMSIsInR5cGUiOiJwZGYifV0sInRhZ3MiOlsiIHRyaXAgIiwiIiwiICAiLDMsbnVsbCwibGlzYm9uIiwidHJpcCJdLCJjcmVhdGlvbkRhdGUiOiIyMDI0LTA1LTAxVDEwOjAwOjAwWiJ9LHsidGV4dCI6IiIsImNyZWF0aW9uRGF0ZSI6IjIwMjQtMDUtMDFUMTA6MDA6MDAuMTIzNDU2WiJ9LHsidGV4dCI6IkVudHJ5IDEiLCJjcmVhdGlvbkRhdGUiOiIyMDI0LTA1LTAxVDEwOjAwOjAwKzAyOjAwIn0seyJ0ZXh0IjoiRW50cnkgMiIsImNyZWF0aW9uRGF0ZSI6IjIwMjQtMDUtMDFUMTA6MDA6MDArMDIwMCJ9LHsidGV4dCI6IiIsImNyZWF0aW9uRGF0ZSI6IjIwMjQtMDUtMDFUMTA6MDAifSx7InRleHQiOiJFbnRyeSA0IiwiY3JlYXRpb25EYXRlIjoiMjAyNC0wNS0wMSJ9LHsidGV4dCI6IkVudHJ5IDUiLCJjcmVhdGlvbkRhdGUiOiIyMDI0LTA1In0seyJ0ZXh0IjoiIiwiY3JlYXRpb25EYXRlIjoiMjAyNCJ9LHsidGV4dCI6IkVudHJ5IDciLCJjcmVhdGlvbkRhdGUiOiIrMDAyMDI0LTA1LTAxVDAwOjAwOjAwWiJ9LHsidGV4dCI6IkVudHJ5IDgiLCJjcmVhdGlvbkRhdGUiOiItMDAwMDAxLTAxLTAxVDAwOjAwOjAwWiJ9LHsidGV4dCI6IiIsImNyZWF0aW9uRGF0ZSI6IjIwMjQtMTMtMDEifSx7InRleHQiOiJFbnRyeSAxMCIsImNyZWF0aW9uRGF0ZSI6IjIwMjQtMDItMzAifSx7InRleHQiOiJFbnRyeSAxMSIsImNyZWF0aW9uRGF0ZSI6IjIwMjQtMDUtMDFUMjQ6MDA6MDBaIn0seyJ0ZXh0IjoiIiwiY3JlYXRpb25EYXRlIjoiMjAyNC0wNS0wMXQxMDowMDowMHoifSx7InRleHQiOiJFbnRyeSAxMyIsImNyZWF0aW9uRGF0ZSI6IjIwMjQtMDUtMDEgMTA6MDA6MDAifSx7InRleHQiOiJFbnRyeSAxNCIsImNyZWF0aW9uRGF0ZSI6ImdhcmJhZ2UifSx7InRleHQiOiIiLCJjcmVhdGlvbkRhdGUiOiIyMDI0LTA1LTAxVDEwOjAwOjAwLjFaIn0seyJ0ZXh0IjoiRW50cnkgMTYiLCJjcmVhdGlvbkRhdGUiOiIyMDI0LTA1LTAxVDEwOjAwOjYwWiJ9LHsidGV4dCI6IkVudHJ5IDE3IiwiY3JlYXRpb25EYXRlIjoiMjAyNC0wMy0xMFQwMjozMDowMCJ9LHsidGV4dCI6IiIsImNyZWF0aW9uRGF0ZSI6IjIwMjQtMTEtMDNUMDE6MzA6MDAifSx7InRleHQiOiJFbnRyeSAxOSIsImNyZWF0aW9uRGF0ZSI6Ii0wMDAwMDAtMDEtMDFUMDA6MDA6MDBaIn0seyJ0ZXh0IjoiRW50cnkgMjAiLCJjcmVhdGlvbkRhdGUiOiIyNzU3NjAtMDktMTMifSx7InRleHQiOiIiLCJjcmVhdGlvbkRhdGUiOiIyMDI0LTA1LTAxVDI1OjAwOjAwWiJ9LHsidGV4dCI6IkVudHJ5IDIyIiwiY3JlYXRpb25EYXRlIjoiMjAyNC0wNS0wMVQyNDowMDowMVoifSx7InRleHQiOiJFbnRyeSAyMyIsImNyZWF0aW9uRGF0ZSI6IjIwMjQtMDUtMDFUMjQ6MDBaIn0seyJ0ZXh0IjoiIiwiY3JlYXRpb25EYXRlIjoiMjAyNC0wNS0wMVQyMzo1OTo1OS45OTk5WiJ9LHsidGV4dCI6IkVudHJ5IDI1IiwiY3JlYXRpb25EYXRlIjoiMjAyNC0wNS0wMVQxMDowMDowMC5aIn0seyJ0ZXh0IjoiRW50cnkgMjYiLCJjcmVhdGlvbkRhdGUiOiIyMDI0LTA1LTAxVDEwWiJ9LHsidGV4dCI6IiIsImNyZWF0aW9uRGF0ZSI6IjIwMjQtMDVUMTA6MDBaIn0seyJ0ZXh0IjoiRW50cnkgMjgiLCJjcmVhdGlvbkRhdGUiOiIyMDI0VDEwOjAwWiJ9LHsidGV4dCI6IkVudHJ5IDI5IiwiY3JlYXRpb25EYXRlIjoiMjAyNC0wNS0wMVQxMDowMDowMCsyNDowMCJ9LHsidGV4dCI6IiIsImNyZWF0aW9uRGF0ZSI6IisyNzU3NjAtMDkt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",
+   "journals": [
+    {
+     "id": "j-old",
+     "name": "TRAVEL"
+    },
+    {
+     "id": "j-greek",
+     "name": "ΟΔΟΣ"
+    },
+    {
+     "id": "j-dup",
+     "name": "work"
+    },
+    {
+     "id": "j-dup2",
+     "name": "Work"
+    }
+   ],
+   "result": {
+    "calls": [
+     [
+      "createEntry",
+      "j-old",
+      "Lisbon",
+      [
+       "trip",
+       "lisbon",
+       "trip"
+      ]
+     ],
+     [
+      "addMedia",
+      "e1",
+      "image",
+      "image/jpeg",
+      "aW1nLWEx",
+      "photos-a1.jpeg",
+      10,
+      20,
+      null
+     ],
+     [
+      "addMedia",
+      "e1",
+      "image",
+      "image/jpeg",
+      "aW1nLWEy",
+      "photos-a2.jpeg",
+      null,
+      null,
+      null
+     ],
+     [
+      "addMedia",
+      "e1",
+      "image",
+      "image/jpeg",
+      "aW1nLWEz",
+      "photos-a3.jpeg",
+      null,
+      null,
+      null
+     ],
+     [
+      "addMedia",
+      "e1",
+      "video",
+      "video/quicktime",
+      "dmlk",
+      "videos-v1.mov",
+      null,
+      null,
+      1500
+     ],
+     [
+      "addMedia",
+      "e1",
+      "image",
+      "image/jpeg",
+      "aW1nLWEx",
+      "photos-a1.jpeg",
+      10,
+      20,
+      null
+     ],
+     [
+      "addMedia",
+      "e1",
+      "audio",
+      "audio/mp4",
+      "YXVk",
+      "audios-s1.m4a",
+      null,
+      null,
+      250
+     ],
+     [
+      "addMedia",
+      "e1",
+      "file",
+      "application/pdf",
+      "cGRm",
+      "pdfs-d1.pdf",
+      null,
+      null,
+      null
+     ],
+     [
+      "addMedia",
+      "e1",
+      "image",
+      "image/jpeg",
+      "aW1nLWEy",
+      "photos-a2.jpeg",
+      null,
+      null,
+      null
+     ],
+     [
+      "updateEntry",
+      "e1",
+      "Lisbon",
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph",
+         "content": [
+          {
+           "type": "hardBreak"
+          },
+          {
+           "type": "hardBreak"
+          }
+         ]
+        },
+        {
+         "type": "mediaGallery",
+         "attrs": {
+          "images": [
+           {
+            "id": "m1",
+            "kind": "image",
+            "mime": "image/jpeg",
+            "bytes": 6,
+            "name": "photos-a1.jpeg",
+            "width": 10,
+            "height": 20,
+            "createdAt": 0
+           },
+           {
+            "id": "m2",
+            "kind": "image",
+            "mime": "image/jpeg",
+            "bytes": 6,
+            "name": "photos-a2.jpeg",
+            "createdAt": 0
+           },
+           {
+            "id": "m3",
+            "kind": "image",
+            "mime": "image/jpeg",
+            "bytes": 6,
+            "name": "photos-a3.jpeg",
+            "width": null,
+            "createdAt": 0
+           }
+          ]
+         }
+        },
+        {
+         "type": "paragraph",
+         "content": [
+          {
+           "type": "text",
+           "text": "After photos "
+          },
+          {
+           "type": "hardBreak"
+          },
+          {
+           "type": "hardBreak"
+          },
+          {
+           "type": "hardBreak"
+          },
+          {
+           "type": "hardBreak"
+          },
+          {
+           "type": "hardBreak"
+          }
+         ]
+        },
+        {
+         "type": "mediaAttachment",
+         "attrs": {
+          "id": "m4",
+          "kind": "video",
+          "mime": "video/quicktime",
+          "bytes": 3,
+          "name": "videos-v1.mov",
+          "durationMs": 1500,
+          "createdAt": 0
+         }
+        },
+        {
+         "type": "mediaAttachment",
+         "attrs": {
+          "id": "m5",
+          "kind": "image",
+          "mime": "image/jpeg",
+          "bytes": 6,
+          "name": "photos-a1.jpeg",
+          "width": 10,
+          "height": 20,
+          "createdAt": 0
+         }
+        },
+        {
+         "type": "mediaAttachment",
+         "attrs": {
+          "id": "m6",
+          "kind": "audio",
+          "mime": "audio/mp4",
+          "bytes": 3,
+          "name": "audios-s1.m4a",
+          "durationMs": 250,
+          "createdAt": 0
+         }
+        },
+        {
+         "type": "mediaAttachment",
+         "attrs": {
+          "id": "m7",
+          "kind": "image",
+          "mime": "image/jpeg",
+          "bytes": 6,
+          "name": "photos-a2.jpeg",
+          "createdAt": 0
+         }
+        }
+       ]
+      },
+      "🖼 3 photos\nAfter photos \n🎬 video\n🖼 image photos-a1.jpeg\n🎙 audio\n🖼 image photos-a2.jpeg",
+      [
+       "trip",
+       "lisbon",
+       "trip"
+      ],
+      1714557600000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      null,
+      []
+     ],
+     [
+      "updateEntry",
+      "e2",
+      null,
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1714557600123
+     ],
+     [
+      "createEntry",
+      "j-old",
+      "Entry 1",
+      []
+     ],
+     [
+      "updateEntry",
+      "e3",
+      "Entry 1",
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1714550400000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      "Entry 2",
+      []
+     ],
+     [
+      "updateEntry",
+      "e4",
+      "Entry 2",
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1714550400000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      null,
+      []
+     ],
+     [
+      "updateEntry",
+      "e5",
+      null,
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1714582800000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      "Entry 4",
+      []
+     ],
+     [
+      "updateEntry",
+      "e6",
+      "Entry 4",
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1714521600000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      "Entry 5",
+      []
+     ],
+     [
+      "updateEntry",
+      "e7",
+      "Entry 5",
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1714521600000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      null,
+      []
+     ],
+     [
+      "updateEntry",
+      "e8",
+      null,
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1704067200000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      "Entry 7",
+      []
+     ],
+     [
+      "updateEntry",
+      "e9",
+      "Entry 7",
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1714521600000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      "Entry 8",
+      []
+     ],
+     [
+      "updateEntry",
+      "e10",
+      "Entry 8",
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      -62198755200000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      null,
+      []
+     ],
+     [
+      "updateEntry",
+      "e11",
+      null,
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1767225600000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      "Entry 10",
+      []
+     ],
+     [
+      "updateEntry",
+      "e12",
+      "Entry 10",
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1709251200000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      "Entry 11",
+      []
+     ],
+     [
+      "updateEntry",
+      "e13",
+      "Entry 11",
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1714608000000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      null,
+      []
+     ],
+     [
+      "updateEntry",
+      "e14",
+      null,
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1714557600000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      "Entry 13",
+      []
+     ],
+     [
+      "updateEntry",
+      "e15",
+      "Entry 13",
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1714582800000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      "Entry 14",
+      []
+     ],
+     [
+      "updateEntry",
+      "e16",
+      "Entry 14",
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1767225600000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      null,
+      []
+     ],
+     [
+      "updateEntry",
+      "e17",
+      null,
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1714557600100
+     ],
+     [
+      "createEntry",
+      "j-old",
+      "Entry 16",
+      []
+     ],
+     [
+      "updateEntry",
+      "e18",
+      "Entry 16",
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1767225600000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      "Entry 17",
+      []
+     ],
+     [
+      "updateEntry",
+      "e19",
+      "Entry 17",
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1710066600000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      null,
+      []
+     ],
+     [
+      "updateEntry",
+      "e20",
+      null,
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1730622600000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      "Entry 19",
+      []
+     ],
+     [
+      "updateEntry",
+      "e21",
+      "Entry 19",
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1767225600000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      "Entry 20",
+      []
+     ],
+     [
+      "updateEntry",
+      "e22",
+      "Entry 20",
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1767225600000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      null,
+      []
+     ],
+     [
+      "updateEntry",
+      "e23",
+      null,
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1767225600000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      "Entry 22",
+      []
+     ],
+     [
+      "updateEntry",
+      "e24",
+      "Entry 22",
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1767225600000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      "Entry 23",
+      []
+     ],
+     [
+      "updateEntry",
+      "e25",
+      "Entry 23",
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1714608000000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      null,
+      []
+     ],
+     [
+      "updateEntry",
+      "e26",
+      null,
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1714607999999
+     ],
+     [
+      "createEntry",
+      "j-old",
+      "Entry 25",
+      []
+     ],
+     [
+      "updateEntry",
+      "e27",
+      "Entry 25",
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1767225600000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      "Entry 26",
+      []
+     ],
+     [
+      "updateEntry",
+      "e28",
+      "Entry 26",
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1767225600000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      null,
+      []
+     ],
+     [
+      "updateEntry",
+      "e29",
+      null,
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1714557600000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      "Entry 28",
+      []
+     ],
+     [
+      "updateEntry",
+      "e30",
+      "Entry 28",
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1704103200000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      "Entry 29",
+      []
+     ],
+     [
+      "updateEntry",
+      "e31",
+      "Entry 29",
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1767225600000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      null,
+      []
+     ],
+     [
+      "updateEntry",
+      "e32",
+      null,
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1767225600000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      "Entry 31",
+      []
+     ],
+     [
+      "updateEntry",
+      "e33",
+      "Entry 31",
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1767225600000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      "Entry 32",
+      []
+     ],
+     [
+      "updateEntry",
+      "e34",
+      "Entry 32",
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1767225600000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      null,
+      []
+     ],
+     [
+      "addMedia",
+      "e35",
+      "image",
+      "image/jpeg",
+      "aW1nLWEx",
+      "photos-a1.jpeg",
+      null,
+      null,
+      null
+     ],
+     [
+      "updateEntry",
+      "e35",
+      null,
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph",
+         "content": [
+          {
+           "type": "hardBreak"
+          },
+          {
+           "type": "text",
+           "text": "Caption"
+          }
+         ]
+        },
+        {
+         "type": "mediaAttachment",
+         "attrs": {
+          "id": "m8",
+          "kind": "image",
+          "mime": "image/jpeg",
+          "bytes": 6,
+          "name": "photos-a1.jpeg",
+          "createdAt": 0
+         }
+        }
+       ]
+      },
+      "Caption\n🖼 image photos-a1.jpeg",
+      [],
+      1767225600000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      "Pair",
+      []
+     ],
+     [
+      "addMedia",
+      "e36",
+      "image",
+      "image/jpeg",
+      "aW1nLWEy",
+      "photos-a2.jpeg",
+      null,
+      null,
+      null
+     ],
+     [
+      "addMedia",
+      "e36",
+      "image",
+      "image/jpeg",
+      "aW1nLWEz",
+      "photos-a3.jpeg",
+      null,
+      null,
+      null
+     ],
+     [
+      "updateEntry",
+      "e36",
+      "Pair",
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph",
+         "content": [
+          {
+           "type": "hardBreak"
+          }
+         ]
+        },
+        {
+         "type": "mediaGallery",
+         "attrs": {
+          "images": [
+           {
+            "id": "m9",
+            "kind": "image",
+            "mime": "image/jpeg",
+            "bytes": 6,
+            "name": "photos-a2.jpeg",
+            "createdAt": 0
+           },
+           {
+            "id": "m10",
+            "kind": "image",
+            "mime": "image/jpeg",
+            "bytes": 6,
+            "name": "photos-a3.jpeg",
+            "createdAt": 0
+           }
+          ]
+         }
+        }
+       ]
+      },
+      "🖼 2 photos",
+      [],
+      1767225600000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      null,
+      []
+     ],
+     [
+      "updateEntry",
+      "e37",
+      null,
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1767225600000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      null,
+      []
+     ],
+     [
+      "updateEntry",
+      "e38",
+      null,
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1767225600000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      null,
+      []
+     ],
+     [
+      "updateEntry",
+      "e39",
+      null,
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1767225600000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      null,
+      []
+     ],
+     [
+      "updateEntry",
+      "e40",
+      null,
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1767225600000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      null,
+      []
+     ],
+     [
+      "updateEntry",
+      "e41",
+      null,
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1767225600000
+     ],
+     [
+      "createEntry",
+      "j-old",
+      "Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long ",
+      []
+     ],
+     [
+      "updateEntry",
+      "e42",
+      "Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long ",
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph",
+         "content": [
+          {
+           "type": "text",
+           "text": "body"
+          }
+         ]
+        }
+       ]
+      },
+      "body",
+      [],
+      1767225600000
+     ],
+     [
+      "createEntry",
+      "j-greek",
+      "greek",
+      []
+     ],
+     [
+      "updateEntry",
+      "e43",
+      "greek",
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1767225600000
+     ],
+     [
+      "newJournal",
+      "j-import-0-mjuohs002n9c",
+      "N0",
+      "Imported from Day One",
+      "#B0563A",
+      "lines"
+     ],
+     [
+      "newJournal",
+      "j-import-1-mjuohs002n9c",
+      "N1",
+      "Imported from Day One",
+      "#4E8B85",
+      "dots"
+     ],
+     [
+      "newJournal",
+      "j-import-2-mjuohs002n9c",
+      "N2",
+      "Imported from Day One",
+      "#6A6AA0",
+      "grid"
+     ],
+     [
+      "newJournal",
+      "j-import-3-mjuohs002n9c",
+      "N3",
+      "Imported from Day One",
+      "#B08A2E",
+      "plain"
+     ],
+     [
+      "newJournal",
+      "j-import-4-mjuohs002n9c",
+      "N4",
+      "Imported from Day One",
+      "#5A7BA6",
+      "lines"
+     ],
+     [
+      "newJournal",
+      "j-import-5-mjuohs002n9c",
+      "N5",
+      "Imported from Day One",
+      "#6E8B5E",
+      "dots"
+     ],
+     [
+      "newJournal",
+      "j-import-6-mjuohs002n9c",
+      "N6",
+      "Imported from Day One",
+      "#8E6A93",
+      "grid"
+     ],
+     [
+      "newJournal",
+      "j-import-7-mjuohs002n9c",
+      "N7",
+      "Imported from Day One",
+      "#C06A4A",
+      "plain"
+     ],
+     [
+      "newJournal",
+      "j-import-8-mjuohs002n9c",
+      "N8",
+      "Imported from Day One",
+      "#B0563A",
+      "lines"
+     ],
+     [
+      "createEntry",
+      "j-import-3-mjuohs002n9c",
+      "same notebook as N3",
+      []
+     ],
+     [
+      "updateEntry",
+      "e44",
+      "same notebook as N3",
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1767225600000
+     ]
+    ],
+    "progress": [
+     {
+      "done": 1,
+      "total": 44,
+      "current": "Lisbon"
+     },
+     {
+      "done": 2,
+      "total": 44,
+      "current": "Untitled entry"
+     },
+     {
+      "done": 3,
+      "total": 44,
+      "current": "Entry 1"
+     },
+     {
+      "done": 4,
+      "total": 44,
+      "current": "Entry 2"
+     },
+     {
+      "done": 5,
+      "total": 44,
+      "current": "Untitled entry"
+     },
+     {
+      "done": 6,
+      "total": 44,
+      "current": "Entry 4"
+     },
+     {
+      "done": 7,
+      "total": 44,
+      "current": "Entry 5"
+     },
+     {
+      "done": 8,
+      "total": 44,
+      "current": "Untitled entry"
+     },
+     {
+      "done": 9,
+      "total": 44,
+      "current": "Entry 7"
+     },
+     {
+      "done": 10,
+      "total": 44,
+      "current": "Entry 8"
+     },
+     {
+      "done": 11,
+      "total": 44,
+      "current": "Untitled entry"
+     },
+     {
+      "done": 12,
+      "total": 44,
+      "current": "Entry 10"
+     },
+     {
+      "done": 13,
+      "total": 44,
+      "current": "Entry 11"
+     },
+     {
+      "done": 14,
+      "total": 44,
+      "current": "Untitled entry"
+     },
+     {
+      "done": 15,
+      "total": 44,
+      "current": "Entry 13"
+     },
+     {
+      "done": 16,
+      "total": 44,
+      "current": "Entry 14"
+     },
+     {
+      "done": 17,
+      "total": 44,
+      "current": "Untitled entry"
+     },
+     {
+      "done": 18,
+      "total": 44,
+      "current": "Entry 16"
+     },
+     {
+      "done": 19,
+      "total": 44,
+      "current": "Entry 17"
+     },
+     {
+      "done": 20,
+      "total": 44,
+      "current": "Untitled entry"
+     },
+     {
+      "done": 21,
+      "total": 44,
+      "current": "Entry 19"
+     },
+     {
+      "done": 22,
+      "total": 44,
+      "current": "Entry 20"
+     },
+     {
+      "done": 23,
+      "total": 44,
+      "current": "Untitled entry"
+     },
+     {
+      "done": 24,
+      "total": 44,
+      "current": "Entry 22"
+     },
+     {
+      "done": 25,
+      "total": 44,
+      "current": "Entry 23"
+     },
+     {
+      "done": 26,
+      "total": 44,
+      "current": "Untitled entry"
+     },
+     {
+      "done": 27,
+      "total": 44,
+      "current": "Entry 25"
+     },
+     {
+      "done": 28,
+      "total": 44,
+      "current": "Entry 26"
+     },
+     {
+      "done": 29,
+      "total": 44,
+      "current": "Untitled entry"
+     },
+     {
+      "done": 30,
+      "total": 44,
+      "current": "Entry 28"
+     },
+     {
+      "done": 31,
+      "total": 44,
+      "current": "Entry 29"
+     },
+     {
+      "done": 32,
+      "total": 44,
+      "current": "Untitled entry"
+     },
+     {
+      "done": 33,
+      "total": 44,
+      "current": "Entry 31"
+     },
+     {
+      "done": 34,
+      "total": 44,
+      "current": "Entry 32"
+     },
+     {
+      "done": 35,
+      "total": 44,
+      "current": "Untitled entry"
+     },
+     {
+      "done": 36,
+      "total": 44,
+      "current": "Pair"
+     },
+     {
+      "done": 37,
+      "total": 44,
+      "current": "Untitled entry"
+     },
+     {
+      "done": 38,
+      "total": 44,
+      "current": "Untitled entry"
+     },
+     {
+      "done": 39,
+      "total": 44,
+      "current": "Untitled entry"
+     },
+     {
+      "done": 40,
+      "total": 44,
+      "current": "Untitled entry"
+     },
+     {
+      "done": 41,
+      "total": 44,
+      "current": "Untitled entry"
+     },
+     {
+      "done": 42,
+      "total": 44,
+      "current": "Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long Long "
+     },
+     {
+      "done": 43,
+      "total": 44,
+      "current": "greek"
+     },
+     {
+      "done": 44,
+      "total": 44,
+      "current": "same notebook as N3"
+     }
+    ],
+    "summary": {
+     "journals": 9,
+     "entries": 44,
+     "media": 10,
+     "skippedMedia": 2
+    }
+   }
+  },
+  {
+   "label": "text number",
+   "zip": "UEsDBBQAAAAAAAAwaV2Vrq9MJgAAACYAAAAGAAAAYS5qc29ueyJlbnRyaWVzIjpbeyJ0ZXh0Ijoib2sifSx7InRleHQiOjV9XX1QSwECFAAUAAAAAAAAMGldla6vTCYAAAAmAAAABgAAAAAAAAAAAAAAAAAAAAAAYS5qc29uUEsFBgAAAAABAAEANAAAAEoAAAAAAA==",
+   "journals": [],
+   "result": {
+    "calls": [
+     [
+      "newJournal",
+      "j-import-0-mjuohs002n9c",
+      "a",
+      "Imported from Day One",
+      "#B0563A",
+      "lines"
+     ],
+     [
+      "createEntry",
+      "j-import-0-mjuohs002n9c",
+      "ok",
+      []
+     ],
+     [
+      "updateEntry",
+      "e1",
+      "ok",
+      {
+       "type": "doc",
+       "content": [
+        {
+         "type": "paragraph"
+        }
+       ]
+      },
+      "",
+      [],
+      1767225600000
+     ]
+    ],
+    "progress": [
+     {
+      "done": 1,
+      "total": 2,
+      "current": "ok"
+     }
+    ],
+    "error": "malformed"
+   }
+  },
+  {
+   "label": "tags string",
+   "zip": "UEsDBBQAAAAAAAAwaV1k7B8dJgAAACYAAAAGAAAAYS5qc29ueyJlbnRyaWVzIjpbeyJ0ZXh0Ijoib2siLCJ0YWdzIjoieCJ9XX1QSwECFAAUAAAAAAAAMGldZOwfHSYAAAAmAAAABgAAAAAAAAAAAAAAAAAAAAAAYS5qc29uUEsFBgAAAAABAAEANAAAAEoAAAAAAA==",
+   "journals": [],
+   "result": {
+    "calls": [
+     [
+      "newJournal",
+      "j-import-0-mjuohs002n9c",
+      "a",
+      "Imported from Day One",
+      "#B0563A",
+      "lines"
+     ]
+    ],
+    "progress": [],
+    "error": "malformed"
+   }
+  },
+  {
+   "label": "bad moment",
+   "zip": "UEsDBBQAAAAAAAAwaV2DFtyMAQAAAAEAAAAMAAAAcGhvdG9zLzUucG5neFBLAwQUAAAAAAAAMGldK8teE2IAAABiAAAABgAAAGEuanNvbnsiZW50cmllcyI6W3sidGV4dCI6IiFbXShkYXlvbmUtbW9tZW50Oi8vWCkiLCJwaG90b3MiOlt7ImlkZW50aWZpZXIiOiJYIiwibWQ1Ijo1LCJ0eXBlIjoicG5nIn1dfV19UEsBAhQAFAAAAAAAADBpXYMW3IwBAAAAAQAAAAwAAAAAAAAAAAAAAAAAAAAAAHBob3Rvcy81LnBuZ1BLAQIUABQAAAAAAAAwaV0ry14TYgAAAGIAAAAGAAAAAAAAAAAAAAAAACsAAABhLmpzb25QSwUGAAAAAAIAAgBuAAAAsQAAAAAA",
+   "journals": [],
+   "result": {
+    "calls": [
+     [
+      "newJournal",
+      "j-import-0-mjuohs002n9c",
+      "a",
+      "Imported from Day One",
+      "#B0563A",
+      "lines"
+     ],
+     [
+      "createEntry",
+      "j-import-0-mjuohs002n9c",
+      null,
+      []
+     ]
+    ],
+    "progress": [],
+    "error": "malformed"
+   }
+  }
+ ]
+}
