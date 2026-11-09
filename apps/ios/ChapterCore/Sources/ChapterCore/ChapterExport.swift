@@ -121,33 +121,42 @@ public enum ChapterExport {
         }
         walk(doc); return out
     }
-    /// `parseDoc`: the stored body when it parses to an object or array, else the text as paragraphs.
-    static func parseDoc(_ e: Entry) -> JSONValue {
-        if let json = e.bodyJson, !json.isEmpty, let v = try? JSONDecoder().decode(JSONValue.self, from: Data(json.utf8)) {
+    /// `parseDoc`: the stored body when JSON.parse gives an object or array, else the text as
+    /// paragraphs (split on "\n" alone, like JavaScript, so a "\r" stays in its line).
+    public static func parseDoc(_ e: Entry) -> JSValue {
+        if let json = e.bodyJson, !json.isEmpty, let v = try? JSValue.parse(json) {
             switch v { case .object, .array: return v; default: break }
         }
-        let lines = e.bodyText.split(separator: "\n", omittingEmptySubsequences: false).map { line -> JSONValue in
-            line.isEmpty ? .object(["type": .string("paragraph")]) : .object(["type": .string("paragraph"), "content": .array([.object(["type": .string("text"), "text": .string(String(line))])])])
+        let lines = ChapterMarkdown.lines(e.bodyText).map { line -> JSValue in
+            line.isEmpty ? .object([("type", .string("paragraph"))]) : .object([("type", .string("paragraph")), ("content", .array([.object([("type", .string("text")), ("text", .string(line))])]))])
         }
-        return .object(["type": .string("doc"), "content": .array(lines)])
+        return .object([("type", .string("doc")), ("content", .array(lines))])
+    }
+    /// JSON.stringify writes non-finite numbers as null.
+    static func finite(_ v: JSONValue) -> JSONValue {
+        switch v {
+        case .number(let n): return n.isFinite ? v : .null
+        case .array(let a): return .array(a.map(finite))
+        case .object(let o): return .object(o.mapValues(finite))
+        default: return v
+        }
     }
 
     static func json(_ v: JSONValue) throws -> Data {
         let enc = JSONEncoder(); enc.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
-        return try enc.encode(v)
+        return try enc.encode(finite(v))
     }
 
-    /// `exportJournal`. `media` returns decrypted bytes or nil (recorded as missing, never fatal);
-    /// `markdown` renders a document (falls back to bodyText when it returns nil).
+    /// `exportJournal`. `media` returns decrypted bytes or nil (recorded as missing, never fatal).
     public static func archive(journal: Journal, entries all: [Entry], now: Double, generator: (app: String, version: String),
-                               media: (_ entryID: String, _ attachment: JSONValue) -> Data?, markdown: (JSONValue) -> String?) throws -> Archive {
+                               media: (_ entryID: String, _ attachment: JSONValue) -> Data?) throws -> Archive {
         let entries = all.enumerated().filter { $0.element.journalId == journal.id && !$0.element.deleted }
             .sorted { $0.element.createdAt != $1.element.createdAt ? $0.element.createdAt < $1.element.createdAt : $0.offset < $1.offset }.map(\.element)
         let nowISO = iso(now) ?? "1970-01-01T00:00:00.000Z"
         var files: [File] = [], refs: [JSONValue] = [], mediaList: [JSONValue] = [], missing: [JSONValue] = []
         var written: [String: JSONValue] = [:]
         for entry in entries {
-            let doc = parseDoc(entry)
+            let parsed = parseDoc(entry), doc = parsed.jsonValue
             let inline = docAttachments(doc)
             let seen = Set(inline.compactMap { $0["id"].string })
             let legacy = entry.attachments.filter { a in if let id = a["id"].string, !id.isEmpty { return true }; return false }
@@ -170,7 +179,7 @@ public enum ChapterExport {
             let created = iso(entry.createdAt) ?? nowISO, updated = iso(entry.updatedAt) ?? iso(entry.createdAt) ?? nowISO
             let payload: JSONValue = .object(["id": .string(entry.id), "journalId": .string(entry.journalId), "title": .string(entry.title), "createdAt": .string(created),
                                               "updatedAt": .string(updated), "labels": .array(entry.labels.map(JSONValue.string)), "body": doc,
-                                              "markdown": .string(markdown(doc) ?? entry.bodyText), "media": .array(entryMedia), "links": .array(docLinks(doc).map(JSONValue.string))])
+                                              "markdown": .string((try? ChapterMarkdown.docToMarkdown(parsed)) ?? entry.bodyText), "media": .array(entryMedia), "links": .array(docLinks(doc).map(JSONValue.string))])
             files.append(File(path: entryPath, data: try json(payload), mtime: entry.updatedAt))
             refs.append(.object(["id": .string(entry.id), "path": .string(entryPath), "title": .string(entry.title), "createdAt": .string(created), "updatedAt": .string(updated),
                                  "labels": .array(entry.labels.map(JSONValue.string)), "media": .array(entryMedia.map { $0["id"] })]))

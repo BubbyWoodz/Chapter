@@ -80,6 +80,38 @@
    "bodyJson": "42"
   },
   {
+   "id": "e5",
+   "journalId": "public-notebook",
+   "title": "CRLF text",
+   "bodyText": "windows\r\nline *two*\r\n",
+   "labels": [],
+   "createdAt": 1700000170000,
+   "updatedAt": 1700000170000,
+   "deleted": false
+  },
+  {
+   "id": "e6",
+   "journalId": "public-notebook",
+   "title": "Serializer throws",
+   "bodyText": "fallback text",
+   "labels": [],
+   "createdAt": 1700000180000,
+   "updatedAt": 1700000180000,
+   "deleted": false,
+   "bodyJson": "{\"type\":\"doc\",\"content\":[null]}"
+  },
+  {
+   "id": "e7",
+   "journalId": "public-notebook",
+   "title": "Key order",
+   "bodyText": "",
+   "labels": [],
+   "createdAt": 1700000190000,
+   "updatedAt": 1700000190000,
+   "deleted": false,
+   "bodyJson": "{\"content\":[{\"attrs\":{\"z\":1,\"1\":2,\"id\":\"x9\",\"mime\":\"text/plain\"},\"type\":\"mediaAttachment\"},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"*hi*\",\"marks\":[{\"type\":\"link\",\"attrs\":{\"href\":\"https://e.com\"}}]}]}],\"type\":\"doc\"}"
+  },
+  {
    "id": "gone",
    "journalId": "public-notebook",
    "title": "Deleted",
@@ -124,6 +156,9 @@
    4,
    4,
    4
+  ],
+  "x9": [
+   7
   ],
   "gal/../02": [
    2
@@ -221,6 +256,7 @@
      }
     ]
    },
+   "markdown": "Hello\n\n```mneme:gallery\n{\"type\":\"mediaGallery\",\"attrs\":{\"images\":[{\"id\":\"shared01\",\"mime\":\"image/png\",\"name\":\"\",\"createdAt\":1650000000000},{\"id\":\"\"},{\"id\":\"gal/../02\",\"mime\":\"image/heic\",\"createdAt\":1650000000001}]}}\n```\n\n> ```mneme:node\n> {\"type\":\"locationMap\",\"attrs\":{\"map\":{\"id\":\"map03\",\"mime\":\"image/png\",\"createdAt\":1650000000002},\"photo\":null}}\n> ```\n\n```mneme:node\n{\"type\":\"videoInterview\",\"attrs\":{\"cards\":[{\"clip\":{\"id\":\"clip04\",\"kind\":\"video\",\"mime\":\"video/mp4\",\"durationMs\":1500,\"createdAt\":1650000000003}},{\"clip\":null},\"x\"],\"film\":{\"id\":\"film05\",\"mime\":\"video/quicktime\",\"name\":\"film.MOV\",\"createdAt\":1650000000004}}}\n```\n",
    "media": [
     {
      "id": "shared01",
@@ -318,6 +354,7 @@
      }
     ]
    },
+   "markdown": "line one\n\nline three\n",
    "media": [],
    "links": []
   },
@@ -342,7 +379,115 @@
      }
     ]
    },
+   "markdown": "n\n",
    "media": [],
+   "links": []
+  },
+  "entries/e5.json": {
+   "id": "e5",
+   "journalId": "public-notebook",
+   "title": "CRLF text",
+   "createdAt": "2023-11-14T22:16:10.000Z",
+   "updatedAt": "2023-11-14T22:16:10.000Z",
+   "labels": [],
+   "body": {
+    "type": "doc",
+    "content": [
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "windows\r"
+       }
+      ]
+     },
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "line *two*\r"
+       }
+      ]
+     },
+     {
+      "type": "paragraph"
+     }
+    ]
+   },
+   "markdown": "windows\r\n\nline \\*two\\*\n",
+   "media": [],
+   "links": []
+  },
+  "entries/e6.json": {
+   "id": "e6",
+   "journalId": "public-notebook",
+   "title": "Serializer throws",
+   "createdAt": "2023-11-14T22:16:20.000Z",
+   "updatedAt": "2023-11-14T22:16:20.000Z",
+   "labels": [],
+   "body": {
+    "type": "doc",
+    "content": [
+     null
+    ]
+   },
+   "markdown": "fallback text",
+   "media": [],
+   "links": []
+  },
+  "media/x9.txt": "Bw==",
+  "entries/e7.json": {
+   "id": "e7",
+   "journalId": "public-notebook",
+   "title": "Key order",
+   "createdAt": "2023-11-14T22:16:30.000Z",
+   "updatedAt": "2023-11-14T22:16:30.000Z",
+   "labels": [],
+   "body": {
+    "content": [
+     {
+      "attrs": {
+       "1": 2,
+       "z": 1,
+       "id": "x9",
+       "mime": "text/plain"
+      },
+      "type": "mediaAttachment"
+     },
+     {
+      "type": "paragraph",
+      "content": [
+       {
+        "type": "text",
+        "text": "*hi*",
+        "marks": [
+         {
+          "type": "link",
+          "attrs": {
+           "href": "https://e.com"
+          }
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "type": "doc"
+   },
+   "markdown": "```mneme:media\n{\"attrs\":{\"1\":2,\"z\":1,\"id\":\"x9\",\"mime\":\"text/plain\"},\"type\":\"mediaAttachment\"}\n```\n\n[\\*hi\\*](https://e.com)\n",
+   "media": [
+    {
+     "id": "x9",
+     "path": "media/x9.txt",
+     "kind": "video",
+     "mime": "text/plain",
+     "bytes": 1,
+     "createdAt": "1970-01-01T00:00:00.000Z",
+     "entryId": "e7"
+    }
+   ],
    "links": []
   },
   "entries/e2-newer.json": {
@@ -409,6 +554,7 @@
      }
     ]
    },
+   "markdown": "Links to first\n\n[[e1/old!|First]][[|]]\n\n```mneme:media\n{\"type\":\"mediaAttachment\",\"attrs\":{\"id\":\"shared01\",\"kind\":\"image\",\"mime\":\"image/png\",\"name\":\"pic.png\",\"bytes\":3,\"createdAt\":1700000100000,\"width\":2,\"height\":1}}\n```\n\n```mneme:media\n{\"type\":\"mediaAttachment\",\"attrs\":{\"id\":\"missing02\",\"kind\":\"audio\",\"mime\":\"audio/webm;codecs=opus\",\"bytes\":9,\"createdAt\":\"x\"}}\n```\n",
    "media": [
     {
      "id": "shared01",
@@ -442,8 +588,8 @@
     "updatedAt": "2023-11-14T22:13:25.000Z"
    },
    "counts": {
-    "entries": 4,
-    "media": 6,
+    "entries": 7,
+    "media": 7,
     "missingMedia": 1
    },
    "entries": [
@@ -483,6 +629,35 @@
      "updatedAt": "2023-11-14T22:16:00.000Z",
      "labels": [],
      "media": []
+    },
+    {
+     "id": "e5",
+     "path": "entries/e5.json",
+     "title": "CRLF text",
+     "createdAt": "2023-11-14T22:16:10.000Z",
+     "updatedAt": "2023-11-14T22:16:10.000Z",
+     "labels": [],
+     "media": []
+    },
+    {
+     "id": "e6",
+     "path": "entries/e6.json",
+     "title": "Serializer throws",
+     "createdAt": "2023-11-14T22:16:20.000Z",
+     "updatedAt": "2023-11-14T22:16:20.000Z",
+     "labels": [],
+     "media": []
+    },
+    {
+     "id": "e7",
+     "path": "entries/e7.json",
+     "title": "Key order",
+     "createdAt": "2023-11-14T22:16:30.000Z",
+     "updatedAt": "2023-11-14T22:16:30.000Z",
+     "labels": [],
+     "media": [
+      "x9"
+     ]
     },
     {
      "id": "e2-newer",
@@ -555,6 +730,15 @@
      "name": "notes.TAR",
      "createdAt": "2020-09-13T12:26:40.000Z",
      "entryId": "e1/old!"
+    },
+    {
+     "id": "x9",
+     "path": "media/x9.txt",
+     "kind": "video",
+     "mime": "text/plain",
+     "bytes": 1,
+     "createdAt": "1970-01-01T00:00:00.000Z",
+     "entryId": "e7"
     }
    ],
    "missingMedia": [
@@ -565,7 +749,7 @@
     }
    ]
   },
-  "README.md": "# Café Notes — été 2026\n\nA Mneme journal export — 4 entries and 6 media files,\nwritten on 2026-11-09.\n\nThis archive holds your **decrypted** content. Treat it like the journal itself.\n\n## Layout\n\n- `mneme-export.json` — the table of contents: the journal, every entry, every media file.\n- `entries/<id>.json` — one file per entry. `body` is the content of record (a\n  ProseMirror/TipTap document); `markdown` is the same thing rendered readably.\n- `media/<id>.<ext>` — the pictures, recordings and attachments, decrypted.\n\n## Format\n\n`mneme-journal-export`, version 1. The full specification — every field and\nevery document node type — is at:\n\n  https://github.com/mneme-blog/mneme/blob/main/docs/EXPORT-FORMAT.md\n\nIt is a stable, documented format: anyone can write an importer for it.\n\n## Incomplete\n\n1 media file could not be included — not on the\ndevice that made this export, and not fetchable. They are listed under\n`missingMedia` in the manifest. Export again from a device that holds them, or\nwhile online, to get a complete archive.\n"
+  "README.md": "# Café Notes — été 2026\n\nA Mneme journal export — 7 entries and 7 media files,\nwritten on 2026-11-09.\n\nThis archive holds your **decrypted** content. Treat it like the journal itself.\n\n## Layout\n\n- `mneme-export.json` — the table of contents: the journal, every entry, every media file.\n- `entries/<id>.json` — one file per entry. `body` is the content of record (a\n  ProseMirror/TipTap document); `markdown` is the same thing rendered readably.\n- `media/<id>.<ext>` — the pictures, recordings and attachments, decrypted.\n\n## Format\n\n`mneme-journal-export`, version 1. The full specification — every field and\nevery document node type — is at:\n\n  https://github.com/mneme-blog/mneme/blob/main/docs/EXPORT-FORMAT.md\n\nIt is a stable, documented format: anyone can write an importer for it.\n\n## Incomplete\n\n1 media file could not be included — not on the\ndevice that made this export, and not fetchable. They are listed under\n`missingMedia` in the manifest. Export again from a device that holds them, or\nwhile online, to get a complete archive.\n"
  },
  "slugs": [
   {

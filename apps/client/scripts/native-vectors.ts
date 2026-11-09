@@ -13,6 +13,7 @@ import { verifySearch } from './native-search-vectors';
 import { verifyBadges } from './native-badges-vectors';
 import { verifyInterviews } from './native-interview-vectors';
 import { verifyExport } from './native-export-vectors';
+import { verifyMarkdown } from './native-markdown-vectors';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { wordlist } from '@scure/bip39/wordlists/english.js';
 import { ed25519 } from '@noble/curves/ed25519.js';
@@ -91,6 +92,7 @@ verifyStats(process.argv.includes('--write'));
 await verifySearch(process.argv.includes('--write'));
 verifyBadges(process.argv.includes('--write'));
 verifyInterviews(process.argv.includes('--write'));
+verifyMarkdown(process.argv.includes('--write'));
 await verifyExport(process.argv.includes('--write'));
 
 if (process.env.CHAPTER_NATIVE_OUTPUT) await verifyNotebookLifecycle(process.env.CHAPTER_NATIVE_OUTPUT+'.notebook-lifecycle',id.dataKey);

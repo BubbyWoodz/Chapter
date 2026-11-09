@@ -14,16 +14,14 @@ final class ChapterExportTests: XCTestCase {
         }
         let available = f["available"]
         let archive = try ChapterExport.archive(journal: journal, entries: entries, now: f["now"].number!, generator: ("Mneme", "test"),
-            media: { _, att in available[att["id"].string ?? ""].array.isEmpty ? nil : Data(available[att["id"].string!].array.map { UInt8($0.number!) }) }, markdown: { _ in nil })
+            media: { _, att in available[att["id"].string ?? ""].array.isEmpty ? nil : Data(available[att["id"].string!].array.map { UInt8($0.number!) }) })
         XCTAssertEqual(archive.filename, f["filename"].string)
         guard case .object(let expected) = f["files"] else { return XCTFail("files") }
         XCTAssertEqual(Set(archive.files.map(\.path)), Set(expected.keys))
         for file in archive.files {
             let want = try XCTUnwrap(expected[file.path], file.path)
             if file.path.hasSuffix(".json") {
-                var got = try JSONDecoder().decode(JSONValue.self, from: file.data)
-                if file.path.hasPrefix("entries/"), case .object(var o) = got { o.removeValue(forKey: "markdown"); got = .object(o) }
-                XCTAssertEqual(got, want, file.path)
+                XCTAssertEqual(try JSONDecoder().decode(JSONValue.self, from: file.data), want, file.path)
             } else if file.path.hasSuffix(".md") { XCTAssertEqual(String(decoding: file.data, as: UTF8.self), want.string, file.path) }
             else { XCTAssertEqual(file.data.base64EncodedString(), want.string, file.path) }
         }

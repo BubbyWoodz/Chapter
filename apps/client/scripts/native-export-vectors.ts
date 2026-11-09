@@ -27,16 +27,19 @@ const entries = [
     attachments: [{ id: 'legacy06', kind: 'file', mime: 'application/x-unknown', name: 'notes.TAR', bytes: 4, createdAt: 1600000000000 }, { id: 'clip04', kind: 'video', mime: 'video/mp4' }, { id: '' }] },
   { id: 'e3', journalId: 'public-notebook', title: 'Malformed', bodyText: 'line one\n\nline three', labels: ['x', 'y'], createdAt: 1700000150000, updatedAt: 1700000150000, deleted: false, bodyJson: '{not json' },
   { id: 'e4', journalId: 'public-notebook', title: 'Number body', bodyText: 'n', labels: [], createdAt: 1700000160000, updatedAt: 1700000160000, deleted: false, bodyJson: '42' },
+  { id: 'e5', journalId: 'public-notebook', title: 'CRLF text', bodyText: 'windows\r\nline *two*\r\n', labels: [], createdAt: 1700000170000, updatedAt: 1700000170000, deleted: false },
+  { id: 'e6', journalId: 'public-notebook', title: 'Serializer throws', bodyText: 'fallback text', labels: [], createdAt: 1700000180000, updatedAt: 1700000180000, deleted: false, bodyJson: '{"type":"doc","content":[null]}' },
+  { id: 'e7', journalId: 'public-notebook', title: 'Key order', bodyText: '', labels: [], createdAt: 1700000190000, updatedAt: 1700000190000, deleted: false, bodyJson: '{"content":[{"attrs":{"z":1,"1":2,"id":"x9","mime":"text/plain"},"type":"mediaAttachment"},{"type":"paragraph","content":[{"type":"text","text":"*hi*","marks":[{"type":"link","attrs":{"href":"https://e.com"}}]}]}],"type":"doc"}' },
   { id: 'gone', journalId: 'public-notebook', title: 'Deleted', bodyText: 'x', labels: [], createdAt: 1700000000000, updatedAt: 1700000000000, deleted: true },
   { id: 'other', journalId: 'elsewhere', title: 'Other notebook', bodyText: 'x', labels: [], createdAt: 1700000000000, updatedAt: 1700000000000, deleted: false },
 ] as unknown as JournalEntry[];
-const available: Record<string, number[]> = { shared01: [1, 2, 3], map03: [9, 8, 7, 6], clip04: [0, 255], film05: [5], legacy06: [4, 4, 4, 4], 'gal/../02': [2] };
+const available: Record<string, number[]> = { shared01: [1, 2, 3], map03: [9, 8, 7, 6], clip04: [0, 255], film05: [5], legacy06: [4, 4, 4, 4], x9: [7], 'gal/../02': [2] };
 
 type Files = Record<string, unknown>;
 function readArchive(zip: Uint8Array): Files {
   const files: Files = {};
   for (const [path, data] of Object.entries(unzipSync(zip))) {
-    if (path.endsWith('.json')) { const v = JSON.parse(strFromU8(data)) as Record<string, unknown>; if (path.startsWith('entries/')) delete v.markdown; files[path] = v; }
+    if (path.endsWith('.json')) { const v = JSON.parse(strFromU8(data)) as Record<string, unknown>; files[path] = v; }
     else if (path.endsWith('.md')) files[path] = strFromU8(data);
     else files[path] = Buffer.from(data).toString('base64');
   }
@@ -56,7 +59,7 @@ export async function verifyExport(write: boolean): Promise<void> {
   if (out && existsSync(out + '.journal-export.zip')) {
     const native = readArchive(new Uint8Array(readFileSync(out + '.journal-export.zip')));
     assert.deepEqual(native, JSON.parse(JSON.stringify(files)), 'The native archive must unzip to the same files as the web export');
-    console.log('Swift journal export → fflate unzip: every file equals the web exportJournal (markdown aside).');
+    console.log('Swift journal export → fflate unzip: every file equals the web exportJournal, markdown included.');
   }
   console.log(`Native export vectors equal the web exportJournal (${Object.keys(files).length} files).`);
 }
