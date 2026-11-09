@@ -74,7 +74,7 @@ the exact revision; a failing strict accessibility audit remains a release block
 <!-- Times are commit times in America/Los_Angeles; earlier labels this night ran ahead of the clock and were corrected. -->
 ## Search and badges — November 9, 2026, 5:09 AM PST
 
-Committed locally while Native run 42621358291 (d0cca2f) was queued; not pushed yet.
+Committed locally while Native run 42621358291 (d0cca2f) was queued. That run also got no macOS runner: GitHub cancelled it at 5:12 AM PST with the same "not acquired by Runner" annotation. On the same revision, the macOS live-relay job did get a runner (5:08 to 5:10 AM PST) and passed. That is the native TLS/Go/Postgres relay round trip; the native unit and UI suites did not run. These commits were pushed once as a batch afterwards.
 - **7fbe254 (5:04 AM PST), search:** a port of the web search/core and the Search sheet. Every word must match the title, labels, the entry date or the body. Results are ranked title, then label, then date, then content, newest first, up to 50, and the matched field is tagged.
   - Dates match in local time, written in English and in the active language ("jun 9", "9. Juni 2026", "2026-06-09", "9.6.2026").
   - Matching is on UTF-16 code units after JavaScript toLowerCase, including the Greek final sigma.
