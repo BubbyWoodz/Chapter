@@ -31,6 +31,45 @@ the exact revision; a failing strict accessibility audit remains a release block
 | Server distribution | Chapter-owned source-build compose/install profile, separate volumes, private setup, optional STT; image/source artifact + real S3/backup-restore CI added | Real source-image builds, trusted HTTPS/auth/web crypto, actual PostgreSQL/S3 media and restore into a different empty stack PASS at 551236b (run 42511822303). Downloadable Linux amd64 image/source/checksum bundle exists. Not deployed; no direct live-volume migration or general historical-upgrade certification |
 | iPhone distribution | Xcode source and unsigned Simulator artifacts only | No signed device IPA, TestFlight or physical-device certification. Apple signing route later, not obtained here |
 
+## Repair, native links and actual UI verification — November8,2026,5:44 PM EST
+
+- Actual097 real native whole-block MOVE/reopen/opaque-content test PASSES in
+  42528695109. Separate original-color/back-stack test FAILS while sampling assumed
+  AX-painted bounds; navigation assertions were not reached. Latest source retains
+  exact original RGB tolerance, measures the actual3pt painted strip and surface,
+  adds strict strip width and records real geometry before assertions. New pass
+  still REQUIRED; no visual assertion is suppressed.
+- Actual869 COMPLETE Apple core (nine purge cases included), mandatory original-web
+  decoding/Go verifier and genuine universal Simulator build/package PASS in
+  42530200596. Entire real native TLS orphan state/save/reload/delete/chunk404/local
+  cleanup plus source-image/S3/backup-restore42530200601 is GREEN. All seven prior
+  Unicode Apple tests also PASS at930. Original crypto/auth/wire unchanged.
+- NEW repair state saves before upload, gates fresh referencing pushes, restores
+  only exact authenticated original ciphertext/IDs, never overwrites a different
+  existing ciphertext. Missing chunks can be restored; success receipt binds exact
+  intent/revision so old/unrelated success cannot acknowledge a newer operation.
+  Foreground native sync repairs ambiguous in-flight removals/references before
+  outbound writes. No new production DELETE/UI is enabled. Full purge UI, fresh
+  post-delete pull/retention policy and other-device/global-race boundary remain
+  release gates. Real concurrent-reference-after-DELETE native TLS test added;
+  latest Apple/live/network fault tests await new CI.
+- Genuine native internal entry links/live local titles, accessible outgoing links,
+  backlinks (original updated ordering/self/deleted rules), and honest missing/
+  deleted/offline destinations implemented. Routing is LOCAL-ONLY, never a host
+  derived from an entry ID; external links retain explicit confirmation. FOUR
+  actual Foundation cases pass, mandatory original web docEntryLinks comparison
+  and real UI/captures44–46 added, awaiting Apple verification. No link authoring
+  picker or full inline-selection parity claim.
+- TWENTY-THREE actual Foundation XCTest sync/purge/repair/link cases PASS. Existing
+  30 browser checks and production TypeScript/Vite build PASS. Apple encrypted/
+  transport/UI gates remain independently required. Related plain-editor/opaque
+  mark NFC/NFD guards also now refuse unsafe normalization; no JSON schema change.
+- Production normal/XXXL Dynamic Type audits still FAIL. Plain Form, SecureField,
+  full-width CTA and largest-control geometry PASS; new required full-composition
+  normal/XXXL diagnostic changes ONLY input fixed sizing. Release/normal layout
+  unchanged; strict audits not replaced, ignored or waived. Professional whole-app
+  fidelity, missing native groups and signed physical iPhone delivery NOT complete.
+
 ## Guarded media-removal increment — November8,2026,5:27 PM EST
 
 Real core queued/sending/confirmed/cancel/finish lifecycle now retains intent in

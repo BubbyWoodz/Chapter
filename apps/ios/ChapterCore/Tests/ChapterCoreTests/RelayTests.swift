@@ -65,6 +65,40 @@ final class RelayTests: XCTestCase {
         do {try await client.deleteMedia(id:id,token:"injected\r\nHeader:value");XCTFail("Unsafe token accepted")}catch{}
         XCTAssertEqual(requests,0)
     }
+    func testRepairRestoresOnlyMissingOriginalChunkAndNeverOverwritesDifferentCiphertext() async throws {
+        let dir=FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at:dir,withIntermediateDirectories:true);defer{try? FileManager.default.removeItem(at:dir)}
+        let files=try EncryptedMediaFiles(directory:dir,namespace:"repair-http"),source=dir.appendingPathComponent("public")
+        try Data([7]).write(to:source);let id=String(repeating:"a",count:32),key=Data(repeating:7,count:32),token=String(repeating:"A",count:43)
+        let upload=try files.stage(source:source,id:id,name:"Public",mime:"application/octet-stream",key:key)
+        let cache=MediaCache(id:id,chunks:upload.chunks,cipherBytes:upload.cipherBytes),cipher=try files.read(id:id,index:0)
+        for different in [false,true] {
+            var writes=0
+            FixtureProtocol.install {request in
+                if request.httpMethod=="GET",request.url!.path.hasSuffix("/chunks/0") {return different ? (200,Data(repeating:0,count:cipher.count)):(404,Data())}
+                if request.httpMethod=="GET" {return (200,try JSONSerialization.data(withJSONObject:["media_id":id,"chunks":1,"bytes":cipher.count]))}
+                XCTAssertEqual(request.httpMethod,"PUT");writes+=1;XCTAssertEqual(try self.requestBody(request),cipher)
+                return (200,try JSONSerialization.data(withJSONObject:["media_id":id,"chunk":0]))
+            }
+            let client=try relay();defer{client.cancel()}
+            do {let receipt=try await client.repairMedia(cache,files:files,mediaKey:key,token:token);XCTAssertFalse(different);XCTAssertEqual(receipt.media,cache)}
+            catch ChapterError.corruptData {XCTAssertTrue(different)}
+            XCTAssertEqual(writes,different ? 0:1)
+        }
+    }
+    func testTypedDeleteReceiptCannotConfirmDifferentObject() async throws {
+        FixtureProtocol.install {_ in (204,Data())}
+        let client=try relay();defer{client.cancel()}
+        let receipt=try await client.deleteMediaWithReceipt(id:String(repeating:"b",count:32),token:String(repeating:"A",count:43))
+        var state=VaultSnapshot();state.mediaCache=[MediaCache(id:String(repeating:"a",count:32),chunks:1,cipherBytes:42)]
+        let queued=try state.queueMediaPurge(state.reviewMediaPurge(state.mediaCache![0])),sent=try state.beginMediaPurge(queued)
+        XCTAssertThrowsError(try state.confirmMediaPurge(sent,receipt:receipt));XCTAssertEqual(try state.mediaPurgeIntents(),[sent])
+        let bound=try await client.deleteMediaForPurge(sent,token:String(repeating:"A",count:43))
+        let retry=try state.beginMediaPurge(sent)
+        XCTAssertThrowsError(try state.confirmMediaPurge(retry,receipt:bound),"An older successful request cannot confirm a newer retry revision")
+        let current=try await client.deleteMediaForPurge(retry,token:String(repeating:"A",count:43))
+        XCTAssertEqual(try state.confirmMediaPurge(retry,receipt:current).phase,.confirmed)
+    }
     func testActualRegistrationAndRawChallengeTranscriptWithFutureResponseFields() async throws {
         let id = try VaultIdentity(seed: RecoveryPhrase.seed("legal winner thank year wave sausage worth useful legal winner thank yellow"))
         let challenge = Data(repeating: 7, count: 32), token = String(repeating: "A", count: 43)

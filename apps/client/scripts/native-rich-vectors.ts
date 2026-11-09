@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { getSchema, type JSONContent } from '@tiptap/core';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { buildExtensions, docToText, docMediaIds } from '../src/editor/doc';
+import { buildExtensions, docToText, docMediaIds, docEntryLinks } from '../src/editor/doc';
 import { decryptRecord } from '../src/sync/engine';
 import { normalizeEntryLabel } from '../src/labels';
 const text = (text: string, marks?: JSONContent["marks"]): JSONContent => ({type:'text', text, ...(marks ? {marks} : {})});
@@ -59,6 +59,9 @@ export function verifyRichFixture(write: boolean, identity: {dataKey:Uint8Array}
   assert.deepEqual(body.unknownFuture,{preserve:true});
   assert.deepEqual(docMediaIds(JSON.parse(body.bodyJson)),fixture.mediaIds);
   console.log('Swift → actual web: edited rich document, task state, all opaque fields and media references preserved.');
+  const nativeLinks = JSON.parse(readFileSync(nativePath+'.entry-links','utf8')) as {ids:string[]};
+  assert.deepEqual(nativeLinks.ids,docEntryLinks(original),'Native local links/backlinks must use actual upstream entryId semantics');
+  console.log('Native links match the actual original web document collector; navigation does not rewrite encrypted content.');
   const arranged = JSON.parse(readFileSync(nativePath+'.rich-structure','utf8')) as {id:string;record:string};
   const arrangedBody = JSON.parse(Buffer.from(decryptRecord(identity.dataKey,arranged.id,Buffer.from(arranged.record,'base64'))).toString());
   assert.deepEqual(JSON.parse(arrangedBody.bodyJson),reordered,'Native block move lost, flattened or rewrote an original/opaque block');

@@ -107,6 +107,23 @@ final class ChapterUITests: XCTestCase {
         let opaque=app.descendants(matching:.any).matching(identifier:"rich.block.13").firstMatch
         reveal(opaque,in:app);XCTAssertTrue(opaque.label.contains("futureNode"),"Whole opaque future block must remain")
     }
+    func testNativeEntryLinksAndBacklinksNavigateLocallyWithoutNetwork() throws {
+        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture","--chapter-linked-entry-fixture"];app.launch()
+        let source=app.staticTexts["Public rich fixture"];XCTAssertTrue(source.waitForExistence(timeout:10));source.tap()
+        let link=app.buttons["entry.link.entry-target"];reveal(link,in:app);link.tap()
+        let title=app.staticTexts["entry.title"];XCTAssertTrue(title.waitForExistence(timeout:5));XCTAssertEqual(title.label,"Public linked target")
+        let backlink=app.buttons["entry.backlink.public-rich-fixture"];reveal(backlink,in:app)
+        attach(app,name:"Actual native local linked target and original-web backlinks")
+        backlink.tap();XCTAssertTrue(app.staticTexts["Public heading"].waitForExistence(timeout:5));XCTAssertEqual(app.staticTexts["entry.title"].label,"Public rich fixture")
+        app.navigationBars.buttons["Entry"].tap();XCTAssertEqual(app.staticTexts["entry.title"].label,"Public linked target")
+    }
+    func testMissingLocalEntryLinkShowsHonestOfflineStateWithoutCloudOrFakeSuccess() throws {
+        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture"];app.launch()
+        let source=app.staticTexts["Public rich fixture"];XCTAssertTrue(source.waitForExistence(timeout:10));source.tap()
+        let link=app.buttons["entry.link.entry-target"];reveal(link,in:app);link.tap()
+        XCTAssertTrue(app.staticTexts["Linked entry is not downloaded"].waitForExistence(timeout:5));XCTAssertFalse(app.buttons["Sync your server"].exists)
+        attach(app,name:"Actual native missing linked entry offline state, not fake navigation success")
+    }
     func testNativeRichRenderingEditingAndTaskPersistence() throws {
         let app = XCUIApplication(); app.launchArguments = ["--chapter-rich-fixture"]; app.launch()
         let entry = app.staticTexts["Public rich fixture"]
@@ -131,6 +148,18 @@ final class ChapterUITests: XCTestCase {
         let app=XCUIApplication();app.launchArguments=["--chapter-full-width-action-audit-repro"];app.launch()
         XCTAssertTrue(app.buttons["repro.full-width-action"].waitForExistence(timeout:10))
         attach(app,name:"Actual isolated production full-width native CTA strict comparison")
+        try audit(app,for:.dynamicType)
+    }
+    func testFullConnectionCompositionWithoutFixedInputSizingDiagnostic() throws {
+        let app=XCUIApplication();app.launchArguments=["--chapter-connection-without-fixed-input-sizing"];app.launch()
+        XCTAssertTrue(app.navigationBars["Chapter"].waitForExistence(timeout:10))
+        attach(app,name:"Exact full connection composition minus only input fixed sizing — diagnostic")
+        try audit(app,for:.dynamicType)
+    }
+    func testLargestFullConnectionCompositionWithoutFixedInputSizingDiagnostic() throws {
+        let app=XCUIApplication();app.launchArguments=["--chapter-connection-without-fixed-input-sizing"];app.launch()
+        XCTAssertTrue(app.navigationBars["Chapter"].waitForExistence(timeout:10));XCTAssertGreaterThan(app.staticTexts["connection.heading"].frame.height,60)
+        attach(app,name:"Actual OS XXXL full connection composition minus only input fixed sizing — diagnostic")
         try audit(app,for:.dynamicType)
     }
     func testUnmodifiedNativeFormDynamicTypeReproduction() throws {
@@ -160,15 +189,27 @@ final class ChapterUITests: XCTestCase {
         app.buttons["appearance.mode"].tap();app.buttons["Light"].tap();app.tabBars.buttons["Journal"].tap()
         let card=app.descendants(matching:.any).matching(identifier:"entry.card.public-rich-fixture").firstMatch
         XCTAssertTrue(card.waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["Public rich fixture"].exists)
+        attach(app,name:"Chapter actual card before strict physical-pixel assertions")
+        let geometry=XCTAttachment(string:"AX card bounds: \(card.frame); app: \(app.frame)\n"+app.debugDescription)
+        geometry.name="Actual card AX bounds and hierarchy";geometry.lifetime = .keepAlways;add(geometry)
         let image=try XCTUnwrap(app.screenshot().image.cgImage),scale=CGFloat(image.width)/app.frame.width
-        func sample(_ offset:CGFloat,expected:[Int]) throws {
-            let rect=CGRect(x:(card.frame.minX+offset)*scale,y:card.frame.midY*scale,width:1,height:1)
-            let crop=try XCTUnwrap(image.cropping(to:rect));var pixel=[UInt8](repeating:0,count:4)
-            let context=try XCTUnwrap(CGContext(data:&pixel,width:1,height:1,bitsPerComponent:8,bytesPerRow:4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue))
-            context.draw(crop,in:CGRect(x:0,y:0,width:1,height:1))
-            for (actual,target) in zip(pixel.prefix(3),expected) {XCTAssertLessThanOrEqual(abs(Int(actual)-target),2,"Original card color must really render")}
+        let width=image.width,strip=try XCTUnwrap(image.cropping(to:CGRect(x:0,y:floor(card.frame.midY*scale),width:CGFloat(width),height:1)))
+        var pixels=[UInt8](repeating:0,count:width*4)
+        try pixels.withUnsafeMutableBytes {buffer in
+            let context=try XCTUnwrap(CGContext(data:buffer.baseAddress,width:width,height:1,bitsPerComponent:8,bytesPerRow:width*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue))
+            context.draw(strip,in:CGRect(x:0,y:0,width:CGFloat(width),height:1))
         }
-        try sample(1.5,expected:[78,139,133]);try sample(8,expected:[251,247,239])
+        func matches(_ x:Int,_ color:[Int])->Bool {x>=0 && x<width && (0..<3).allSatisfy{abs(Int(pixels[x*4+$0])-color[$0])<=2}}
+        // NavigationLink accessibility bounds can include row insets/chevron.
+        // Measure the ACTUAL painted leading strip, not an assumed AX origin.
+        // Keep original RGB tolerance and additionally require actual3pt width.
+        let left=max(0,Int(card.frame.minX*scale)),right=min(width,Int(card.frame.maxX*scale))
+        let first=try XCTUnwrap((left..<right).first{matches($0,[78,139,133])},"Original notebook edge must really render in this card")
+        var end=first;while end<right && matches(end,[78,139,133]) {end+=1}
+        XCTAssertLessThanOrEqual(abs((end-first)-Int((3*scale).rounded())),1,"Actual original notebook strip must be3pt wide")
+        XCTAssertLessThanOrEqual(CGFloat(first)/scale-card.frame.minX,24,"Strip must be at the real leading row inset, not somewhere in text")
+        let surface=first+Int((8*scale).rounded())
+        XCTAssertTrue(matches(surface,[251,247,239]),"Original #fbf7ef card surface must really render inside its padding")
         attach(app,name:"Chapter genuine original-color journal cards and notebook edge")
         app.tabBars.buttons["Notebooks"].tap();app.staticTexts["Public notebook"].tap()
         XCTAssertTrue(app.navigationBars["Public notebook"].waitForExistence(timeout:5));XCTAssertTrue(app.staticTexts["Public subtitle"].exists)
@@ -340,6 +381,16 @@ final class ChapterPageCaptures: XCTestCase {
     func testConnectionInitialScreenNoSecrets() throws {
         let app=XCUIApplication();app.launchArguments=["--chapter-still-captures"];app.launch()
         XCTAssertTrue(app.textFields["connection.server"].waitForExistence(timeout:10));shot(app,"00 Actual server URL and recovery unlock screen")
+    }
+    func testActualNativeLinkedEntriesBacklinksAndOfflineMissingPages() throws {
+        let app=XCUIApplication();app.launchArguments=["--chapter-rich-fixture","--chapter-linked-entry-fixture","--chapter-still-captures"];app.launch()
+        let source=app.staticTexts["Public rich fixture"];XCTAssertTrue(source.waitForExistence(timeout:10));source.tap()
+        let link=app.buttons["entry.link.entry-target"];reveal(link,app);shot(app,"44 Actual native entry links using live local titles");link.tap()
+        XCTAssertTrue(app.staticTexts["entry.title"].waitForExistence(timeout:5));XCTAssertEqual(app.staticTexts["entry.title"].label,"Public linked target")
+        reveal(app.buttons["entry.backlink.public-rich-fixture"],app);shot(app,"45 Actual linked target and downloaded backlinks")
+        let missing=launch();let original=missing.staticTexts["Public rich fixture"];XCTAssertTrue(original.waitForExistence(timeout:10));original.tap()
+        let absent=missing.buttons["entry.link.entry-target"];reveal(absent,missing);absent.tap()
+        XCTAssertTrue(missing.staticTexts["Linked entry is not downloaded"].waitForExistence(timeout:5));shot(missing,"46 Actual preserved missing linked entry offline state")
     }
     func testJournalSearchCalendarComposeNotebookFormsAndMenus() throws {
         let app=launch(media:true);let entry=app.staticTexts["Public rich fixture"];XCTAssertTrue(entry.waitForExistence(timeout:10))

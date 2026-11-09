@@ -38,6 +38,9 @@ import ChapterCore
         value.records = [VaultRecord(id: "public-notebook-record", clock: 1, body: ["kind": .string("journal"), "journalId": .string("public-notebook"), "name": .string("Public notebook"), "subtitle": .string("Public subtitle"), "color": .string("#4E8B85"), "cover": .string("lines"), "opaqueFuture": .object(["preserve": .bool(true)])]), VaultRecord(id: "public-rich-fixture", clock: 1, body: ["journalId": .string("public-notebook"), "title": .string("Public rich fixture"), "bodyJson": .string(PublicRichFixture.json), "bodyText": .string(try RichDocument(json: PublicRichFixture.json).plainText)])]
         value.records[1].body["createdAt"] = .number(Date().timeIntervalSince1970 * 1000)
         value.records.append(VaultRecord(id: "public-destination-record", clock: 1, body: ["kind": .string("journal"), "journalId": .string("public-destination"), "name": .string("Public destination"), "color": .string("#B0563A"), "cover": .string("dots")]))
+        if ProcessInfo.processInfo.arguments.contains("--chapter-linked-entry-fixture") {
+            value.records.append(VaultRecord(id:"entry-target",clock:2,body:["title":.string("Public linked target"),"bodyJson":.string(try VaultRecord.plainDocument("Real local linked-entry navigation")),"bodyText":.string("Real local linked-entry navigation")]))
+        }
         if ProcessInfo.processInfo.arguments.contains("--chapter-media-fixture") {
             // PUBLIC test identity only; real original crypto and protected local
             // media staging, with NO relay, HTTP fixture or fake server success.
@@ -136,6 +139,8 @@ import ChapterCore
             }
             lastCompletePullID = UUID()
             appearanceInitialized = true // Never bootstrap unseen server AI settings while offline.
+            try await repairInterruptedMediaRemovals(relay:relay,identity:identity,token:token,attempt:attempt)
+            guard attempt == generation else { return }
             var uploadFailed = false
             if let mediaFiles {
                 for upload in snapshot.mediaUploads ?? [] {
@@ -172,6 +177,26 @@ import ChapterCore
             if uploadFailed { backoff.failed(); message = "Some attachments could not upload or be authenticated. Their pending references were not sent. Keep this device and retry; do not delete local work." }
             else { backoff.succeeded(); message = pending == 0 ? "Synced with your server." : "\(pending) changes remain on this device. Sync again to retry." }
         } catch { if attempt == generation { backoff.failed(); message = "Offline or unable to sync: \(error.localizedDescription) Local saved changes are retained." } }
+    }
+    /// No new DELETE is initiated here. Interrupted existing removals that now
+    /// encounter references/unknown work restore original ciphertext BEFORE any
+    /// fresh referencing entry is published. Persist repair first; lock or errors
+    /// retain the intent/cache and retry on the next authenticated full pull.
+    private func repairInterruptedMediaRemovals(relay:Relay,identity:VaultIdentity,token:String,attempt:UUID) async throws {
+        guard let mediaFiles else { return }
+        for original in try snapshot.mediaPurgeIntents() where original.phase != .queued {
+            var needsRepair = original.phase == .repairing
+            if !needsRepair {
+                do { try snapshot.requireMediaPurgeUnreferenced(original.media) }
+                catch { needsRepair = true }
+            }
+            guard needsRepair else { continue }
+            var next=snapshot;let repairing=try next.beginMediaPurgeRepair(original);try commit(next)
+            let receipt=try await relay.repairMediaForPurge(repairing,files:mediaFiles,mediaKey:identity.mediaKey,token:token)
+            guard attempt == generation else { return }
+            next=snapshot;try next.finishMediaPurgeRepair(repairing,receipt:receipt);try commit(next)
+            mediaErrors.removeValue(forKey:repairing.media.id)
+        }
     }
     private func nextClock(after clock: Int64 = 0) throws -> Int64 {
         try ProtocolNumbers.nextClock(after: clock)

@@ -70,3 +70,29 @@ this latest extension must PASS its real macOS live job before being certified.
 4. Explicit recoverable unlink versus permanent removal/recovery pruning policy;
    never silently discard old writing to make an object appear unreferenced.
 5. Real UI/accessibility/screens and physical-device storage acceptance.
+
+## Subsequent repair increment (latest source, Apple verification pending)
+
+`repairing` is now a durable local phase. Native foreground sync first pulls, then
+persists repair before restoring original cipher chunks for interrupted intents
+that acquire references/unknown work. Fresh referencing records are gated until
+repair succeeds; errors, lock and lost acknowledgements retain cache/intent and
+retry. A successful repair removes ONLY intent, never original entries/cache/
+drafts/uploads. This does NOT initiate new DELETE or enable production purge UI.
+
+Public completion now requires unforgeable ephemeral relay receipts bound to
+media metadata, exact local intent ID and revision; pure-state seams are internal
+for tests. A stale response cannot retire a newer retry. Repair authenticates local
+chunks with existing media AAD/key, preserves exact original ciphertext/nonces,
+restores only missing remote chunks and refuses different existing ciphertext.
+Other devices' unsynced/global races remain un-fenced by the original protocol;
+full safe post-delete retention/repair UX is still required before exposure.
+
+Added actual TLS/Go/Postgres test: delete known synthetic object, push another
+client's original encrypted referencing record, pull/decrypt it, reopen durable
+sending/repair state, restore byte-identical chunks, preserve reference/cache and
+confirm only with exact successful repair receipt. Latest new result pending.
+The PREVIOUS869 full actual native/core/old orphan live scenario now PASSES in
+42530200596 /42530200601, including S3/source-image/backup-restore. New reference
+race, transport absence-vs-different ciphertext, stale receipts and encrypted
+repair disk-fault/restart tests remain required separately on latest source.

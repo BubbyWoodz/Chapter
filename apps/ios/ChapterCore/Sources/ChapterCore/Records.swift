@@ -96,7 +96,9 @@ public struct VaultRecord: Codable, Identifiable, Equatable {
         // media injected by another client, even when it kept our marker.
         guard let canonical = try? Self.plainDocument(text),
               let expected = try? JSONDecoder().decode(JSONValue.self, from: Data(canonical.utf8)) else { return false }
-        return doc == expected
+        let encoder=JSONEncoder();encoder.outputFormatting=[.sortedKeys]
+        guard let current=try? encoder.encode(doc),let plain=try? encoder.encode(expected) else {return false}
+        return current == plain
     }
     public func restoredEntry(id: String, now: Date = Date()) throws -> VaultRecord {
         // A notebook/settings conflict cannot be restored by reusing its logical ID:

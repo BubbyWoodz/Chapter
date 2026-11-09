@@ -1,6 +1,20 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import Foundation
 
+/// Only the strict authenticated relay operation can construct these ephemeral proofs.
+public struct MediaDeletionReceipt {
+    public let id:String
+    public let intentID:String?
+    public let revision:Int64?
+    fileprivate init(id:String,intentID:String?=nil,revision:Int64?=nil) {self.id=id;self.intentID=intentID;self.revision=revision}
+}
+public struct MediaRepairReceipt {
+    public let media:MediaCache
+    public let intentID:String?
+    public let revision:Int64?
+    fileprivate init(media:MediaCache,intentID:String?=nil,revision:Int64?=nil) {self.media=media;self.intentID=intentID;self.revision=revision}
+}
+
 public struct ServerAddress: Equatable {
     public let url: URL
     public init(_ input: String) throws {
@@ -115,7 +129,7 @@ public final class Relay {
               Set(results.map(\.entry_id)) == Set(records.map(\.id)) else { throw ChapterError.corruptData }
         return results
     }
-    public func uploadMedia(_ upload: MediaUpload, files: EncryptedMediaFiles, mediaKey: Data, token: String) async throws {
+    public func uploadMedia(_ upload: MediaUpload, files: EncryptedMediaFiles, mediaKey: Data, token: String, repairMissingChunks: Bool = false) async throws {
         try upload.validate()
         var existing = false
         do {
@@ -135,13 +149,16 @@ public final class Relay {
             if existing {
                 // Recover a lost complete acknowledgment without uploading twice
                 // or trusting metadata for missing/different remote ciphertext.
-                let remote = try await mediaChunk(id: upload.id, index: index, token: token)
-                guard remote == cipher else { throw ChapterError.corruptData }
+                do {
+                    let remote = try await mediaChunk(id:upload.id,index:index,token:token)
+                    guard remote == cipher else {throw ChapterError.corruptData}
+                } catch ChapterError.http(404) where repairMissingChunks {
+                    // Restore only ABSENT original chunks; never overwrite a
+                    // different existing ciphertext or invent a fresh nonce.
+                    try await putMediaChunk(id:upload.id,index:index,cipher:cipher,token:token)
+                }
             } else {
-                let data = try await request("v1/media/\(upload.id)/chunks/\(index)", method: "PUT", body: cipher, token: token, maxBytes: 4096, contentType: "application/octet-stream")
-                struct Ack: Decodable { let media_id: String; let chunk: Int }
-                let ack = try JSONDecoder().decode(Ack.self, from: data)
-                guard ack.media_id == upload.id, ack.chunk == index else { throw ChapterError.corruptData }
+                try await putMediaChunk(id:upload.id,index:index,cipher:cipher,token:token)
             }
         }
         guard total == upload.cipherBytes else { throw ChapterError.corruptData }
@@ -150,6 +167,24 @@ public final class Relay {
             struct Complete: Decodable { let media_id: String }
             guard try JSONDecoder().decode(Complete.self, from: data).media_id == upload.id else { throw ChapterError.corruptData }
         }
+    }
+    private func putMediaChunk(id:String,index:Int,cipher:Data,token:String) async throws {
+        let data=try await request("v1/media/\(id)/chunks/\(index)",method:"PUT",body:cipher,token:token,maxBytes:4096,contentType:"application/octet-stream")
+        struct Ack:Decodable {let media_id:String;let chunk:Int}
+        let ack=try JSONDecoder().decode(Ack.self,from:data)
+        guard ack.media_id==id,ack.chunk==index else {throw ChapterError.corruptData}
+    }
+    /// Restore the exact durable original ciphertext; record metadata is untouched.
+    public func repairMedia(_ media:MediaCache,files:EncryptedMediaFiles,mediaKey:Data,token:String) async throws -> MediaRepairReceipt {
+        try media.validatePurgeMetadata()
+        let upload=MediaUpload(id:media.id,chunks:media.chunks,cipherBytes:media.cipherBytes,plainBytes:Int(media.cipherBytes-Int64(media.chunks*41)),name:"Recovered attachment",mime:"application/octet-stream")
+        try await uploadMedia(upload,files:files,mediaKey:mediaKey,token:token,repairMissingChunks:true)
+        return MediaRepairReceipt(media:media)
+    }
+    public func repairMediaForPurge(_ intent:MediaPurgeIntent,files:EncryptedMediaFiles,mediaKey:Data,token:String) async throws -> MediaRepairReceipt {
+        try intent.validate();guard intent.phase == .repairing else {throw ChapterError.conflict}
+        let receipt=try await repairMedia(intent.media,files:files,mediaKey:mediaKey,token:token)
+        return MediaRepairReceipt(media:receipt.media,intentID:intent.id,revision:intent.revision)
     }
     public func mediaChunk(id: String, index: Int, token: String) async throws -> Data {
         guard MediaLimits.validID(id), (0..<10_000).contains(index) else { throw ChapterError.corruptData }
@@ -166,8 +201,17 @@ public final class Relay {
     /// Original authenticated primitive; future removal UI must durably guard
     /// shared/recovery/draft references and queue intent BEFORE calling this.
     public func deleteMedia(id: String, token: String) async throws {
-        guard MediaLimits.validID(id) else { throw ChapterError.corruptData }
-        _ = try await request("v1/media/\(id)", method: "DELETE", token: token, maxBytes: 0, expectedStatus: 204)
+        _ = try await deleteMediaWithReceipt(id:id,token:token)
+    }
+    public func deleteMediaWithReceipt(id:String,token:String) async throws -> MediaDeletionReceipt {
+        guard MediaLimits.validID(id) else {throw ChapterError.corruptData}
+        _ = try await request("v1/media/\(id)",method:"DELETE",token:token,maxBytes:0,expectedStatus:204)
+        return MediaDeletionReceipt(id:id)
+    }
+    public func deleteMediaForPurge(_ intent:MediaPurgeIntent,token:String) async throws -> MediaDeletionReceipt {
+        try intent.validate();guard intent.phase == .sending else {throw ChapterError.conflict}
+        let receipt=try await deleteMediaWithReceipt(id:intent.media.id,token:token)
+        return MediaDeletionReceipt(id:receipt.id,intentID:intent.id,revision:intent.revision)
     }
     public func mediaChunks(id: String, token: String) async throws -> Int { try await mediaMetadata(id: id, token: token).chunks }
 }

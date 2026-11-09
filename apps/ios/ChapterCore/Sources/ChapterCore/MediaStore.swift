@@ -131,7 +131,9 @@ extension VaultSnapshot {
         Set(records.filter {$0.kind == "entry" && !$0.deleted}.flatMap {$0.mediaReferences.map(\.id)})
     }
     public var uploadableRecords: [VaultRecord] {
-        let pending = Set((mediaUploads ?? []).map(\.id))
+        // An in-flight deletion/repair must not publish fresh dangling references.
+        guard let removals=try? mediaPurgeIntents() else {return []}
+        let pending = Set((mediaUploads ?? []).map(\.id)).union(removals.filter{$0.phase != .queued}.map{$0.media.id})
         return records.filter { $0.dirty && ($0.deleted || Set($0.mediaReferences.map(\.id)).isDisjoint(with: pending)) }
     }
 }

@@ -70,3 +70,10 @@ backup-restore workflow passes too; this is NOT a live S3 outage-failure test.
 Go full tests/vet and actual partial/complete sweep-failure unit tests pass.
 The native low-level strict204/500/503/path/token transport test passes in the
 full Apple suite. No native destructive UI or durable purge outbox claimed.
+
+Actual097 native UI context Move down -> changed document order -> reopen ->
+opaque future block retained PASSES in42528695109 (87.4s). Genuine after-move PNG:
+/workspace/chapter-097-functional-results/ChapterUIAttachments/772AC88B-B24A-441B-AADC-8CB64166D652.png
+This is an actual screen interaction + encrypted commit contract, not a physical
+kill/relaunch device test. Overall job still fails independent production audits
+and card pixel measurement. Full structural/table/custom editing not complete.

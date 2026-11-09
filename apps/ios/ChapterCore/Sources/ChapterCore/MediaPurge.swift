@@ -6,7 +6,7 @@ import Foundation
 /// These transitions are NOT permission to issue DELETE before saving the intent.
 public struct MediaPurgeIntent: Codable, Equatable, Identifiable {
     public static let recoveryKind = "chapterLocalMediaPurge"
-    public enum Phase: String, Codable { case queued, sending, confirmed }
+    public enum Phase: String, Codable { case queued, sending, confirmed, repairing }
     public let id: String
     public let media: MediaCache
     public let revision: Int64
@@ -38,7 +38,7 @@ public struct MediaPurgeReview {
 private func purgeEncoding<T:Encodable>(_ value:T) throws -> Data {
     let encoder=JSONEncoder();encoder.outputFormatting=[.sortedKeys];return try encoder.encode(value)
 }
-private extension MediaCache {
+extension MediaCache {
     func validatePurgeMetadata() throws {
         guard MediaLimits.validID(id),(1...128).contains(chunks),cipherBytes>=Int64(chunks*41),
               cipherBytes<=Int64(MediaLimits.maximumPlainBytes+chunks*41) else {throw ChapterError.corruptData}
@@ -133,15 +133,40 @@ public extension VaultSnapshot {
     /// Save returned .sending state BEFORE HTTP; after this point cancellation
     /// cannot claim the server has not seen the request. Restart retries DELETE.
     @discardableResult mutating func beginMediaPurge(_ expected:MediaPurgeIntent) throws -> MediaPurgeIntent {
-        let index=try purgeIndex(expected);guard expected.phase != .confirmed else {throw ChapterError.conflict}
+        let index=try purgeIndex(expected);guard expected.phase == .queued || expected.phase == .sending else {throw ChapterError.conflict}
         try requireMediaPurgeUnreferenced(expected.media)
         let next=try expected.advanced(to:.sending);conflicts[index]=try next.recoveryRecord();return next
     }
     /// Call ONLY after strict authenticated204, and persist before local cleanup.
-    @discardableResult mutating func confirmMediaPurge(_ expected:MediaPurgeIntent) throws -> MediaPurgeIntent {
+    @discardableResult internal mutating func confirmMediaPurge(_ expected:MediaPurgeIntent) throws -> MediaPurgeIntent {
         let index=try purgeIndex(expected);guard expected.phase == .sending else {throw ChapterError.conflict}
         try requireMediaPurgeUnreferenced(expected.media)
         let next=try expected.advanced(to:.confirmed);conflicts[index]=try next.recoveryRecord();return next
+    }
+    /// A public caller cannot fabricate successful remote completion from reachability.
+    @discardableResult mutating func confirmMediaPurge(_ expected:MediaPurgeIntent,receipt:MediaDeletionReceipt) throws -> MediaPurgeIntent {
+        guard receipt.id == expected.media.id,receipt.intentID == expected.id,receipt.revision == expected.revision else {throw ChapterError.conflict}
+        return try confirmMediaPurge(expected)
+    }
+    /// Persist BEFORE restoring bytes after an ambiguous/lost DELETE or a newly
+    /// observed reference. Never requires references to disappear to permit repair.
+    @discardableResult mutating func beginMediaPurgeRepair(_ expected:MediaPurgeIntent) throws -> MediaPurgeIntent {
+        let index=try purgeIndex(expected)
+        guard [.sending,.confirmed,.repairing].contains(expected.phase),
+              (mediaCache ?? []).filter({$0.id==expected.media.id}) == [expected.media] else {throw ChapterError.conflict}
+        try expected.media.validatePurgeMetadata()
+        let next=try expected.advanced(to:.repairing);conflicts[index]=try next.recoveryRecord();return next
+    }
+    @discardableResult mutating func finishMediaPurgeRepair(_ expected:MediaPurgeIntent,receipt:MediaRepairReceipt) throws -> MediaCache {
+        guard receipt.media == expected.media,receipt.intentID == expected.id,receipt.revision == expected.revision else {throw ChapterError.conflict}
+        return try finishMediaPurgeRepair(expected)
+    }
+    /// Internal pure-state seam; production callers require the typed relay proof.
+    @discardableResult internal mutating func finishMediaPurgeRepair(_ expected:MediaPurgeIntent) throws -> MediaCache {
+        let index=try purgeIndex(expected)
+        guard expected.phase == .repairing,(mediaCache ?? []).filter({$0.id==expected.media.id}) == [expected.media] else {throw ChapterError.conflict}
+        // Do not alter references, drafts, pending uploads or retained ciphertext.
+        conflicts.remove(at:index);return expected.media
     }
     /// File cleanup and this acknowledgement must follow durable .confirmed.
     /// Recheck immediately before physical cleanup; never clear referenced work.

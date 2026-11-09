@@ -113,8 +113,8 @@ final class LiveRelayTests: XCTestCase {
         let sendingPurge=try orphanState.beginMediaPurge(purge);try purgeDisk.save(orphanState)
         // Interrupted/lost-response retry retains the exact encrypted intent.
         orphanState=try purgeDisk.load();XCTAssertEqual(try orphanState.mediaPurgeIntents(),[sendingPurge])
-        try await client.deleteMedia(id:orphanID,token:token)
-        let confirmedPurge=try orphanState.confirmMediaPurge(sendingPurge);try purgeDisk.save(orphanState)
+        let deletedReceipt=try await client.deleteMediaForPurge(sendingPurge,token:token)
+        let confirmedPurge=try orphanState.confirmMediaPurge(sendingPurge,receipt:deletedReceipt);try purgeDisk.save(orphanState)
         try files.removeConfirmedPurge(confirmedPurge,snapshot:orphanState)
         try files.removeConfirmedPurge(confirmedPurge,snapshot:try purgeDisk.load())
         try orphanState.finishMediaPurge(confirmedPurge);try purgeDisk.save(orphanState)
@@ -126,6 +126,35 @@ final class LiveRelayTests: XCTestCase {
             catch ChapterError.http(let status) { XCTAssertEqual(status,404) }
         }
         try await client.deleteMedia(id:orphanID,token:token)
+        // Adversarial real cross-client reference arrives after actual DELETE.
+        // Retain/reopen the original cipher chunks, restore with the same ID,
+        // prove every remote chunk is byte-identical and no record was rewritten.
+        let repairID=UUID().uuidString.replacingOccurrences(of:"-",with:"")
+        let repairUpload=try files.stage(source:source,id:repairID,name:"Public concurrent reference",mime:"application/octet-stream",key:identity.mediaKey)
+        try await client.uploadMedia(repairUpload,files:files,mediaKey:identity.mediaKey,token:token)
+        var repairState=VaultSnapshot();repairState.mediaCache=[MediaCache(id:repairID,chunks:repairUpload.chunks,cipherBytes:repairUpload.cipherBytes)]
+        let repairQueued=try repairState.queueMediaPurge(repairState.reviewMediaPurge(repairState.mediaCache![0]))
+        let repairSent=try repairState.beginMediaPurge(repairQueued);try purgeDisk.save(repairState)
+        let repairDeleted=try await client.deleteMediaForPurge(repairSent,token:token)
+        let concurrent=VaultRecord(id:UUID().uuidString.replacingOccurrences(of:"-",with:""),clock:12345,body:["title":.string("Public concurrent reference"),"attachments":.array([.object(repairUpload.attributes)])])
+        let referencePush=try await client.push([concurrent],identity:identity,token:token);XCTAssertTrue(referencePush.allSatisfy(\.applied))
+        let concurrentPage=try await client.pull(since:restoredPage.cursor,token:token)
+        repairState=try purgeDisk.load()
+        for wire in concurrentPage.entries where wire.entry_id==concurrent.id {
+            let raw=try XCTUnwrap(Data(base64Encoded:wire.ciphertext))
+            let body=try JSONDecoder().decode([String:JSONValue].self,from:VaultCipher.openRecord(raw,key:identity.dataKey,id:wire.entry_id))
+            repairState.merge(VaultRecord(id:wire.entry_id,clock:wire.lww_clock,deleted:wire.deleted,body:body))
+        }
+        XCTAssertEqual(repairState.records,[concurrent]);XCTAssertThrowsError(try repairState.confirmMediaPurge(repairSent,receipt:repairDeleted))
+        let repairing=try repairState.beginMediaPurgeRepair(repairSent);try purgeDisk.save(repairState)
+        repairState=try purgeDisk.load();XCTAssertEqual(try repairState.mediaPurgeIntents(),[repairing])
+        let repaired=try await client.repairMediaForPurge(repairing,files:files,mediaKey:identity.mediaKey,token:token)
+        try repairState.finishMediaPurgeRepair(repairing,receipt:repaired);try purgeDisk.save(repairState)
+        XCTAssertEqual(try purgeDisk.load().records,[concurrent]);XCTAssertTrue(try purgeDisk.load().mediaPurgeIntents().isEmpty)
+        for index in 0..<repairUpload.chunks {
+            let restored=try await client.mediaChunk(id:repairID,index:index,token:token)
+            XCTAssertEqual(restored,try files.read(id:repairID,index:index),"Repair must not invent new ciphertext/nonces")
+        }
         let stillShared=try await client.mediaChunk(id:upload.id,index:0,token:token)
         XCTAssertEqual(stillShared,try files.read(id:upload.id,index:0),"Unrelated shared/recovered media must survive")
         func stage(_ page:[PullRecord]) throws -> [JSONValue] {

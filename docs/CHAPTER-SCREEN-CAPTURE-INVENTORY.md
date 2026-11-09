@@ -57,3 +57,11 @@ media/picker screen. New tests require actual decrypted text and completed syste
 preview dismissal. The additional arrangement screen42 is a new planned capture,
 not yet observed. Current galleries and actual source inventories are versioned;
 never blend builds/themes without labels.
+
+## Planned next actual captures (NOT observed yet)
+44 native outgoing entry links/live local titles;45 linked target/backlinks;
+46 honest missing/not-downloaded offline state. New genuine page-tour test plus
+separate functional navigation tests are required; no mockups added. Actual097
+AFTER-MOVE Arrange screenshot is now observed/visually reviewed in functional
+results and that context-move/reopen/opaque test PASSES, unlike the separately
+still-failing card pixel/production accessibility gates.

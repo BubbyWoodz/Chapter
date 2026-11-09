@@ -54,6 +54,16 @@ final class SyncUnicodeTests: XCTestCase {
         try state.deleteEntryPreservingRecovery(expected:changed)
         XCTAssertEqual(state.conflicts,[original,changed])
     }
+    func testPlainEditorAndOpaqueFormattingCannotSilentlyNormalizeOriginalJSON() throws {
+        let nfc="é",nfd="e\u{0301}"
+        var plain=VaultRecord(id:"plain",clock:1,body:["chapterNativePlain":.bool(true),"bodyText":.string(nfc),"bodyJson":.string(try VaultRecord.plainDocument(nfc))])
+        XCTAssertTrue(plain.editablePlainText);plain.body["bodyJson"] = .string(try VaultRecord.plainDocument(nfd))
+        XCTAssertFalse(plain.editablePlainText,"A plain editor must not flatten a byte-distinct original document")
+        let raw:JSONValue = .object(["type":.string("doc"),"content":.array([.object(["type":.string("paragraph"),"content":.array([.object(["type":.string("text"),"text":.string("same"),"marks":.array([.object(["type":.string("future"),"attrs":.object(["token":.string(nfc)])])])])])])])])
+        var doc=try RichDocument(json:String(decoding:try bytes(raw),as:UTF8.self));let before=try bytes(doc.root)
+        XCTAssertThrowsError(try doc.replaceText(at:[0,0],with:"edited",marks:[.object(["type":.string("future"),"attrs":.object(["token":.string(nfd)])])]))
+        XCTAssertEqual(try bytes(doc.root),before)
+    }
     func testEncryptedConflictAndAcknowledgementFaultCannotAdvanceCursorOrLoseOriginalBytes() throws {
         let dir=FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at:dir,withIntermediateDirectories:true);defer{try? FileManager.default.removeItem(at:dir)}

@@ -57,7 +57,8 @@ public struct RichDocument {
             guard marks.count <= 1024, (!marks.contains(where: { $0["type"].string == "code" }) || marks.count == 1), marks.allSatisfy({ if case .object = $0 { return $0["type"].string != nil }; return false }) else { throw ChapterError.unsupported }
             // Native formatting may change only the explicitly supported marks.
             let opaque: (JSONValue) -> Bool = { !Self.editableMarks.contains($0["type"].string ?? "") }
-            guard marks.filter(opaque) == original.value["marks"].array.filter(opaque) else { throw ChapterError.unsupported }
+            let encoder=JSONEncoder();encoder.outputFormatting=[.sortedKeys]
+            guard try encoder.encode(marks.filter(opaque)) == encoder.encode(original.value["marks"].array.filter(opaque)) else { throw ChapterError.unsupported }
         }
         root = try patch(root, path: ArraySlice(path)) { node in
             guard case .object(var fields) = node else { throw ChapterError.unsupported }

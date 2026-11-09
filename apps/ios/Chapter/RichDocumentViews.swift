@@ -8,12 +8,15 @@ struct RichDocumentView: View {
     let document: RichDocument
     @State private var error: String?
     @State private var externalURL: URL?
+    @State private var linkedEntry: LocalEntryDestination?
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             render(document.node)
             Text("Native rich preview: math is shown as LaTeX; merged-table layout and custom media/interview cards are simplified. Unknown nodes and formatting remain intact.").font(.footnote).foregroundStyle(.secondary)
         }
+        .navigationDestination(item:$linkedEntry) { destination in LinkedEntryDestination(entryID:destination.id) }
         .environment(\.openURL, OpenURLAction { url in
+            if let id=EntryLinkRoute.entryID(from:url) {linkedEntry=LocalEntryDestination(id:id);return .handled}
             guard ["https", "http", "mailto"].contains(url.scheme?.lowercased() ?? "") else { return .discarded }
             externalURL = url; return .handled
         })
@@ -45,7 +48,12 @@ struct RichDocumentView: View {
         }
         if node.type == "hardBreak" { return AttributedString("\n") }
         if node.type == "inlineMath" { return AttributedString("⟨" + (node.value["attrs"]["latex"].string ?? "") + "⟩") }
-        if node.type == "entryLink" { return AttributedString("🔗 " + (node.value["attrs"]["label"].string ?? "Related entry")) }
+        if node.type == "entryLink" {
+            let id=node.value["attrs"]["entryId"].string ?? ""
+            let current=model.entries.first(where:{$0.id.utf8.elementsEqual(id.utf8)})
+            var value=AttributedString(current?.title ?? node.value["attrs"]["label"].string ?? "Related entry")
+            value.link=EntryLinkRoute.url(for:id);value.underlineStyle = .single;value.font=font;return value
+        }
         if !["paragraph", "heading"].contains(node.type) { return AttributedString("[\(node.type) — preserved]") }
         return node.children.reduce(into: AttributedString()) { $0 += inline($1, font: font) }
     }
@@ -249,3 +257,20 @@ struct RichDraftEditor: View {
 // Public fixture only; never a way to unlock a real vault or bypass Keychain.
 enum PublicRichFixture { static let json = #"{"type":"doc","futureRoot":{"keep":["all",1,true]},"content":[{"type":"heading","attrs":{"level":2,"future":"keep"},"content":[{"type":"text","text":"Public heading","marks":[{"type":"bold","attrs":{"future":7}}]}]},{"type":"paragraph","content":[{"type":"text","text":"Hello ","marks":[{"type":"bold"},{"type":"link","attrs":{"href":"https://example.invalid","future":"keep"}}]},{"type":"text","text":"world 👩🏽‍💻","marks":[{"type":"italic"},{"type":"underline"},{"type":"strike"},{"type":"code"}]},{"type":"inlineMath","attrs":{"latex":"x^2"}},{"type":"entryLink","attrs":{"entryId":"entry-target","label":"Related"}},{"type":"hardBreak"}]},{"type":"taskList","content":[{"type":"taskItem","attrs":{"checked":false,"future":{"keep":true}},"content":[{"type":"paragraph","content":[{"type":"text","text":"Task"}]}]}]},{"type":"table","attrs":{"future":1},"content":[{"type":"tableRow","content":[{"type":"tableHeader","attrs":{"colspan":1,"rowspan":1,"colwidth":[160]},"content":[{"type":"paragraph","content":[{"type":"text","text":"Header"}]}]},{"type":"tableCell","attrs":{"colspan":2,"rowspan":1,"colwidth":null},"content":[{"type":"paragraph","content":[{"type":"text","text":"Cell"}]}]}]}]},{"type":"mediaAttachment","attrs":{"id":"attachment","mime":"image/png","bytes":10,"name":"Public photo","kind":"image","transcript":"Public transcript"}},{"type":"mediaGallery","attrs":{"images":[{"id":"gallery","mime":"image/png","bytes":10,"name":"Public photo"}]}},{"type":"blockMath","attrs":{"latex":"\\frac{a}{b}"}},{"type":"blockquote","content":[{"type":"paragraph","content":[{"type":"text","text":"Quotation"}]}]},{"type":"codeBlock","attrs":{"language":"swift"},"content":[{"type":"text","text":"let answer = 42"}]},{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"Bullet"}]}]}]},{"type":"orderedList","attrs":{"start":3},"content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"Numbered"}]}]}]},{"type":"locationMap","attrs":{"from":{"label":"Home"},"to":{"label":"Park"},"map":{"id":"map","mime":"image/png","bytes":10,"name":"Public photo"},"photo":{"id":"photo","mime":"image/png","bytes":10,"name":"Public photo"},"future":[1,2]}},{"type":"videoInterview","attrs":{"typeName":"Public interview","cards":[{"q":"Question?","transcript":"Answer","clip":{"id":"clip","mime":"image/png","bytes":10,"name":"Public photo"}}],"film":{"id":"film","mime":"image/png","bytes":10,"name":"Public photo"}}},{"type":"futureNode","attrs":{"secretFormat":{"keep":[1,"two",false]}},"content":[{"type":"text","text":"Opaque future text","marks":[{"type":"futureMark","attrs":{"keep":true}}]}]}]}"# }
 #endif
+
+private struct LocalEntryDestination:Hashable {let id:String}
+struct LinkedEntryDestination:View {
+    @EnvironmentObject private var model:VaultModel
+    let entryID:String
+    private var downloaded:VaultRecord? {model.snapshot.records.first{$0.id.utf8.elementsEqual(entryID.utf8) && $0.kind=="entry"}}
+    var body:some View {
+        if let downloaded,!downloaded.deleted {EntryDetail(entryID:entryID)}
+        else {
+            VStack(alignment:.leading,spacing:16) {
+                Label(downloaded?.deleted == true ? "Linked entry is deleted":"Linked entry is not downloaded",systemImage:"link").font(.title2).accessibilityAddTraits(.isHeader)
+                Text(downloaded?.deleted == true ? "Look in Settings for a retained recovery copy. Opening a link never silently restores or overwrites writing.":"The original link is preserved. Sync your own server to download available entries; offline links only open entries already on this device.")
+                if model.canSync {Button {Task{await model.sync()}} label:{if model.syncing {ProgressView("Syncing your server")} else {Text("Sync your server")}}.disabled(model.syncing)}
+            }.padding().frame(maxWidth:.infinity,alignment:.leading).modifier(ChapterScreenSurface()).navigationTitle("Linked entry").accessibilityIdentifier("entry.link-unavailable")
+        }
+    }
+}
